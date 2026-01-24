@@ -152,111 +152,128 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       // Draw image to fill canvas maintaining aspect ratio
       ctx.drawImage(img, 0, 0, outputWidth, outputHeight);
 
-      // Calculate overlay dimensions
-      const overlayHeight = outputHeight * 0.32;
-      const overlayY = outputHeight - overlayHeight;
-      const padding = outputWidth * 0.04;
+      // Calculate overlay dimensions - bottom left corner
+      const padding = outputWidth * 0.03;
+      const overlayWidth = outputWidth * 0.65;
+      const overlayHeight = outputHeight * 0.28;
+      const overlayX = padding;
+      const overlayY = outputHeight - overlayHeight - padding;
 
-      // Draw semi-transparent overlay background
+      // Draw semi-transparent overlay background with rounded corners effect
       ctx.fillStyle = theme.overlayBg;
-      ctx.fillRect(0, overlayY, outputWidth, overlayHeight);
+      ctx.beginPath();
+      const radius = 12;
+      ctx.moveTo(overlayX + radius, overlayY);
+      ctx.lineTo(overlayX + overlayWidth - radius, overlayY);
+      ctx.quadraticCurveTo(overlayX + overlayWidth, overlayY, overlayX + overlayWidth, overlayY + radius);
+      ctx.lineTo(overlayX + overlayWidth, overlayY + overlayHeight - radius);
+      ctx.quadraticCurveTo(overlayX + overlayWidth, overlayY + overlayHeight, overlayX + overlayWidth - radius, overlayY + overlayHeight);
+      ctx.lineTo(overlayX + radius, overlayY + overlayHeight);
+      ctx.quadraticCurveTo(overlayX, overlayY + overlayHeight, overlayX, overlayY + overlayHeight - radius);
+      ctx.lineTo(overlayX, overlayY + radius);
+      ctx.quadraticCurveTo(overlayX, overlayY, overlayX + radius, overlayY);
+      ctx.closePath();
+      ctx.fill();
+
+      const innerPadding = padding * 1.2;
+      const contentX = overlayX + innerPadding;
+      let currentY = overlayY + innerPadding * 1.5;
 
       // Draw top decorative line
       ctx.fillStyle = theme.accent;
-      ctx.fillRect(padding, overlayY + padding * 0.6, outputWidth - padding * 2, 3);
+      ctx.fillRect(contentX, currentY - innerPadding * 0.5, overlayWidth - innerPadding * 2, 3);
 
       // "BOOKING" label
       ctx.fillStyle = theme.textSecondary;
-      ctx.font = `500 ${outputWidth * 0.022}px Inter, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.letterSpacing = '4px';
-      ctx.fillText('— BOOKING —', outputWidth / 2, overlayY + padding * 1.6);
+      ctx.font = `500 ${outputWidth * 0.018}px Inter, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText('— BOOKING —', contentX, currentY + innerPadding * 0.5);
+      currentY += innerPadding * 1.5;
 
-      // Job type (Thai - large)
+      // Job type (Thai - large) - from booking data
       ctx.fillStyle = theme.textPrimary;
-      ctx.font = `700 ${outputWidth * 0.065}px Sarabun, sans-serif`;
-      ctx.fillText(JOB_TYPE_LABELS_TH[booking.job_type] || booking.job_type, outputWidth / 2, overlayY + padding * 3);
+      ctx.font = `700 ${outputWidth * 0.055}px Sarabun, sans-serif`;
+      ctx.fillText(JOB_TYPE_LABELS_TH[booking.job_type] || JOB_TYPE_LABELS[booking.job_type], contentX, currentY);
+      currentY += innerPadding * 1.8;
 
-      // Location (if available)
+      // Location (from booking data)
       if (booking.location) {
         ctx.fillStyle = theme.accent;
-        ctx.font = `600 ${outputWidth * 0.038}px Sarabun, sans-serif`;
-        ctx.fillText(booking.location, outputWidth / 2, overlayY + padding * 4.2);
+        ctx.font = `600 ${outputWidth * 0.032}px Sarabun, sans-serif`;
+        ctx.fillText(booking.location, contentX, currentY);
+        currentY += innerPadding * 1.4;
       }
 
-      // Studio name
-      const studioName = profile?.studio_name || 'Photography Studio';
-      ctx.fillStyle = theme.textSecondary;
-      ctx.font = `italic 500 ${outputWidth * 0.026}px Georgia, serif`;
-      const studioY = booking.location ? overlayY + padding * 5.2 : overlayY + padding * 4.4;
-      ctx.fillText(`รับถ่ายภาพราคามิตรภาพ`, outputWidth / 2, studioY);
-      
-      // Studio name in stylized format
-      ctx.font = `italic 600 ${outputWidth * 0.045}px Georgia, serif`;
-      ctx.fillStyle = theme.accent;
-      ctx.fillText(studioName, outputWidth / 2, studioY + padding * 1.2);
+      // Studio name (from profile)
+      const studioName = profile?.studio_name || '';
+      if (studioName) {
+        ctx.fillStyle = theme.textSecondary;
+        ctx.font = `italic 500 ${outputWidth * 0.022}px Georgia, serif`;
+        ctx.fillText('รับถ่ายภาพราคามิตรภาพ', contentX, currentY);
+        currentY += innerPadding * 0.9;
+        
+        ctx.font = `italic 600 ${outputWidth * 0.038}px Georgia, serif`;
+        ctx.fillStyle = theme.accent;
+        ctx.fillText(studioName, contentX, currentY);
+        currentY += innerPadding * 1.6;
+      }
 
-      // Date box section
-      const dateBoxY = studioY + padding * 2.2;
-      const dateBoxWidth = outputWidth * 0.5;
-      const dateBoxHeight = padding * 2.8;
-      const dateBoxX = (outputWidth - dateBoxWidth) / 2;
-
-      // Day name background
+      // Date section - from booking data
+      // Day name
       ctx.fillStyle = theme.accentBg;
-      ctx.fillRect(dateBoxX, dateBoxY, dateBoxWidth * 0.35, dateBoxHeight * 0.35);
+      const dayBoxWidth = outputWidth * 0.12;
+      const dayBoxHeight = innerPadding * 0.9;
+      ctx.fillRect(contentX, currentY - dayBoxHeight * 0.7, dayBoxWidth, dayBoxHeight);
+      
       ctx.fillStyle = theme.textPrimary;
-      ctx.font = `500 ${outputWidth * 0.022}px Sarabun, sans-serif`;
-      ctx.fillText(`วัน${thaiDate.dayName}`, dateBoxX + dateBoxWidth * 0.175, dateBoxY + dateBoxHeight * 0.25);
+      ctx.font = `500 ${outputWidth * 0.018}px Sarabun, sans-serif`;
+      ctx.fillText(`วัน${thaiDate.dayName}`, contentX + dayBoxWidth * 0.12, currentY);
+      currentY += innerPadding * 0.3;
 
+      // Large day number and month/year side by side
+      const dayNumY = currentY + innerPadding * 1.8;
+      
       // Large day number
       ctx.fillStyle = theme.accent;
-      ctx.font = `700 ${outputWidth * 0.12}px Inter, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText(thaiDate.day.toString(), dateBoxX + dateBoxWidth * 0.25, dateBoxY + dateBoxHeight * 0.85);
-
+      ctx.font = `700 ${outputWidth * 0.09}px Inter, sans-serif`;
+      ctx.fillText(thaiDate.day.toString(), contentX, dayNumY);
+      
+      // Calculate where the day number ends
+      const dayNumWidth = ctx.measureText(thaiDate.day.toString()).width;
+      
       // Vertical line separator
+      const lineX = contentX + dayNumWidth + innerPadding * 0.5;
       ctx.strokeStyle = theme.borderColor;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(dateBoxX + dateBoxWidth * 0.5, dateBoxY + dateBoxHeight * 0.1);
-      ctx.lineTo(dateBoxX + dateBoxWidth * 0.5, dateBoxY + dateBoxHeight * 0.9);
+      ctx.moveTo(lineX, currentY + innerPadding * 0.3);
+      ctx.lineTo(lineX, dayNumY + innerPadding * 0.2);
       ctx.stroke();
 
-      // Month, Year, Time
-      ctx.textAlign = 'left';
+      // Month and Year/Time
+      const monthX = lineX + innerPadding * 0.5;
       ctx.fillStyle = theme.textPrimary;
-      ctx.font = `600 ${outputWidth * 0.032}px Sarabun, sans-serif`;
-      ctx.fillText(thaiDate.monthName, dateBoxX + dateBoxWidth * 0.55, dateBoxY + dateBoxHeight * 0.35);
+      ctx.font = `600 ${outputWidth * 0.028}px Sarabun, sans-serif`;
+      ctx.fillText(thaiDate.monthName, monthX, currentY + innerPadding * 1);
       
       ctx.fillStyle = theme.textSecondary;
-      ctx.font = `400 ${outputWidth * 0.024}px Sarabun, sans-serif`;
-      ctx.fillText(`${thaiDate.year}${timeSlot ? ` | ${timeSlot}` : ''}`, dateBoxX + dateBoxWidth * 0.55, dateBoxY + dateBoxHeight * 0.6);
-
-      // Service description
-      ctx.textAlign = 'center';
-      ctx.fillStyle = theme.textSecondary;
       ctx.font = `400 ${outputWidth * 0.02}px Sarabun, sans-serif`;
-      const serviceY = dateBoxY + dateBoxHeight + padding * 0.8;
-      ctx.fillText('บริการถ่ายภาพงานแต่งงาน', outputWidth / 2, serviceY);
-      ctx.fillText('ทีมงานมืออาชีพ บริการเป็นกันเอง ได้ภาพสวย', outputWidth / 2, serviceY + padding * 0.5);
+      ctx.fillText(`${thaiDate.year}${timeSlot ? ` | ${timeSlot}` : ''}`, monthX, currentY + innerPadding * 1.7);
 
-      // Contact info
-      const contactY = serviceY + padding * 1.2;
-      ctx.fillStyle = theme.textSecondary;
-      ctx.font = `400 ${outputWidth * 0.018}px Sarabun, sans-serif`;
+      currentY = dayNumY + innerPadding * 1;
+
+      // Contact info (from profile)
       const phone = profile?.phone || '';
       if (phone) {
-        ctx.fillText(`สอบถามรายละเอียดเพิ่มเติม ติดต่อ`, outputWidth / 2, contactY);
+        ctx.fillStyle = theme.textSecondary;
+        ctx.font = `400 ${outputWidth * 0.016}px Sarabun, sans-serif`;
+        ctx.fillText(`สอบถามรายละเอียดเพิ่มเติม ติดต่อ`, contentX, currentY);
+        currentY += innerPadding * 0.6;
+        
         ctx.fillStyle = theme.textPrimary;
-        ctx.font = `600 ${outputWidth * 0.022}px Inter, sans-serif`;
-        ctx.fillText(phone, outputWidth / 2, contactY + padding * 0.5);
+        ctx.font = `600 ${outputWidth * 0.02}px Inter, sans-serif`;
+        ctx.fillText(phone, contentX, currentY);
       }
-
-      // Bottom tagline
-      ctx.fillStyle = theme.textSecondary;
-      ctx.font = `400 ${outputWidth * 0.014}px Sarabun, sans-serif`;
-      ctx.fillText(`${studioName} • ช่างภาพมืออาชีพ • รับถ่ายภาพงานแต่ง • งานพิธีต่างๆ`, outputWidth / 2, outputHeight - padding * 0.8);
 
       // Convert to blob and download
       canvas.toBlob((blob) => {
@@ -442,12 +459,12 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                   </div>
                 )}
 
-                {/* Overlay Section */}
+                {/* Overlay Section - Bottom Left Corner */}
                 <div 
-                  className="absolute bottom-0 left-0 right-0 p-3"
+                  className="absolute bottom-2 left-2 p-2 rounded-lg"
                   style={{ 
                     backgroundColor: theme.overlayBg,
-                    height: '32%'
+                    width: '65%',
                   }}
                 >
                   {/* Top line */}
@@ -457,14 +474,14 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                   />
                   
                   <p 
-                    className="text-[6px] text-center tracking-wider mb-1"
+                    className="text-[5px] tracking-wider mb-0.5"
                     style={{ color: theme.textSecondary }}
                   >
                     — BOOKING —
                   </p>
 
                   <h3 
-                    className="text-center font-bold text-[11px] leading-tight"
+                    className="font-bold text-[10px] leading-tight"
                     style={{ color: theme.textPrimary }}
                   >
                     {JOB_TYPE_LABELS_TH[booking.job_type]}
@@ -472,55 +489,66 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
                   {booking.location && (
                     <p 
-                      className="text-center text-[8px] mt-0.5"
+                      className="text-[7px] mt-0.5"
                       style={{ color: theme.accent }}
                     >
                       {booking.location}
                     </p>
                   )}
 
-                  <p 
-                    className="text-center text-[5px] italic mt-1"
-                    style={{ color: theme.textSecondary }}
-                  >
-                    {profile?.studio_name || 'Studio'}
-                  </p>
+                  {profile?.studio_name && (
+                    <p 
+                      className="text-[5px] italic mt-0.5"
+                      style={{ color: theme.textSecondary }}
+                    >
+                      {profile.studio_name}
+                    </p>
+                  )}
 
                   {/* Date section */}
-                  <div className="flex items-center justify-center gap-2 mt-1">
-                    <div className="text-center">
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <div>
                       <p 
-                        className="text-[5px]"
+                        className="text-[4px]"
                         style={{ color: theme.textPrimary }}
                       >
                         วัน{thaiDate?.dayName}
                       </p>
                       <p 
-                        className="text-[16px] font-bold leading-none"
+                        className="text-[14px] font-bold leading-none"
                         style={{ color: theme.accent }}
                       >
                         {thaiDate?.day}
                       </p>
                     </div>
                     <div 
-                      className="w-[1px] h-6"
+                      className="w-[1px] h-5"
                       style={{ backgroundColor: theme.borderColor }}
                     />
-                    <div className="text-left">
+                    <div>
                       <p 
-                        className="text-[7px] font-semibold"
+                        className="text-[6px] font-semibold"
                         style={{ color: theme.textPrimary }}
                       >
                         {thaiDate?.monthName}
                       </p>
                       <p 
-                        className="text-[5px]"
+                        className="text-[4px]"
                         style={{ color: theme.textSecondary }}
                       >
                         {thaiDate?.year} | {getTimeSlot() || 'ตลอดวัน'}
                       </p>
                     </div>
                   </div>
+
+                  {profile?.phone && (
+                    <p 
+                      className="text-[4px] mt-1"
+                      style={{ color: theme.textSecondary }}
+                    >
+                      ติดต่อ: {profile.phone}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
