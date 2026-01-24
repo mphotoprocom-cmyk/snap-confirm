@@ -36,17 +36,17 @@ export interface Profile {
 }
 
 export const JOB_TYPE_LABELS: Record<JobType, string> = {
-  wedding: 'Wedding',
-  event: 'Event',
-  corporate: 'Corporate',
-  portrait: 'Portrait',
-  other: 'Other',
+  wedding: 'งานแต่งงาน',
+  event: 'งานอีเว้นท์',
+  corporate: 'งานองค์กร',
+  portrait: 'ถ่ายภาพบุคคล',
+  other: 'อื่นๆ',
 };
 
 export const STATUS_LABELS: Record<BookingStatus, string> = {
-  draft: 'Draft',
-  waiting_deposit: 'Waiting for Deposit',
-  booked: 'Booked',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+  draft: 'ร่าง',
+  waiting_deposit: 'รอมัดจำ',
+  booked: 'จองแล้ว',
+  completed: 'เสร็จสิ้น',
+  cancelled: 'ยกเลิก',
 };

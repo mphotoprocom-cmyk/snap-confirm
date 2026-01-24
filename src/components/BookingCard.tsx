@@ -3,11 +3,24 @@ import { StatusBadge } from './StatusBadge';
 import { Card } from '@/components/ui/card';
 import { Calendar, Clock, MapPin, User } from 'lucide-react';
 import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 
 interface BookingCardProps {
   booking: Booking;
 }
+
+// Helper function to convert to Buddhist Era
+const toBuddhistYear = (date: Date) => {
+  return date.getFullYear() + 543;
+};
+
+const formatThaiDate = (date: Date) => {
+  const day = format(date, 'd', { locale: th });
+  const month = format(date, 'MMM', { locale: th });
+  const year = toBuddhistYear(date);
+  return `${day} ${month} ${year}`;
+};
 
 export function BookingCard({ booking }: BookingCardProps) {
   const formatTime = (time: string | null) => {
@@ -15,7 +28,7 @@ export function BookingCard({ booking }: BookingCardProps) {
     const [hours, minutes] = time.split(':');
     const date = new Date();
     date.setHours(parseInt(hours), parseInt(minutes));
-    return format(date, 'h:mm a');
+    return format(date, 'HH:mm น.');
   };
 
   return (
@@ -38,7 +51,7 @@ export function BookingCard({ booking }: BookingCardProps) {
             <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-secondary">
               <Calendar className="w-3 h-3" />
             </span>
-            <span>{format(new Date(booking.event_date), 'MMM d, yyyy')}</span>
+            <span>{formatThaiDate(new Date(booking.event_date))}</span>
             <span className="text-xs px-2 py-0.5 rounded bg-accent/10 text-accent font-medium">
               {JOB_TYPE_LABELS[booking.job_type]}
             </span>
@@ -68,16 +81,16 @@ export function BookingCard({ booking }: BookingCardProps) {
 
         <div className="mt-4 pt-4 border-t flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="text-xs text-muted-foreground">ราคารวม</p>
             <p className="font-semibold text-foreground">
-              ${booking.total_price.toLocaleString()}
+              ฿{booking.total_price.toLocaleString()}
             </p>
           </div>
           {booking.deposit_amount > 0 && (
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Deposit</p>
+              <p className="text-xs text-muted-foreground">มัดจำ</p>
               <p className="text-sm font-medium text-foreground">
-                ${booking.deposit_amount.toLocaleString()}
+                ฿{booking.deposit_amount.toLocaleString()}
               </p>
             </div>
           )}

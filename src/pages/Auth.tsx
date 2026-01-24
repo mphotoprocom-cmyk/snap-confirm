@@ -10,8 +10,8 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const authSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('กรุณากรอกอีเมลที่ถูกต้อง'),
+  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
 });
 
 export default function Auth() {
@@ -51,25 +51,25 @@ export default function Auth() {
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
-            toast.error('Invalid email or password. Please try again.');
+            toast.error('อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่');
           } else {
             toast.error(error.message);
           }
           return;
         }
-        toast.success('Welcome back!');
+        toast.success('ยินดีต้อนรับกลับมา!');
         navigate('/');
       } else {
         const { error } = await signUp(email, password);
         if (error) {
           if (error.message.includes('already registered')) {
-            toast.error('This email is already registered. Please sign in instead.');
+            toast.error('อีเมลนี้ถูกลงทะเบียนแล้ว กรุณาเข้าสู่ระบบ');
           } else {
             toast.error(error.message);
           }
           return;
         }
-        toast.success('Account created! Welcome to your studio.');
+        toast.success('สร้างบัญชีสำเร็จ! ยินดีต้อนรับสู่สตูดิโอของคุณ');
         navigate('/');
       }
     } finally {
@@ -85,16 +85,16 @@ export default function Auth() {
             <Camera className="w-7 h-7 text-accent-foreground" />
           </div>
           <h1 className="font-display text-2xl font-semibold text-foreground">
-            Photo Booking
+            ระบบจองถ่ายภาพ
           </h1>
           <p className="text-muted-foreground mt-2">
-            {isLogin ? 'Welcome back to your studio' : 'Create your photographer account'}
+            {isLogin ? 'ยินดีต้อนรับกลับมายังสตูดิโอของคุณ' : 'สร้างบัญชีช่างภาพของคุณ'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">อีเมล</Label>
             <Input
               id="email"
               type="email"
@@ -110,7 +110,7 @@ export default function Auth() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">รหัสผ่าน</Label>
             <Input
               id="password"
               type="password"
@@ -129,10 +129,10 @@ export default function Auth() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {isLogin ? 'Signing in...' : 'Creating account...'}
+                {isLogin ? 'กำลังเข้าสู่ระบบ...' : 'กำลังสร้างบัญชี...'}
               </>
             ) : (
-              isLogin ? 'Sign In' : 'Create Account'
+              isLogin ? 'เข้าสู่ระบบ' : 'สร้างบัญชี'
             )}
           </Button>
         </form>
@@ -144,9 +144,9 @@ export default function Auth() {
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {isLogin ? (
-              <>Don't have an account? <span className="text-accent font-medium">Sign up</span></>
+              <>ยังไม่มีบัญชี? <span className="text-accent font-medium">สมัครสมาชิก</span></>
             ) : (
-              <>Already have an account? <span className="text-accent font-medium">Sign in</span></>
+              <>มีบัญชีอยู่แล้ว? <span className="text-accent font-medium">เข้าสู่ระบบ</span></>
             )}
           </button>
         </div>

@@ -9,11 +9,11 @@ import { Plus, Search, Calendar, CheckCircle, Clock, FileX, Loader2 } from 'luci
 import { Link } from 'react-router-dom';
 
 const statusFilters: { value: BookingStatus | 'all'; label: string; icon: React.ReactNode }[] = [
-  { value: 'all', label: 'All', icon: null },
-  { value: 'draft', label: 'Draft', icon: <FileX className="w-3.5 h-3.5" /> },
-  { value: 'waiting_deposit', label: 'Waiting', icon: <Clock className="w-3.5 h-3.5" /> },
-  { value: 'booked', label: 'Booked', icon: <CheckCircle className="w-3.5 h-3.5" /> },
-  { value: 'completed', label: 'Done', icon: <Calendar className="w-3.5 h-3.5" /> },
+  { value: 'all', label: 'ทั้งหมด', icon: null },
+  { value: 'draft', label: 'ร่าง', icon: <FileX className="w-3.5 h-3.5" /> },
+  { value: 'waiting_deposit', label: 'รอมัดจำ', icon: <Clock className="w-3.5 h-3.5" /> },
+  { value: 'booked', label: 'จองแล้ว', icon: <CheckCircle className="w-3.5 h-3.5" /> },
+  { value: 'completed', label: 'เสร็จสิ้น', icon: <Calendar className="w-3.5 h-3.5" /> },
 ];
 
 export default function Dashboard() {
@@ -48,26 +48,26 @@ export default function Dashboard() {
       <main className="container py-8">
         {/* Page Header */}
         <div className="page-header">
-          <h1 className="page-title">Bookings</h1>
-          <p className="page-subtitle">Manage your photography sessions</p>
+          <h1 className="page-title">รายการจอง</h1>
+          <p className="page-subtitle">จัดการการจองถ่ายภาพของคุณ</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">Total Bookings</p>
+            <p className="text-sm text-muted-foreground">การจองทั้งหมด</p>
             <p className="text-2xl font-semibold text-foreground">{stats.total}</p>
           </div>
           <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">Confirmed</p>
+            <p className="text-sm text-muted-foreground">ยืนยันแล้ว</p>
             <p className="text-2xl font-semibold text-success">{stats.booked}</p>
           </div>
           <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">Awaiting Deposit</p>
+            <p className="text-sm text-muted-foreground">รอมัดจำ</p>
             <p className="text-2xl font-semibold text-warning">{stats.waiting}</p>
           </div>
           <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">This Month</p>
+            <p className="text-sm text-muted-foreground">เดือนนี้</p>
             <p className="text-2xl font-semibold text-foreground">{stats.thisMonth}</p>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function Dashboard() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search bookings..."
+              placeholder="ค้นหาการจอง..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 input-elegant"
@@ -116,18 +116,18 @@ export default function Dashboard() {
               <Calendar className="w-8 h-8 text-muted-foreground" />
             </div>
             <h3 className="font-display text-lg font-medium text-foreground mb-2">
-              {searchQuery || statusFilter !== 'all' ? 'No bookings found' : 'No bookings yet'}
+              {searchQuery || statusFilter !== 'all' ? 'ไม่พบการจอง' : 'ยังไม่มีการจอง'}
             </h3>
             <p className="text-muted-foreground mb-6">
               {searchQuery || statusFilter !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Create your first booking to get started'}
+                ? 'ลองปรับเปลี่ยนตัวกรองดู'
+                : 'สร้างการจองแรกของคุณเพื่อเริ่มต้น'}
             </p>
             {!searchQuery && statusFilter === 'all' && (
               <Link to="/bookings/new">
                 <Button className="gap-2">
                   <Plus className="w-4 h-4" />
-                  Create Booking
+                  สร้างการจอง
                 </Button>
               </Link>
             )}
