@@ -16,6 +16,13 @@ interface FacebookQueueGeneratorProps {
 }
 type TemplateTheme = 'elegant' | 'modern' | 'minimal';
 type TextPosition = 'left' | 'center' | 'right';
+type TextSize = 'small' | 'medium' | 'large';
+
+const textSizeConfig: Record<TextSize, { overlayWidth: number; overlayHeight: number; fontScale: number; name: string }> = {
+  small: { overlayWidth: 0.50, overlayHeight: 0.22, fontScale: 0.8, name: 'เล็ก' },
+  medium: { overlayWidth: 0.60, overlayHeight: 0.26, fontScale: 1, name: 'กลาง' },
+  large: { overlayWidth: 0.70, overlayHeight: 0.30, fontScale: 1.2, name: 'ใหญ่' },
+};
 
 const themeStyles: Record<TemplateTheme, { 
   overlayBg: string; 
@@ -88,8 +95,9 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
   const [posX, setPosX] = useState(50);
   const [posY, setPosY] = useState(50);
   
-  // Text box position
+  // Text box position and size
   const [textPosition, setTextPosition] = useState<TextPosition>('left');
+  const [textSize, setTextSize] = useState<TextSize>('medium');
 
   // Custom text fields
   const [customText, setCustomText] = useState<CustomText>({
@@ -208,10 +216,12 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       // Draw image with zoom and position
       ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
 
-      // Calculate overlay dimensions based on position
+      // Calculate overlay dimensions based on position and size
+      const sizeConfig = textSizeConfig[textSize];
       const padding = outputWidth * 0.03;
-      const overlayWidth = outputWidth * 0.65;
-      const overlayHeight = outputHeight * 0.28;
+      const overlayWidth = outputWidth * sizeConfig.overlayWidth;
+      const overlayHeight = outputHeight * sizeConfig.overlayHeight;
+      const fontScale = sizeConfig.fontScale;
       
       // Calculate X position based on textPosition
       let overlayX: number;
@@ -250,7 +260,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
       // "BOOKING" label
       ctx.fillStyle = theme.textSecondary;
-      ctx.font = `500 ${outputWidth * 0.018}px Inter, sans-serif`;
+      ctx.font = `500 ${outputWidth * 0.018 * fontScale}px Inter, sans-serif`;
       ctx.textAlign = 'left';
       ctx.fillText('— BOOKING —', contentX, currentY + innerPadding * 0.5);
       currentY += innerPadding * 1.5;
@@ -258,7 +268,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       // Job type (custom text)
       if (customText.jobType) {
         ctx.fillStyle = theme.textPrimary;
-        ctx.font = `700 ${outputWidth * 0.055}px Sarabun, sans-serif`;
+        ctx.font = `700 ${outputWidth * 0.055 * fontScale}px Sarabun, sans-serif`;
         ctx.fillText(customText.jobType, contentX, currentY);
         currentY += innerPadding * 1.8;
       }
@@ -266,7 +276,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       // Location (custom text)
       if (customText.location) {
         ctx.fillStyle = theme.accent;
-        ctx.font = `600 ${outputWidth * 0.032}px Sarabun, sans-serif`;
+        ctx.font = `600 ${outputWidth * 0.032 * fontScale}px Sarabun, sans-serif`;
         ctx.fillText(customText.location, contentX, currentY);
         currentY += innerPadding * 1.4;
       }
@@ -275,12 +285,12 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       if (customText.studioName) {
         if (customText.studioTagline) {
           ctx.fillStyle = theme.textSecondary;
-          ctx.font = `italic 500 ${outputWidth * 0.022}px Georgia, serif`;
+          ctx.font = `italic 500 ${outputWidth * 0.022 * fontScale}px Georgia, serif`;
           ctx.fillText(customText.studioTagline, contentX, currentY);
           currentY += innerPadding * 0.9;
         }
         
-        ctx.font = `italic 600 ${outputWidth * 0.038}px Georgia, serif`;
+        ctx.font = `italic 600 ${outputWidth * 0.038 * fontScale}px Georgia, serif`;
         ctx.fillStyle = theme.accent;
         ctx.fillText(customText.studioName, contentX, currentY);
         currentY += innerPadding * 1.6;
@@ -288,19 +298,19 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
       // Date section
       ctx.fillStyle = theme.accentBg;
-      const dayBoxWidth = outputWidth * 0.12;
+      const dayBoxWidth = outputWidth * 0.12 * fontScale;
       const dayBoxHeight = innerPadding * 0.9;
       ctx.fillRect(contentX, currentY - dayBoxHeight * 0.7, dayBoxWidth, dayBoxHeight);
       
       ctx.fillStyle = theme.textPrimary;
-      ctx.font = `500 ${outputWidth * 0.018}px Sarabun, sans-serif`;
+      ctx.font = `500 ${outputWidth * 0.018 * fontScale}px Sarabun, sans-serif`;
       ctx.fillText(`วัน${thaiDate.dayName}`, contentX + dayBoxWidth * 0.12, currentY);
       currentY += innerPadding * 0.3;
 
       const dayNumY = currentY + innerPadding * 1.8;
       
       ctx.fillStyle = theme.accent;
-      ctx.font = `700 ${outputWidth * 0.09}px Inter, sans-serif`;
+      ctx.font = `700 ${outputWidth * 0.09 * fontScale}px Inter, sans-serif`;
       ctx.fillText(thaiDate.day.toString(), contentX, dayNumY);
       
       const dayNumWidth = ctx.measureText(thaiDate.day.toString()).width;
@@ -315,11 +325,11 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
       const monthX = lineX + innerPadding * 0.5;
       ctx.fillStyle = theme.textPrimary;
-      ctx.font = `600 ${outputWidth * 0.028}px Sarabun, sans-serif`;
+      ctx.font = `600 ${outputWidth * 0.028 * fontScale}px Sarabun, sans-serif`;
       ctx.fillText(thaiDate.monthName, monthX, currentY + innerPadding * 1);
       
       ctx.fillStyle = theme.textSecondary;
-      ctx.font = `400 ${outputWidth * 0.02}px Sarabun, sans-serif`;
+      ctx.font = `400 ${outputWidth * 0.02 * fontScale}px Sarabun, sans-serif`;
       ctx.fillText(`${thaiDate.year}${timeSlot ? ` | ${timeSlot}` : ''}`, monthX, currentY + innerPadding * 1.7);
 
       currentY = dayNumY + innerPadding * 1;
@@ -327,12 +337,12 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       // Contact (custom text)
       if (customText.contact) {
         ctx.fillStyle = theme.textSecondary;
-        ctx.font = `400 ${outputWidth * 0.016}px Sarabun, sans-serif`;
+        ctx.font = `400 ${outputWidth * 0.016 * fontScale}px Sarabun, sans-serif`;
         ctx.fillText(`สอบถามรายละเอียดเพิ่มเติม ติดต่อ`, contentX, currentY);
         currentY += innerPadding * 0.6;
         
         ctx.fillStyle = theme.textPrimary;
-        ctx.font = `600 ${outputWidth * 0.02}px Inter, sans-serif`;
+        ctx.font = `600 ${outputWidth * 0.02 * fontScale}px Inter, sans-serif`;
         ctx.fillText(customText.contact, contentX, currentY);
       }
 
@@ -483,10 +493,10 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {/* Theme Selection */}
-              <div className="space-y-3">
-                <Label className="font-medium">เลือกธีม</Label>
+              <div className="space-y-2">
+                <Label className="font-medium text-xs">ธีม</Label>
                 <RadioGroup
                   value={selectedTheme}
                   onValueChange={(v) => setSelectedTheme(v as TemplateTheme)}
@@ -501,15 +511,15 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                       />
                       <Label
                         htmlFor={themeKey}
-                        className={`flex flex-col items-center gap-1 rounded-lg border-2 p-1.5 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
+                        className={`flex flex-col items-center gap-0.5 rounded-lg border-2 p-1 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
                           selectedTheme === themeKey ? 'border-accent bg-accent/5' : 'border-border'
                         }`}
                       >
                         <div 
-                          className="w-full h-4 rounded" 
+                          className="w-full h-3 rounded" 
                           style={{ backgroundColor: themeKey === 'minimal' ? '#1a1a1a' : '#ffffff' }} 
                         />
-                        <span className="text-[10px] font-medium">{themeStyles[themeKey].name}</span>
+                        <span className="text-[9px] font-medium">{themeStyles[themeKey].name}</span>
                       </Label>
                     </div>
                   ))}
@@ -517,8 +527,8 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
               </div>
 
               {/* Text Position Selection */}
-              <div className="space-y-3">
-                <Label className="font-medium">ตำแหน่งข้อความ</Label>
+              <div className="space-y-2">
+                <Label className="font-medium text-xs">ตำแหน่ง</Label>
                 <RadioGroup
                   value={textPosition}
                   onValueChange={(v) => setTextPosition(v as TextPosition)}
@@ -528,44 +538,78 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                     <RadioGroupItem value="left" id="pos-left" className="peer sr-only" />
                     <Label
                       htmlFor="pos-left"
-                      className={`flex flex-col items-center gap-1 rounded-lg border-2 p-1.5 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
+                      className={`flex flex-col items-center gap-0.5 rounded-lg border-2 p-1 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
                         textPosition === 'left' ? 'border-accent bg-accent/5' : 'border-border'
                       }`}
                     >
-                      <div className="w-full h-4 bg-secondary rounded relative">
-                        <div className="absolute bottom-0.5 left-0.5 w-2/5 h-1.5 bg-accent/50 rounded-sm" />
+                      <div className="w-full h-3 bg-secondary rounded relative">
+                        <div className="absolute bottom-0.5 left-0.5 w-2/5 h-1 bg-accent/50 rounded-sm" />
                       </div>
-                      <span className="text-[10px] font-medium">ซ้าย</span>
+                      <span className="text-[9px] font-medium">ซ้าย</span>
                     </Label>
                   </div>
                   <div>
                     <RadioGroupItem value="center" id="pos-center" className="peer sr-only" />
                     <Label
                       htmlFor="pos-center"
-                      className={`flex flex-col items-center gap-1 rounded-lg border-2 p-1.5 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
+                      className={`flex flex-col items-center gap-0.5 rounded-lg border-2 p-1 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
                         textPosition === 'center' ? 'border-accent bg-accent/5' : 'border-border'
                       }`}
                     >
-                      <div className="w-full h-4 bg-secondary rounded relative">
-                        <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-2/5 h-1.5 bg-accent/50 rounded-sm" />
+                      <div className="w-full h-3 bg-secondary rounded relative">
+                        <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-2/5 h-1 bg-accent/50 rounded-sm" />
                       </div>
-                      <span className="text-[10px] font-medium">กลาง</span>
+                      <span className="text-[9px] font-medium">กลาง</span>
                     </Label>
                   </div>
                   <div>
                     <RadioGroupItem value="right" id="pos-right" className="peer sr-only" />
                     <Label
                       htmlFor="pos-right"
-                      className={`flex flex-col items-center gap-1 rounded-lg border-2 p-1.5 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
+                      className={`flex flex-col items-center gap-0.5 rounded-lg border-2 p-1 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
                         textPosition === 'right' ? 'border-accent bg-accent/5' : 'border-border'
                       }`}
                     >
-                      <div className="w-full h-4 bg-secondary rounded relative">
-                        <div className="absolute bottom-0.5 right-0.5 w-2/5 h-1.5 bg-accent/50 rounded-sm" />
+                      <div className="w-full h-3 bg-secondary rounded relative">
+                        <div className="absolute bottom-0.5 right-0.5 w-2/5 h-1 bg-accent/50 rounded-sm" />
                       </div>
-                      <span className="text-[10px] font-medium">ขวา</span>
+                      <span className="text-[9px] font-medium">ขวา</span>
                     </Label>
                   </div>
+                </RadioGroup>
+              </div>
+
+              {/* Text Size Selection */}
+              <div className="space-y-2">
+                <Label className="font-medium text-xs">ขนาดกล่อง</Label>
+                <RadioGroup
+                  value={textSize}
+                  onValueChange={(v) => setTextSize(v as TextSize)}
+                  className="grid grid-cols-3 gap-1"
+                >
+                  {(Object.keys(textSizeConfig) as TextSize[]).map((sizeKey) => (
+                    <div key={sizeKey}>
+                      <RadioGroupItem
+                        value={sizeKey}
+                        id={`size-${sizeKey}`}
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor={`size-${sizeKey}`}
+                        className={`flex flex-col items-center gap-0.5 rounded-lg border-2 p-1 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
+                          textSize === sizeKey ? 'border-accent bg-accent/5' : 'border-border'
+                        }`}
+                      >
+                        <div className="w-full h-3 bg-secondary rounded relative flex items-end justify-center pb-0.5">
+                          <div 
+                            className="bg-accent/50 rounded-sm h-1"
+                            style={{ width: sizeKey === 'small' ? '30%' : sizeKey === 'medium' ? '50%' : '70%' }}
+                          />
+                        </div>
+                        <span className="text-[9px] font-medium">{textSizeConfig[sizeKey].name}</span>
+                      </Label>
+                    </div>
+                  ))}
                 </RadioGroup>
               </div>
             </div>
@@ -657,13 +701,13 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
           {/* Right Column - Live Preview */}
           <div className="flex flex-col h-full min-h-0">
-            <Label className="font-medium flex-shrink-0 mb-3">ตัวอย่าง (Live Preview)</Label>
-            <div className="flex-1 bg-secondary/50 rounded-lg p-4 flex items-center justify-center overflow-hidden">
+            <Label className="font-medium flex-shrink-0 mb-2 text-sm">ตัวอย่าง</Label>
+            <div className="flex-1 bg-secondary/50 rounded-lg p-3 flex items-center justify-center overflow-hidden">
               <div 
                 className="relative rounded-lg overflow-hidden shadow-lg"
                 style={{ 
                   width: '100%',
-                  maxWidth: '380px',
+                  maxWidth: '260px',
                   aspectRatio: imageDimensions ? `${imageDimensions.width}/${imageDimensions.height}` : '2/3'
                 }}
               >
@@ -679,39 +723,45 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                   </div>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                    <ImageIcon className="w-12 h-12 text-gray-400" />
+                    <ImageIcon className="w-8 h-8 text-gray-400" />
                   </div>
                 )}
 
-                {/* Overlay Section - Dynamic Position */}
+                {/* Overlay Section - Dynamic Position and Size */}
                 <div 
-                  className={`absolute bottom-3 p-2.5 rounded-lg ${
-                    textPosition === 'left' ? 'left-3' : 
-                    textPosition === 'right' ? 'right-3' : 
+                  className={`absolute bottom-2 p-2 rounded-lg ${
+                    textPosition === 'left' ? 'left-2' : 
+                    textPosition === 'right' ? 'right-2' : 
                     'left-1/2 -translate-x-1/2'
                   }`}
                   style={{ 
                     backgroundColor: theme.overlayBg,
-                    width: '60%',
+                    width: `${textSizeConfig[textSize].overlayWidth * 100}%`,
                   }}
                 >
                   {/* Top line */}
                   <div 
-                    className="w-full h-[2px] mb-1.5"
+                    className="w-full h-[1px] mb-1"
                     style={{ backgroundColor: theme.accent }}
                   />
                   
                   <p 
-                    className="text-[6px] tracking-wider mb-1"
-                    style={{ color: theme.textSecondary }}
+                    className="tracking-wider mb-0.5"
+                    style={{ 
+                      color: theme.textSecondary,
+                      fontSize: `${5 * textSizeConfig[textSize].fontScale}px`
+                    }}
                   >
                     — BOOKING —
                   </p>
 
                   {customText.jobType && (
                     <h3 
-                      className="font-bold text-[11px] leading-tight"
-                      style={{ color: theme.textPrimary }}
+                      className="font-bold leading-tight"
+                      style={{ 
+                        color: theme.textPrimary,
+                        fontSize: `${9 * textSizeConfig[textSize].fontScale}px`
+                      }}
                     >
                       {customText.jobType}
                     </h3>
@@ -719,8 +769,11 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
                   {customText.location && (
                     <p 
-                      className="text-[8px] mt-0.5"
-                      style={{ color: theme.accent }}
+                      className="mt-0.5"
+                      style={{ 
+                        color: theme.accent,
+                        fontSize: `${6 * textSizeConfig[textSize].fontScale}px`
+                      }}
                     >
                       {customText.location}
                     </p>
@@ -730,15 +783,21 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                     <>
                       {customText.studioTagline && (
                         <p 
-                          className="text-[5px] italic mt-1"
-                          style={{ color: theme.textSecondary }}
+                          className="italic mt-0.5"
+                          style={{ 
+                            color: theme.textSecondary,
+                            fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
+                          }}
                         >
                           {customText.studioTagline}
                         </p>
                       )}
                       <p 
-                        className="text-[8px] italic font-semibold"
-                        style={{ color: theme.accent }}
+                        className="italic font-semibold"
+                        style={{ 
+                          color: theme.accent,
+                          fontSize: `${6 * textSizeConfig[textSize].fontScale}px`
+                        }}
                       >
                         {customText.studioName}
                       </p>
@@ -746,35 +805,45 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                   )}
 
                   {/* Date section */}
-                  <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center gap-1.5 mt-1">
                     <div>
                       <p 
-                        className="text-[5px]"
-                        style={{ color: theme.textPrimary }}
+                        style={{ 
+                          color: theme.textPrimary,
+                          fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
+                        }}
                       >
                         วัน{thaiDate?.dayName}
                       </p>
                       <p 
-                        className="text-[14px] font-bold leading-none"
-                        style={{ color: theme.accent }}
+                        className="font-bold leading-none"
+                        style={{ 
+                          color: theme.accent,
+                          fontSize: `${12 * textSizeConfig[textSize].fontScale}px`
+                        }}
                       >
                         {thaiDate?.day}
                       </p>
                     </div>
                     <div 
-                      className="w-[1px] h-5"
+                      className="w-[1px] h-4"
                       style={{ backgroundColor: theme.borderColor }}
                     />
                     <div>
                       <p 
-                        className="text-[6px] font-semibold"
-                        style={{ color: theme.textPrimary }}
+                        className="font-semibold"
+                        style={{ 
+                          color: theme.textPrimary,
+                          fontSize: `${5 * textSizeConfig[textSize].fontScale}px`
+                        }}
                       >
                         {thaiDate?.monthName}
                       </p>
                       <p 
-                        className="text-[5px]"
-                        style={{ color: theme.textSecondary }}
+                        style={{ 
+                          color: theme.textSecondary,
+                          fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
+                        }}
                       >
                         {thaiDate?.year} | {getTimeSlot() || 'ตลอดวัน'}
                       </p>
@@ -783,8 +852,11 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
                   {customText.contact && (
                     <p 
-                      className="text-[5px] mt-1.5"
-                      style={{ color: theme.textSecondary }}
+                      className="mt-1"
+                      style={{ 
+                        color: theme.textSecondary,
+                        fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
+                      }}
                     >
                       ติดต่อ: {customText.contact}
                     </p>
@@ -793,8 +865,8 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
               </div>
             </div>
             
-            <p className="text-xs text-muted-foreground text-center">
-              * ตัวอย่างย่อจากขนาดจริง ({imageDimensions ? `${outputWidth}x${outputHeight}` : '?'}px)
+            <p className="text-[10px] text-muted-foreground text-center mt-1">
+              * ขนาดจริง {imageDimensions ? `${outputWidth}x${outputHeight}` : '?'}px
             </p>
           </div>
         </div>
