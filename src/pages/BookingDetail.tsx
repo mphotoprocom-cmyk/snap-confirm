@@ -1,10 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBooking, useUpdateBooking, useDeleteBooking, useConfirmDeposit } from '@/hooks/useBookings';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/Header';
 import { BookingForm } from '@/components/BookingForm';
 import { BookingConfirmation } from '@/components/BookingConfirmation';
+import { FacebookQueueGenerator } from '@/components/FacebookQueueGenerator';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -27,7 +29,8 @@ import {
   FileText, 
   Calendar as CalendarIcon,
   Loader2,
-  X
+  X,
+  Facebook
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { JOB_TYPE_LABELS } from '@/types/booking';
@@ -37,6 +40,7 @@ import html2canvas from 'html2canvas';
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const { data: booking, isLoading } = useBooking(id);
   const { data: profile } = useProfile();
   const updateBooking = useUpdateBooking();
@@ -45,7 +49,26 @@ export default function BookingDetail() {
   
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showFacebookQueue, setShowFacebookQueue] = useState(false);
   const confirmationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleUpdate = async (data: any) => {
     if (!id) return;
@@ -356,6 +379,23 @@ export default function BookingDetail() {
                   </Button>
                 </div>
                 
+                {/* Separator */}
+                <div className="border-t my-4" />
+                
+                {/* Optional: Social Media */}
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Social Media</p>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setShowFacebookQueue(true)}
+                    disabled={booking.status !== 'booked'}
+                    className="w-full gap-2"
+                  >
+                    <Facebook className="w-4 h-4" />
+                    Create FB Queue Image
+                  </Button>
+                </div>
+                
                 {booking.status !== 'booked' && (
                   <p className="text-xs text-muted-foreground mt-3">
                     Confirm deposit to enable confirmation and calendar features.
@@ -390,6 +430,14 @@ export default function BookingDetail() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Facebook Queue Generator Modal */}
+        {showFacebookQueue && booking.status === 'booked' && (
+          <FacebookQueueGenerator
+            booking={booking}
+            onClose={() => setShowFacebookQueue(false)}
+          />
         )}
       </main>
     </div>

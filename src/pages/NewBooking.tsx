@@ -1,14 +1,35 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { BookingForm } from '@/components/BookingForm';
 import { useCreateBooking } from '@/hooks/useBookings';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function NewBooking() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const createBooking = useCreateBooking();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleSubmit = async (data: any) => {
     const booking = await createBooking.mutateAsync(data);

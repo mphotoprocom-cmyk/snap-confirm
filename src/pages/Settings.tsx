@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useNavigate, Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,9 +16,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
 
 const profileSchema = z.object({
   studio_name: z.string().min(1, 'Studio name is required').max(100),
@@ -28,6 +29,8 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function Settings() {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
 
@@ -42,6 +45,12 @@ export default function Settings() {
   });
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
     if (profile) {
       form.reset({
         studio_name: profile.studio_name || '',
@@ -51,6 +60,18 @@ export default function Settings() {
       });
     }
   }, [profile, form]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const handleSubmit = async (data: ProfileFormData) => {
     await updateProfile.mutateAsync(data);
