@@ -109,6 +109,9 @@ export default function BookingDetail() {
       const canvas = await html2canvas(confirmationRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
       });
       
       const link = document.createElement('a');
@@ -118,6 +121,7 @@ export default function BookingDetail() {
       
       toast.success('ดาวน์โหลดใบยืนยันแล้ว');
     } catch (error) {
+      console.error('Image generation error:', error);
       toast.error('ไม่สามารถสร้างรูปภาพได้');
     }
   };
@@ -129,6 +133,9 @@ export default function BookingDetail() {
       const canvas = await html2canvas(confirmationRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
       });
       
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -146,6 +153,7 @@ export default function BookingDetail() {
       
       toast.success('ดาวน์โหลด PDF แล้ว');
     } catch (error) {
+      console.error('PDF generation error:', error);
       toast.error('ไม่สามารถสร้าง PDF ได้');
     }
   };
