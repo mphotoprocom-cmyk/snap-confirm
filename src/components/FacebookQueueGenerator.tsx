@@ -19,9 +19,9 @@ type TextPosition = 'left' | 'center' | 'right';
 type TextSize = 'small' | 'medium' | 'large';
 
 const textSizeConfig: Record<TextSize, { overlayWidth: number; overlayHeight: number; fontScale: number; name: string }> = {
-  small: { overlayWidth: 0.50, overlayHeight: 0.22, fontScale: 0.8, name: 'เล็ก' },
-  medium: { overlayWidth: 0.60, overlayHeight: 0.26, fontScale: 1, name: 'กลาง' },
-  large: { overlayWidth: 0.70, overlayHeight: 0.30, fontScale: 1.2, name: 'ใหญ่' },
+  small: { overlayWidth: 0.50, overlayHeight: 0.32, fontScale: 0.8, name: 'เล็ก' },
+  medium: { overlayWidth: 0.60, overlayHeight: 0.36, fontScale: 1, name: 'กลาง' },
+  large: { overlayWidth: 0.70, overlayHeight: 0.42, fontScale: 1.2, name: 'ใหญ่' },
 };
 
 const themeStyles: Record<TemplateTheme, { 
