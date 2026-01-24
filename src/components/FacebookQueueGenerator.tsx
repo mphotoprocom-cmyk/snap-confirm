@@ -366,10 +366,10 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-      <Card className="w-full max-w-6xl max-h-[95vh] overflow-y-auto bg-card">
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-6xl h-[95vh] flex flex-col bg-card">
         {/* Header */}
-        <div className="sticky top-0 bg-card border-b p-4 flex items-center justify-between z-10">
+        <div className="flex-shrink-0 bg-card border-b p-4 flex items-center justify-between z-10">
           <div>
             <h2 className="font-display text-lg font-medium">สร้างรูปลงคิว Facebook</h2>
             <p className="text-sm text-muted-foreground">
@@ -381,9 +381,9 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
           </Button>
         </div>
 
-        <div className="p-6 grid gap-6 lg:grid-cols-2">
+        <div className="flex-1 min-h-0 p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column - Controls */}
-          <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-2">
+          <div className="overflow-y-auto pr-2 space-y-5">
             {/* Image Upload */}
             <div className="space-y-3">
               <Label className="font-medium">อัปโหลดรูปภาพ</Label>
@@ -656,9 +656,9 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
           </div>
 
           {/* Right Column - Live Preview */}
-          <div className="space-y-3">
-            <Label className="font-medium">ตัวอย่าง (Live Preview)</Label>
-            <div className="bg-secondary/50 rounded-lg p-4 flex items-center justify-center overflow-hidden sticky top-4">
+          <div className="flex flex-col h-full min-h-0">
+            <Label className="font-medium flex-shrink-0 mb-3">ตัวอย่าง (Live Preview)</Label>
+            <div className="flex-1 bg-secondary/50 rounded-lg p-4 flex items-center justify-center overflow-hidden">
               <div 
                 className="relative rounded-lg overflow-hidden shadow-lg"
                 style={{ 
