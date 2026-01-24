@@ -1,13 +1,12 @@
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import { Booking, JOB_TYPE_LABELS } from '@/types/booking';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { format } from 'date-fns';
-import { th } from 'date-fns/locale';
-import { Upload, Image as ImageIcon, Loader2, X } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { Upload, Image as ImageIcon, Loader2, X, ZoomIn, Move } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -68,20 +67,61 @@ const THAI_DAY_NAMES = ['อาทิตย์', 'จันทร์', 'อั�
 const THAI_MONTH_NAMES = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 
                           'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 
+interface CustomText {
+  jobType: string;
+  location: string;
+  studioName: string;
+  studioTagline: string;
+  contact: string;
+}
+
 export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGeneratorProps) {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<TemplateTheme>('elegant');
   const [isGenerating, setIsGenerating] = useState(false);
-  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: profile } = useProfile();
+
+  // Image position controls
+  const [zoom, setZoom] = useState(100);
+  const [posX, setPosX] = useState(50);
+  const [posY, setPosY] = useState(50);
+
+  // Custom text fields
+  const [customText, setCustomText] = useState<CustomText>({
+    jobType: JOB_TYPE_LABELS_TH[booking.job_type] || JOB_TYPE_LABELS[booking.job_type],
+    location: booking.location || '',
+    studioName: '',
+    studioTagline: 'รับถ่ายภาพราคามิตรภาพ',
+    contact: '',
+  });
+
+  // Initialize custom text from profile when it loads
+  useState(() => {
+    if (profile) {
+      setCustomText(prev => ({
+        ...prev,
+        studioName: profile.studio_name || '',
+        contact: profile.phone || '',
+      }));
+    }
+  });
+
+  // Update custom text when profile loads
+  if (profile && !customText.studioName && profile.studio_name) {
+    setCustomText(prev => ({
+      ...prev,
+      studioName: profile.studio_name || '',
+      contact: profile.phone || '',
+    }));
+  }
 
   // Calculate output dimensions - height fixed at 2048, width based on original aspect ratio
   const outputHeight = 2048;
   const outputWidth = imageDimensions 
     ? Math.round((imageDimensions.width / imageDimensions.height) * outputHeight)
-    : 1365; // fallback
+    : 1365;
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,6 +136,10 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
         img.onload = () => {
           setImageDimensions({ width: img.width, height: img.height });
           setUploadedImage(event.target?.result as string);
+          // Reset position on new image
+          setZoom(100);
+          setPosX(50);
+          setPosY(50);
         };
         img.src = event.target?.result as string;
       };
@@ -116,7 +160,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
     const day = date.getDate();
     const dayName = THAI_DAY_NAMES[date.getDay()];
     const monthName = THAI_MONTH_NAMES[date.getMonth()];
-    const year = date.getFullYear() + 543; // Buddhist year
+    const year = date.getFullYear() + 543;
     return { day, dayName, monthName, year };
   };
 
@@ -133,13 +177,11 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       const thaiDate = formatThaiDate(booking.event_date);
       const timeSlot = getTimeSlot();
       
-      // Create canvas
       const canvas = document.createElement('canvas');
       canvas.width = outputWidth;
       canvas.height = outputHeight;
       const ctx = canvas.getContext('2d')!;
 
-      // Draw the uploaded image (full size, no crop)
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
@@ -149,8 +191,19 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
         img.src = uploadedImage;
       });
 
-      // Draw image to fill canvas maintaining aspect ratio
-      ctx.drawImage(img, 0, 0, outputWidth, outputHeight);
+      // Calculate zoomed dimensions
+      const scale = zoom / 100;
+      const scaledWidth = outputWidth * scale;
+      const scaledHeight = outputHeight * scale;
+      
+      // Calculate position offset based on posX/posY (0-100 range)
+      const maxOffsetX = scaledWidth - outputWidth;
+      const maxOffsetY = scaledHeight - outputHeight;
+      const offsetX = -(maxOffsetX * (posX / 100));
+      const offsetY = -(maxOffsetY * (posY / 100));
+
+      // Draw image with zoom and position
+      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
 
       // Calculate overlay dimensions - bottom left corner
       const padding = outputWidth * 0.03;
@@ -159,7 +212,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       const overlayX = padding;
       const overlayY = outputHeight - overlayHeight - padding;
 
-      // Draw semi-transparent overlay background with rounded corners effect
+      // Draw overlay background with rounded corners
       ctx.fillStyle = theme.overlayBg;
       ctx.beginPath();
       const radius = 12;
@@ -179,7 +232,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       const contentX = overlayX + innerPadding;
       let currentY = overlayY + innerPadding * 1.5;
 
-      // Draw top decorative line
+      // Decorative line
       ctx.fillStyle = theme.accent;
       ctx.fillRect(contentX, currentY - innerPadding * 0.5, overlayWidth - innerPadding * 2, 3);
 
@@ -190,36 +243,38 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       ctx.fillText('— BOOKING —', contentX, currentY + innerPadding * 0.5);
       currentY += innerPadding * 1.5;
 
-      // Job type (Thai - large) - from booking data
-      ctx.fillStyle = theme.textPrimary;
-      ctx.font = `700 ${outputWidth * 0.055}px Sarabun, sans-serif`;
-      ctx.fillText(JOB_TYPE_LABELS_TH[booking.job_type] || JOB_TYPE_LABELS[booking.job_type], contentX, currentY);
-      currentY += innerPadding * 1.8;
+      // Job type (custom text)
+      if (customText.jobType) {
+        ctx.fillStyle = theme.textPrimary;
+        ctx.font = `700 ${outputWidth * 0.055}px Sarabun, sans-serif`;
+        ctx.fillText(customText.jobType, contentX, currentY);
+        currentY += innerPadding * 1.8;
+      }
 
-      // Location (from booking data)
-      if (booking.location) {
+      // Location (custom text)
+      if (customText.location) {
         ctx.fillStyle = theme.accent;
         ctx.font = `600 ${outputWidth * 0.032}px Sarabun, sans-serif`;
-        ctx.fillText(booking.location, contentX, currentY);
+        ctx.fillText(customText.location, contentX, currentY);
         currentY += innerPadding * 1.4;
       }
 
-      // Studio name (from profile)
-      const studioName = profile?.studio_name || '';
-      if (studioName) {
-        ctx.fillStyle = theme.textSecondary;
-        ctx.font = `italic 500 ${outputWidth * 0.022}px Georgia, serif`;
-        ctx.fillText('รับถ่ายภาพราคามิตรภาพ', contentX, currentY);
-        currentY += innerPadding * 0.9;
+      // Studio tagline and name (custom text)
+      if (customText.studioName) {
+        if (customText.studioTagline) {
+          ctx.fillStyle = theme.textSecondary;
+          ctx.font = `italic 500 ${outputWidth * 0.022}px Georgia, serif`;
+          ctx.fillText(customText.studioTagline, contentX, currentY);
+          currentY += innerPadding * 0.9;
+        }
         
         ctx.font = `italic 600 ${outputWidth * 0.038}px Georgia, serif`;
         ctx.fillStyle = theme.accent;
-        ctx.fillText(studioName, contentX, currentY);
+        ctx.fillText(customText.studioName, contentX, currentY);
         currentY += innerPadding * 1.6;
       }
 
-      // Date section - from booking data
-      // Day name
+      // Date section
       ctx.fillStyle = theme.accentBg;
       const dayBoxWidth = outputWidth * 0.12;
       const dayBoxHeight = innerPadding * 0.9;
@@ -230,18 +285,14 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       ctx.fillText(`วัน${thaiDate.dayName}`, contentX + dayBoxWidth * 0.12, currentY);
       currentY += innerPadding * 0.3;
 
-      // Large day number and month/year side by side
       const dayNumY = currentY + innerPadding * 1.8;
       
-      // Large day number
       ctx.fillStyle = theme.accent;
       ctx.font = `700 ${outputWidth * 0.09}px Inter, sans-serif`;
       ctx.fillText(thaiDate.day.toString(), contentX, dayNumY);
       
-      // Calculate where the day number ends
       const dayNumWidth = ctx.measureText(thaiDate.day.toString()).width;
       
-      // Vertical line separator
       const lineX = contentX + dayNumWidth + innerPadding * 0.5;
       ctx.strokeStyle = theme.borderColor;
       ctx.lineWidth = 2;
@@ -250,7 +301,6 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
       ctx.lineTo(lineX, dayNumY + innerPadding * 0.2);
       ctx.stroke();
 
-      // Month and Year/Time
       const monthX = lineX + innerPadding * 0.5;
       ctx.fillStyle = theme.textPrimary;
       ctx.font = `600 ${outputWidth * 0.028}px Sarabun, sans-serif`;
@@ -262,9 +312,8 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
       currentY = dayNumY + innerPadding * 1;
 
-      // Contact info (from profile)
-      const phone = profile?.phone || '';
-      if (phone) {
+      // Contact (custom text)
+      if (customText.contact) {
         ctx.fillStyle = theme.textSecondary;
         ctx.font = `400 ${outputWidth * 0.016}px Sarabun, sans-serif`;
         ctx.fillText(`สอบถามรายละเอียดเพิ่มเติม ติดต่อ`, contentX, currentY);
@@ -272,10 +321,9 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
         
         ctx.fillStyle = theme.textPrimary;
         ctx.font = `600 ${outputWidth * 0.02}px Inter, sans-serif`;
-        ctx.fillText(phone, contentX, currentY);
+        ctx.fillText(customText.contact, contentX, currentY);
       }
 
-      // Convert to blob and download
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
@@ -299,9 +347,15 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
   const theme = themeStyles[selectedTheme];
   const thaiDate = booking.event_date ? formatThaiDate(booking.event_date) : null;
 
+  // Calculate preview image style
+  const previewImageStyle = {
+    transform: `scale(${zoom / 100})`,
+    transformOrigin: `${posX}% ${posY}%`,
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-      <Card className="w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-card">
+      <Card className="w-full max-w-6xl max-h-[95vh] overflow-y-auto bg-card">
         {/* Header */}
         <div className="sticky top-0 bg-card border-b p-4 flex items-center justify-between z-10">
           <div>
@@ -315,12 +369,12 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
           </Button>
         </div>
 
-        <div className="p-6 grid gap-6 lg:grid-cols-2">
-          {/* Controls */}
-          <div className="space-y-6">
+        <div className="p-6 grid gap-6 lg:grid-cols-3">
+          {/* Left Column - Upload & Position */}
+          <div className="space-y-5">
             {/* Image Upload */}
             <div className="space-y-3">
-              <Label>อัปโหลดรูปภาพ</Label>
+              <Label className="font-medium">อัปโหลดรูปภาพ</Label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -333,7 +387,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                   <img
                     src={uploadedImage}
                     alt="Uploaded"
-                    className="w-full h-auto max-h-[300px] object-contain"
+                    className="w-full h-auto max-h-[200px] object-contain"
                   />
                   <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                     {imageDimensions?.width} x {imageDimensions?.height} px
@@ -351,22 +405,79 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-accent transition-colors flex flex-col items-center justify-center gap-3 text-muted-foreground hover:text-foreground"
+                  className="w-full aspect-video rounded-lg border-2 border-dashed border-border hover:border-accent transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
                 >
-                  <Upload className="w-8 h-8" />
+                  <Upload className="w-6 h-6" />
                   <span className="text-sm font-medium">คลิกเพื่ออัปโหลดรูป</span>
-                  <span className="text-xs">รองรับ JPG, PNG (ไม่เกิน 15MB)</span>
                 </button>
               )}
             </div>
 
+            {/* Image Position Controls */}
+            {uploadedImage && (
+              <div className="space-y-4 p-4 bg-secondary/30 rounded-lg">
+                <Label className="font-medium flex items-center gap-2">
+                  <Move className="w-4 h-4" />
+                  ปรับตำแหน่งรูป
+                </Label>
+                
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="flex items-center gap-1">
+                        <ZoomIn className="w-3 h-3" /> ซูม
+                      </span>
+                      <span className="text-muted-foreground">{zoom}%</span>
+                    </div>
+                    <Slider
+                      value={[zoom]}
+                      onValueChange={(v) => setZoom(v[0])}
+                      min={100}
+                      max={200}
+                      step={5}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>ตำแหน่งแนวนอน</span>
+                      <span className="text-muted-foreground">{posX}%</span>
+                    </div>
+                    <Slider
+                      value={[posX]}
+                      onValueChange={(v) => setPosX(v[0])}
+                      min={0}
+                      max={100}
+                      step={1}
+                      disabled={zoom <= 100}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>ตำแหน่งแนวตั้ง</span>
+                      <span className="text-muted-foreground">{posY}%</span>
+                    </div>
+                    <Slider
+                      value={[posY]}
+                      onValueChange={(v) => setPosY(v[0])}
+                      min={0}
+                      max={100}
+                      step={1}
+                      disabled={zoom <= 100}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Theme Selection */}
             <div className="space-y-3">
-              <Label>เลือกธีม</Label>
+              <Label className="font-medium">เลือกธีม</Label>
               <RadioGroup
                 value={selectedTheme}
                 onValueChange={(v) => setSelectedTheme(v as TemplateTheme)}
-                className="grid grid-cols-3 gap-3"
+                className="grid grid-cols-3 gap-2"
               >
                 {(Object.keys(themeStyles) as TemplateTheme[]).map((themeKey) => (
                   <div key={themeKey}>
@@ -377,16 +488,13 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                     />
                     <Label
                       htmlFor={themeKey}
-                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 cursor-pointer transition-all peer-data-[state=checked]:border-accent peer-data-[state=checked]:bg-accent/5 hover:bg-secondary/50 ${
                         selectedTheme === themeKey ? 'border-accent bg-accent/5' : 'border-border'
                       }`}
                     >
                       <div 
-                        className="w-full h-8 rounded" 
-                        style={{ backgroundColor: themeStyles[themeKey].overlayBg.includes('rgba') 
-                          ? (themeKey === 'minimal' ? '#1a1a1a' : '#ffffff')
-                          : themeStyles[themeKey].overlayBg 
-                        }} 
+                        className="w-full h-6 rounded" 
+                        style={{ backgroundColor: themeKey === 'minimal' ? '#1a1a1a' : '#ffffff' }} 
                       />
                       <span className="text-xs font-medium">{themeStyles[themeKey].name}</span>
                     </Label>
@@ -394,19 +502,66 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                 ))}
               </RadioGroup>
             </div>
+          </div>
 
-            {/* Booking Info Preview */}
-            <div className="space-y-2 p-4 bg-secondary/30 rounded-lg">
-              <Label className="text-sm font-medium">ข้อมูลที่จะแสดงในรูป</Label>
-              <div className="text-sm space-y-1 text-muted-foreground">
-                <p><span className="font-medium text-foreground">ประเภทงาน:</span> {JOB_TYPE_LABELS_TH[booking.job_type]}</p>
-                {booking.location && <p><span className="font-medium text-foreground">สถานที่:</span> {booking.location}</p>}
-                <p><span className="font-medium text-foreground">วันที่:</span> วัน{thaiDate?.dayName} {thaiDate?.day} {thaiDate?.monthName} {thaiDate?.year}</p>
-                <p><span className="font-medium text-foreground">สตูดิโอ:</span> {profile?.studio_name || 'ยังไม่ได้ตั้งค่า'}</p>
-                {profile?.phone && <p><span className="font-medium text-foreground">ติดต่อ:</span> {profile.phone}</p>}
+          {/* Middle Column - Custom Text */}
+          <div className="space-y-4">
+            <Label className="font-medium text-base">ปรับแต่งข้อความ</Label>
+            
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm">ประเภทงาน</Label>
+                <Input
+                  value={customText.jobType}
+                  onChange={(e) => setCustomText(prev => ({ ...prev, jobType: e.target.value }))}
+                  placeholder="เช่น ถ่ายงานแต่ง"
+                />
               </div>
-              <p className="text-xs text-muted-foreground mt-2 italic">
-                * ราคาและข้อมูลส่วนตัวจะไม่แสดงในรูป
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">สถานที่</Label>
+                <Input
+                  value={customText.location}
+                  onChange={(e) => setCustomText(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="เช่น อ.ลำปลายมาศ"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">แท็กไลน์</Label>
+                <Input
+                  value={customText.studioTagline}
+                  onChange={(e) => setCustomText(prev => ({ ...prev, studioTagline: e.target.value }))}
+                  placeholder="เช่น รับถ่ายภาพราคามิตรภาพ"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">ชื่อสตูดิโอ</Label>
+                <Input
+                  value={customText.studioName}
+                  onChange={(e) => setCustomText(prev => ({ ...prev, studioName: e.target.value }))}
+                  placeholder="เช่น MPhoto"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">เบอร์ติดต่อ / Line ID</Label>
+                <Input
+                  value={customText.contact}
+                  onChange={(e) => setCustomText(prev => ({ ...prev, contact: e.target.value }))}
+                  placeholder="เช่น 083-7412931"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <strong>วันที่งาน:</strong> วัน{thaiDate?.dayName} {thaiDate?.day} {thaiDate?.monthName} {thaiDate?.year}
+                {getTimeSlot() && ` | ${getTimeSlot()}`}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 italic">
+                * วันที่ดึงจากข้อมูลการจองอัตโนมัติ
               </p>
             </div>
 
@@ -431,31 +586,31 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
             </Button>
           </div>
 
-          {/* Preview */}
+          {/* Right Column - Preview */}
           <div className="space-y-3">
-            <Label>ตัวอย่าง</Label>
-            <div 
-              ref={canvasContainerRef}
-              className="bg-secondary/50 rounded-lg p-4 flex items-center justify-center overflow-hidden"
-            >
+            <Label className="font-medium">ตัวอย่าง</Label>
+            <div className="bg-secondary/50 rounded-lg p-3 flex items-center justify-center overflow-hidden">
               <div 
                 className="relative rounded-lg overflow-hidden shadow-lg"
                 style={{ 
                   width: '100%',
-                  maxWidth: '280px',
+                  maxWidth: '240px',
                   aspectRatio: imageDimensions ? `${imageDimensions.width}/${imageDimensions.height}` : '2/3'
                 }}
               >
-                {/* Background Image */}
+                {/* Background Image with zoom/position */}
                 {uploadedImage ? (
-                  <img
-                    src={uploadedImage}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="w-full h-full overflow-hidden">
+                    <img
+                      src={uploadedImage}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      style={previewImageStyle}
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                    <ImageIcon className="w-12 h-12 text-gray-400" />
+                    <ImageIcon className="w-10 h-10 text-gray-400" />
                   </div>
                 )}
 
@@ -480,29 +635,41 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                     — BOOKING —
                   </p>
 
-                  <h3 
-                    className="font-bold text-[10px] leading-tight"
-                    style={{ color: theme.textPrimary }}
-                  >
-                    {JOB_TYPE_LABELS_TH[booking.job_type]}
-                  </h3>
+                  {customText.jobType && (
+                    <h3 
+                      className="font-bold text-[9px] leading-tight"
+                      style={{ color: theme.textPrimary }}
+                    >
+                      {customText.jobType}
+                    </h3>
+                  )}
 
-                  {booking.location && (
+                  {customText.location && (
                     <p 
-                      className="text-[7px] mt-0.5"
+                      className="text-[6px] mt-0.5"
                       style={{ color: theme.accent }}
                     >
-                      {booking.location}
+                      {customText.location}
                     </p>
                   )}
 
-                  {profile?.studio_name && (
-                    <p 
-                      className="text-[5px] italic mt-0.5"
-                      style={{ color: theme.textSecondary }}
-                    >
-                      {profile.studio_name}
-                    </p>
+                  {customText.studioName && (
+                    <>
+                      {customText.studioTagline && (
+                        <p 
+                          className="text-[4px] italic mt-0.5"
+                          style={{ color: theme.textSecondary }}
+                        >
+                          {customText.studioTagline}
+                        </p>
+                      )}
+                      <p 
+                        className="text-[6px] italic font-semibold"
+                        style={{ color: theme.accent }}
+                      >
+                        {customText.studioName}
+                      </p>
+                    </>
                   )}
 
                   {/* Date section */}
@@ -515,19 +682,19 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                         วัน{thaiDate?.dayName}
                       </p>
                       <p 
-                        className="text-[14px] font-bold leading-none"
+                        className="text-[12px] font-bold leading-none"
                         style={{ color: theme.accent }}
                       >
                         {thaiDate?.day}
                       </p>
                     </div>
                     <div 
-                      className="w-[1px] h-5"
+                      className="w-[1px] h-4"
                       style={{ backgroundColor: theme.borderColor }}
                     />
                     <div>
                       <p 
-                        className="text-[6px] font-semibold"
+                        className="text-[5px] font-semibold"
                         style={{ color: theme.textPrimary }}
                       >
                         {thaiDate?.monthName}
@@ -541,12 +708,12 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                     </div>
                   </div>
 
-                  {profile?.phone && (
+                  {customText.contact && (
                     <p 
                       className="text-[4px] mt-1"
                       style={{ color: theme.textSecondary }}
                     >
-                      ติดต่อ: {profile.phone}
+                      ติดต่อ: {customText.contact}
                     </p>
                   )}
                 </div>
@@ -554,7 +721,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
             </div>
             
             <p className="text-xs text-muted-foreground text-center">
-              * ตัวอย่างนี้ย่อจากขนาดจริง รูปที่ดาวน์โหลดจะมีความละเอียดสูง
+              * ตัวอย่างย่อจากขนาดจริง
             </p>
           </div>
         </div>
