@@ -25,7 +25,7 @@ import { Loader2 } from 'lucide-react';
 const bookingSchema = z.object({
   client_name: z.string().min(1, 'กรุณากรอกชื่อลูกค้า').max(100),
   client_phone: z.string().max(20).optional(),
-  client_email: z.string().email('อีเมลไม่ถูกต้อง').optional().or(z.literal('')),
+  client_note: z.string().max(500).optional(),
   job_type: z.enum(['wedding', 'event', 'corporate', 'portrait', 'other']),
   event_date: z.string().min(1, 'กรุณาเลือกวันที่'),
   time_start: z.string().optional(),
@@ -51,7 +51,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
     defaultValues: {
       client_name: booking?.client_name || '',
       client_phone: booking?.client_phone || '',
-      client_email: booking?.client_email || '',
+      client_note: booking?.client_note || '',
       job_type: booking?.job_type || 'event',
       event_date: booking?.event_date || '',
       time_start: booking?.time_start || '',
@@ -100,12 +100,12 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
               />
               <FormField
                 control={form.control}
-                name="client_email"
+                name="client_note"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>อีเมล</FormLabel>
+                    <FormLabel>ข้อมูลเพิ่มเติม</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="email@example.com" className="input-elegant" {...field} />
+                      <Input placeholder="เช่น Line ID, Facebook, หมายเหตุ" className="input-elegant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
