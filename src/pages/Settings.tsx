@@ -20,9 +20,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 const profileSchema = z.object({
-  studio_name: z.string().min(1, 'Studio name is required').max(100),
+  studio_name: z.string().min(1, 'กรุณากรอกชื่อสตูดิโอ').max(100),
   phone: z.string().max(20).optional(),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.string().email('อีเมลไม่ถูกต้อง').optional().or(z.literal('')),
   address: z.string().max(200).optional(),
 });
 
@@ -97,14 +97,14 @@ export default function Settings() {
           <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2 -ml-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Bookings
+              กลับไปรายการจอง
             </Button>
           </Link>
         </div>
 
         <div className="page-header">
-          <h1 className="page-title">Studio Settings</h1>
-          <p className="page-subtitle">Configure your studio information for booking confirmations</p>
+          <h1 className="page-title">ตั้งค่าสตูดิโอ</h1>
+          <p className="page-subtitle">กำหนดข้อมูลสตูดิโอสำหรับใบยืนยันการจอง</p>
         </div>
 
         <div className="card-elevated p-6 animate-fade-in">
@@ -115,9 +115,9 @@ export default function Settings() {
                 name="studio_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Studio Name *</FormLabel>
+                    <FormLabel>ชื่อสตูดิโอ *</FormLabel>
                     <FormControl>
-                      <Input placeholder="My Photography Studio" className="input-elegant" {...field} />
+                      <Input placeholder="ชื่อสตูดิโอถ่ายภาพ" className="input-elegant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -130,9 +130,9 @@ export default function Settings() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>เบอร์โทรศัพท์</FormLabel>
                       <FormControl>
-                        <Input placeholder="+1 234 567 890" className="input-elegant" {...field} />
+                        <Input placeholder="0XX-XXX-XXXX" className="input-elegant" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -144,7 +144,7 @@ export default function Settings() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>อีเมล</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="studio@email.com" className="input-elegant" {...field} />
                       </FormControl>
@@ -159,10 +159,10 @@ export default function Settings() {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>ที่อยู่</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="123 Photo Street, City, State 12345"
+                        placeholder="ที่อยู่สตูดิโอ"
                         className="input-elegant"
                         {...field}
                       />
@@ -177,10 +177,10 @@ export default function Settings() {
                   {updateProfile.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
+                      กำลังบันทึก...
                     </>
                   ) : (
-                    'Save Settings'
+                    'บันทึกการตั้งค่า'
                   )}
                 </Button>
               </div>

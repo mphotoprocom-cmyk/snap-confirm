@@ -45,14 +45,14 @@ export default function NewBooking() {
           <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2 -ml-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Bookings
+              กลับไปรายการจอง
             </Button>
           </Link>
         </div>
 
         <div className="page-header">
-          <h1 className="page-title">New Booking</h1>
-          <p className="page-subtitle">Create a new photography session booking</p>
+          <h1 className="page-title">สร้างการจองใหม่</h1>
+          <p className="page-subtitle">สร้างการจองถ่ายภาพใหม่</p>
         </div>
 
         <div className="card-elevated p-6 animate-fade-in">

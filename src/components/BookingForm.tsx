@@ -23,16 +23,16 @@ import { Booking, JobType, BookingStatus, JOB_TYPE_LABELS, STATUS_LABELS } from 
 import { Loader2 } from 'lucide-react';
 
 const bookingSchema = z.object({
-  client_name: z.string().min(1, 'Client name is required').max(100),
+  client_name: z.string().min(1, 'กรุณากรอกชื่อลูกค้า').max(100),
   client_phone: z.string().max(20).optional(),
-  client_email: z.string().email('Invalid email').optional().or(z.literal('')),
+  client_email: z.string().email('อีเมลไม่ถูกต้อง').optional().or(z.literal('')),
   job_type: z.enum(['wedding', 'event', 'corporate', 'portrait', 'other']),
-  event_date: z.string().min(1, 'Event date is required'),
+  event_date: z.string().min(1, 'กรุณาเลือกวันที่'),
   time_start: z.string().optional(),
   time_end: z.string().optional(),
   location: z.string().max(200).optional(),
-  total_price: z.coerce.number().min(0, 'Price must be positive'),
-  deposit_amount: z.coerce.number().min(0, 'Deposit must be positive'),
+  total_price: z.coerce.number().min(0, 'ราคาต้องไม่ติดลบ'),
+  deposit_amount: z.coerce.number().min(0, 'มัดจำต้องไม่ติดลบ'),
   notes: z.string().max(1000).optional(),
   status: z.enum(['draft', 'waiting_deposit', 'booked', 'completed', 'cancelled']),
 });
@@ -70,16 +70,16 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
         <div className="grid gap-6 md:grid-cols-2">
           {/* Client Information */}
           <div className="space-y-4 md:col-span-2">
-            <h3 className="font-display text-lg font-medium">Client Information</h3>
+            <h3 className="font-display text-lg font-medium">ข้อมูลลูกค้า</h3>
             <div className="grid gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="client_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Client Name *</FormLabel>
+                    <FormLabel>ชื่อลูกค้า *</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" className="input-elegant" {...field} />
+                      <Input placeholder="ชื่อ นามสกุล" className="input-elegant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -90,9 +90,9 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="client_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>เบอร์โทรศัพท์</FormLabel>
                     <FormControl>
-                      <Input placeholder="+1 234 567 890" className="input-elegant" {...field} />
+                      <Input placeholder="0XX-XXX-XXXX" className="input-elegant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -103,9 +103,9 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="client_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>อีเมล</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="client@email.com" className="input-elegant" {...field} />
+                      <Input type="email" placeholder="email@example.com" className="input-elegant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -116,18 +116,18 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
 
           {/* Event Details */}
           <div className="space-y-4 md:col-span-2">
-            <h3 className="font-display text-lg font-medium">Event Details</h3>
+            <h3 className="font-display text-lg font-medium">รายละเอียดงาน</h3>
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="job_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Job Type *</FormLabel>
+                    <FormLabel>ประเภทงาน *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="input-elegant">
-                          <SelectValue placeholder="Select job type" />
+                          <SelectValue placeholder="เลือกประเภทงาน" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -147,7 +147,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="event_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Event Date *</FormLabel>
+                    <FormLabel>วันที่จัดงาน *</FormLabel>
                     <FormControl>
                       <Input type="date" className="input-elegant" {...field} />
                     </FormControl>
@@ -160,7 +160,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="time_start"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time</FormLabel>
+                    <FormLabel>เวลาเริ่ม</FormLabel>
                     <FormControl>
                       <Input type="time" className="input-elegant" {...field} />
                     </FormControl>
@@ -173,7 +173,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="time_end"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time</FormLabel>
+                    <FormLabel>เวลาสิ้นสุด</FormLabel>
                     <FormControl>
                       <Input type="time" className="input-elegant" {...field} />
                     </FormControl>
@@ -186,9 +186,9 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="location"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>สถานที่</FormLabel>
                     <FormControl>
-                      <Input placeholder="Venue address" className="input-elegant" {...field} />
+                      <Input placeholder="ที่อยู่สถานที่จัดงาน" className="input-elegant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,14 +199,14 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
 
           {/* Pricing */}
           <div className="space-y-4 md:col-span-2">
-            <h3 className="font-display text-lg font-medium">Pricing</h3>
+            <h3 className="font-display text-lg font-medium">ราคา</h3>
             <div className="grid gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="total_price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Price ($)</FormLabel>
+                    <FormLabel>ราคารวม (฿)</FormLabel>
                     <FormControl>
                       <Input type="number" min="0" step="0.01" className="input-elegant" {...field} />
                     </FormControl>
@@ -219,7 +219,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="deposit_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Deposit Amount ($)</FormLabel>
+                    <FormLabel>ค่ามัดจำ (฿)</FormLabel>
                     <FormControl>
                       <Input type="number" min="0" step="0.01" className="input-elegant" {...field} />
                     </FormControl>
@@ -232,11 +232,11 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>สถานะ</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="input-elegant">
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="เลือกสถานะ" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -260,10 +260,10 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
             name="notes"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Notes</FormLabel>
+                <FormLabel>หมายเหตุ</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Additional notes about this booking..."
+                    placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับการจอง..."
                     className="input-elegant min-h-[100px]"
                     {...field}
                   />
@@ -279,12 +279,12 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
+                กำลังบันทึก...
               </>
             ) : booking ? (
-              'Update Booking'
+              'อัพเดทการจอง'
             ) : (
-              'Create Booking'
+              'สร้างการจอง'
             )}
           </Button>
         </div>

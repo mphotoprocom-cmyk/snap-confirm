@@ -33,9 +33,22 @@ import {
   Facebook
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 import { JOB_TYPE_LABELS } from '@/types/booking';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
+
+// Helper function to convert to Buddhist Era
+const toBuddhistYear = (date: Date) => {
+  return date.getFullYear() + 543;
+};
+
+const formatThaiDate = (date: Date) => {
+  const day = format(date, 'd', { locale: th });
+  const month = format(date, 'MMMM', { locale: th });
+  const year = toBuddhistYear(date);
+  return `${day} ${month} ${year}`;
+};
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -101,9 +114,9 @@ export default function BookingDetail() {
       link.href = canvas.toDataURL('image/jpeg', 0.95);
       link.click();
       
-      toast.success('Confirmation image downloaded');
+      toast.success('ดาวน์โหลดใบยืนยันแล้ว');
     } catch (error) {
-      toast.error('Failed to generate image');
+      toast.error('ไม่สามารถสร้างรูปภาพได้');
     }
   };
 
@@ -126,14 +139,14 @@ export default function BookingDetail() {
 
     const formatGoogleDate = (date: Date) => date.toISOString().replace(/-|:|\.\d\d\d/g, '');
     
-    const details = encodeURIComponent(`Client: ${booking.client_name}\nJob Type: ${JOB_TYPE_LABELS[booking.job_type]}\n${booking.notes || ''}`);
+    const details = encodeURIComponent(`ลูกค้า: ${booking.client_name}\nประเภทงาน: ${JOB_TYPE_LABELS[booking.job_type]}\n${booking.notes || ''}`);
     const location = encodeURIComponent(booking.location || '');
     const title = encodeURIComponent(`📷 ${JOB_TYPE_LABELS[booking.job_type]} - ${booking.client_name}`);
     
     const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formatGoogleDate(startDate)}/${formatGoogleDate(endDate)}&details=${details}&location=${location}`;
     
     window.open(googleUrl, '_blank');
-    toast.success('Opening Google Calendar');
+    toast.success('เปิด Google Calendar แล้ว');
   };
 
   const formatTime = (time: string | null) => {
@@ -141,7 +154,7 @@ export default function BookingDetail() {
     const [hours, minutes] = time.split(':');
     const date = new Date();
     date.setHours(parseInt(hours), parseInt(minutes));
-    return format(date, 'h:mm a');
+    return format(date, 'HH:mm น.');
   };
 
   if (isLoading) {
@@ -160,9 +173,9 @@ export default function BookingDetail() {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container py-8 text-center">
-          <h1 className="text-xl font-semibold">Booking not found</h1>
+          <h1 className="text-xl font-semibold">ไม่พบการจอง</h1>
           <Link to="/">
-            <Button className="mt-4">Back to Bookings</Button>
+            <Button className="mt-4">กลับไปรายการจอง</Button>
           </Link>
         </div>
       </div>
@@ -178,7 +191,7 @@ export default function BookingDetail() {
           <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2 -ml-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Bookings
+              กลับไปรายการจอง
             </Button>
           </Link>
         </div>
@@ -203,27 +216,27 @@ export default function BookingDetail() {
                   className="gap-2"
                 >
                   <Edit2 className="w-4 h-4" />
-                  Edit
+                  แก้ไข
                 </Button>
                 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
                       <Trash2 className="w-4 h-4" />
-                      Delete
+                      ลบ
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Booking</AlertDialogTitle>
+                      <AlertDialogTitle>ลบการจอง</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete this booking? This action cannot be undone.
+                        คุณแน่ใจหรือไม่ว่าต้องการลบการจองนี้? การกระทำนี้ไม่สามารถยกเลิกได้
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
                       <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Delete
+                        ลบ
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -236,7 +249,7 @@ export default function BookingDetail() {
         {isEditing ? (
           <div className="card-elevated p-6 animate-fade-in">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-lg font-medium">Edit Booking</h2>
+              <h2 className="font-display text-lg font-medium">แก้ไขการจอง</h2>
               <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
                 <X className="w-4 h-4" />
               </Button>
@@ -252,19 +265,19 @@ export default function BookingDetail() {
             {/* Main Details */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">Event Details</h2>
+                <h2 className="font-display text-lg font-medium mb-4">รายละเอียดงาน</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <p className="text-sm text-muted-foreground">Job Type</p>
+                    <p className="text-sm text-muted-foreground">ประเภทงาน</p>
                     <p className="font-medium">{JOB_TYPE_LABELS[booking.job_type]}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Date</p>
-                    <p className="font-medium">{format(new Date(booking.event_date), 'MMMM d, yyyy')}</p>
+                    <p className="text-sm text-muted-foreground">วันที่</p>
+                    <p className="font-medium">{formatThaiDate(new Date(booking.event_date))}</p>
                   </div>
                   {(booking.time_start || booking.time_end) && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Time</p>
+                      <p className="text-sm text-muted-foreground">เวลา</p>
                       <p className="font-medium">
                         {formatTime(booking.time_start)}
                         {booking.time_end && ` - ${formatTime(booking.time_end)}`}
@@ -273,7 +286,7 @@ export default function BookingDetail() {
                   )}
                   {booking.location && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Location</p>
+                      <p className="text-sm text-muted-foreground">สถานที่</p>
                       <p className="font-medium">{booking.location}</p>
                     </div>
                   )}
@@ -281,21 +294,21 @@ export default function BookingDetail() {
               </Card>
 
               <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">Client Information</h2>
+                <h2 className="font-display text-lg font-medium mb-4">ข้อมูลลูกค้า</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <p className="text-sm text-muted-foreground">Name</p>
+                    <p className="text-sm text-muted-foreground">ชื่อ</p>
                     <p className="font-medium">{booking.client_name}</p>
                   </div>
                   {booking.client_phone && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Phone</p>
+                      <p className="text-sm text-muted-foreground">เบอร์โทรศัพท์</p>
                       <p className="font-medium">{booking.client_phone}</p>
                     </div>
                   )}
                   {booking.client_email && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
+                      <p className="text-sm text-muted-foreground">อีเมล</p>
                       <p className="font-medium">{booking.client_email}</p>
                     </div>
                   )}
@@ -304,7 +317,7 @@ export default function BookingDetail() {
 
               {booking.notes && (
                 <Card className="card-elevated p-6">
-                  <h2 className="font-display text-lg font-medium mb-4">Notes</h2>
+                  <h2 className="font-display text-lg font-medium mb-4">หมายเหตุ</h2>
                   <p className="text-muted-foreground whitespace-pre-wrap">{booking.notes}</p>
                 </Card>
               )}
@@ -314,26 +327,26 @@ export default function BookingDetail() {
             <div className="space-y-6">
               {/* Payment Summary */}
               <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">Payment</h2>
+                <h2 className="font-display text-lg font-medium mb-4">การชำระเงิน</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Price</span>
-                    <span className="font-semibold">${booking.total_price.toLocaleString()}</span>
+                    <span className="text-muted-foreground">ราคารวม</span>
+                    <span className="font-semibold">฿{booking.total_price.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Deposit</span>
-                    <span className="font-medium">${booking.deposit_amount.toLocaleString()}</span>
+                    <span className="text-muted-foreground">มัดจำ</span>
+                    <span className="font-medium">฿{booking.deposit_amount.toLocaleString()}</span>
                   </div>
                   {booking.deposit_received_date && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Deposit Date</span>
-                      <span>{format(new Date(booking.deposit_received_date), 'MMM d, yyyy')}</span>
+                      <span className="text-muted-foreground">วันที่ชำระมัดจำ</span>
+                      <span>{formatThaiDate(new Date(booking.deposit_received_date))}</span>
                     </div>
                   )}
                   <div className="border-t pt-3 flex justify-between">
-                    <span className="font-medium">Balance Due</span>
+                    <span className="font-medium">ยอดคงเหลือ</span>
                     <span className="font-semibold">
-                      ${(booking.total_price - booking.deposit_amount).toLocaleString()}
+                      ฿{(booking.total_price - booking.deposit_amount).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -341,7 +354,7 @@ export default function BookingDetail() {
 
               {/* Actions */}
               <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">Actions</h2>
+                <h2 className="font-display text-lg font-medium mb-4">การดำเนินการ</h2>
                 <div className="space-y-3">
                   {(booking.status === 'draft' || booking.status === 'waiting_deposit') && (
                     <Button
@@ -354,7 +367,7 @@ export default function BookingDetail() {
                       ) : (
                         <CheckCircle className="w-4 h-4" />
                       )}
-                      Confirm Deposit
+                      ยืนยันมัดจำ
                     </Button>
                   )}
                   
@@ -365,7 +378,7 @@ export default function BookingDetail() {
                     className="w-full gap-2"
                   >
                     <FileText className="w-4 h-4" />
-                    View Confirmation
+                    ดูใบยืนยัน
                   </Button>
                   
                   <Button
@@ -375,7 +388,7 @@ export default function BookingDetail() {
                     className="w-full gap-2"
                   >
                     <CalendarIcon className="w-4 h-4" />
-                    Add to Calendar
+                    เพิ่มไปปฏิทิน
                   </Button>
                 </div>
                 
@@ -384,7 +397,7 @@ export default function BookingDetail() {
                 
                 {/* Optional: Social Media */}
                 <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Social Media</p>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">โซเชียลมีเดีย</p>
                   <Button
                     variant="secondary"
                     onClick={() => setShowFacebookQueue(true)}
@@ -392,13 +405,13 @@ export default function BookingDetail() {
                     className="w-full gap-2"
                   >
                     <Facebook className="w-4 h-4" />
-                    Create FB Queue Image
+                    สร้างรูป FB Queue
                   </Button>
                 </div>
                 
                 {booking.status !== 'booked' && (
                   <p className="text-xs text-muted-foreground mt-3">
-                    Confirm deposit to enable confirmation and calendar features.
+                    ยืนยันมัดจำเพื่อเปิดใช้งานฟีเจอร์ใบยืนยันและปฏิทิน
                   </p>
                 )}
               </Card>
@@ -411,10 +424,10 @@ export default function BookingDetail() {
           <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
             <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
-                <h2 className="font-display text-lg font-medium">Booking Confirmation</h2>
+                <h2 className="font-display text-lg font-medium">ใบยืนยันการจอง</h2>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={handleGenerateImage}>
-                    Download JPG
+                    ดาวน์โหลด JPG
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => setShowConfirmation(false)}>
                     <X className="w-4 h-4" />

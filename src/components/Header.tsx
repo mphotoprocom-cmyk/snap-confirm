@@ -34,7 +34,7 @@ export function Header() {
           <Link to="/bookings/new">
             <Button variant="default" size="sm" className="gap-2">
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">New Booking</span>
+              <span className="hidden sm:inline">สร้างการจอง</span>
             </Button>
           </Link>
 
@@ -59,13 +59,13 @@ export function Header() {
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="cursor-pointer">
                   <Settings className="w-4 h-4 mr-2" />
-                  Settings
+                  ตั้งค่า
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive">
                 <LogOut className="w-4 h-4 mr-2" />
-                Sign out
+                ออกจากระบบ
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

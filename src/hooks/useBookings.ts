@@ -85,10 +85,10 @@ export function useCreateBooking() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      toast.success('Booking created successfully');
+      toast.success('สร้างการจองสำเร็จ');
     },
     onError: (error) => {
-      toast.error('Failed to create booking: ' + error.message);
+      toast.error('ไม่สามารถสร้างการจองได้: ' + error.message);
     },
   });
 }
@@ -111,10 +111,10 @@ export function useUpdateBooking() {
     onSuccess: (booking) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
-      toast.success('Booking updated successfully');
+      toast.success('อัพเดทการจองสำเร็จ');
     },
     onError: (error) => {
-      toast.error('Failed to update booking: ' + error.message);
+      toast.error('ไม่สามารถอัพเดทการจองได้: ' + error.message);
     },
   });
 }
@@ -133,10 +133,10 @@ export function useDeleteBooking() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      toast.success('Booking deleted successfully');
+      toast.success('ลบการจองสำเร็จ');
     },
     onError: (error) => {
-      toast.error('Failed to delete booking: ' + error.message);
+      toast.error('ไม่สามารถลบการจองได้: ' + error.message);
     },
   });
 }
@@ -162,10 +162,10 @@ export function useConfirmDeposit() {
     onSuccess: (booking) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['booking', booking.id] });
-      toast.success('Deposit confirmed! Booking is now confirmed.');
+      toast.success('ยืนยันมัดจำแล้ว! การจองได้รับการยืนยัน');
     },
     onError: (error) => {
-      toast.error('Failed to confirm deposit: ' + error.message);
+      toast.error('ไม่สามารถยืนยันมัดจำได้: ' + error.message);
     },
   });
 }
