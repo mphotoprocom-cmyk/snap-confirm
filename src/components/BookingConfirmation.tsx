@@ -41,9 +41,17 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
         {/* Header */}
         <div className="text-center border-b pb-6 mb-6">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center">
-              <Camera className="w-5 h-5 text-white" />
-            </div>
+            {profile?.logo_url ? (
+              <img 
+                src={profile.logo_url} 
+                alt="โลโก้สตูดิโอ" 
+                className="h-12 w-auto object-contain"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+            )}
             <h1 className="text-2xl font-semibold text-gray-900" style={{ fontFamily: 'Playfair Display, Georgia, serif' }}>
               {profile?.studio_name || 'Photography Studio'}
             </h1>
@@ -67,7 +75,7 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="font-medium text-gray-900">{booking.client_name}</p>
             {booking.client_phone && <p className="text-sm text-gray-600">{booking.client_phone}</p>}
-            {booking.client_email && <p className="text-sm text-gray-600">{booking.client_email}</p>}
+            {booking.client_note && <p className="text-sm text-gray-600">{booking.client_note}</p>}
           </div>
         </div>
 
@@ -139,12 +147,26 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
           </div>
         </div>
 
+        {/* Signature */}
+        {profile?.show_signature && profile?.signature_url && (
+          <div className="mb-6 flex flex-col items-end">
+            <img 
+              src={profile.signature_url} 
+              alt="ลายเซ็น" 
+              className="h-16 object-contain mb-1"
+            />
+            {profile?.full_name && (
+              <p className="text-sm text-gray-700">{profile.full_name}</p>
+            )}
+          </div>
+        )}
+
         {/* Terms */}
         <div className="text-xs text-gray-500 border-t pt-4 space-y-1">
           <p className="font-medium text-gray-700">เงื่อนไขการจอง:</p>
           <p>• ใบยืนยันการจองนี้มีผลเมื่อได้รับการชำระค่ามัดจำแล้ว</p>
           <p>• ยอดคงเหลือชำระในวันงาน หรือก่อนวันงาน</p>
-          <p>• นโยบายการยกเลิกเป็นไปตามเงื่อนไขของบริการ</p>
+          <p>• นโยบายการยกเลิกการจองจะไม่คืนมัดจำ</p>
           <p>• กรุณาติดต่อเราหากต้องการเปลี่ยนแปลงรายละเอียดการจอง</p>
         </div>
 

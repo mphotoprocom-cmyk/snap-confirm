@@ -39,7 +39,7 @@ export function useBooking(id: string | undefined) {
 interface CreateBookingData {
   client_name: string;
   client_phone?: string;
-  client_email?: string;
+  client_note?: string;
   job_type: JobType;
   event_date: string;
   time_start?: string;
@@ -64,7 +64,7 @@ export function useCreateBooking() {
         .insert({
           client_name: data.client_name,
           client_phone: data.client_phone || null,
-          client_email: data.client_email || null,
+          client_note: data.client_note || null,
           job_type: data.job_type,
           event_date: data.event_date,
           time_start: data.time_start || null,

@@ -30,13 +30,15 @@ import {
   Calendar as CalendarIcon,
   Loader2,
   X,
-  Facebook
+  Facebook,
+  Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { JOB_TYPE_LABELS } from '@/types/booking';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
 
 // Helper function to convert to Buddhist Era
 const toBuddhistYear = (date: Date) => {
@@ -117,6 +119,34 @@ export default function BookingDetail() {
       toast.success('ดาวน์โหลดใบยืนยันแล้ว');
     } catch (error) {
       toast.error('ไม่สามารถสร้างรูปภาพได้');
+    }
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!confirmationRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(confirmationRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`booking-confirmation-${booking?.booking_number}.pdf`);
+      
+      toast.success('ดาวน์โหลด PDF แล้ว');
+    } catch (error) {
+      toast.error('ไม่สามารถสร้าง PDF ได้');
     }
   };
 
@@ -426,6 +456,10 @@ export default function BookingDetail() {
               <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
                 <h2 className="font-display text-lg font-medium">ใบยืนยันการจอง</h2>
                 <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleGeneratePDF} className="gap-2">
+                    <Download className="w-4 h-4" />
+                    ดาวน์โหลด PDF
+                  </Button>
                   <Button variant="outline" size="sm" onClick={handleGenerateImage}>
                     ดาวน์โหลด JPG
                   </Button>

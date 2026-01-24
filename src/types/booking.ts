@@ -2,6 +2,23 @@ export type JobType = 'wedding' | 'event' | 'corporate' | 'portrait' | 'other';
 
 export type BookingStatus = 'draft' | 'waiting_deposit' | 'booked' | 'completed' | 'cancelled';
 
+// Booking interface is defined below Profile
+
+export interface Profile {
+  id: string;
+  user_id: string;
+  studio_name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  logo_url: string | null;
+  signature_url: string | null;
+  full_name: string | null;
+  show_signature: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Booking {
   id: string;
   booking_number: string;
@@ -9,6 +26,7 @@ export interface Booking {
   client_name: string;
   client_phone: string | null;
   client_email: string | null;
+  client_note: string | null;
   job_type: JobType;
   event_date: string;
   time_start: string | null;
@@ -19,18 +37,6 @@ export interface Booking {
   deposit_received_date: string | null;
   notes: string | null;
   status: BookingStatus;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Profile {
-  id: string;
-  user_id: string;
-  studio_name: string;
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }

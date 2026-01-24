@@ -19,6 +19,7 @@ export type Database = {
           booking_number: string
           client_email: string | null
           client_name: string
+          client_note: string | null
           client_phone: string | null
           created_at: string
           deposit_amount: number
@@ -39,6 +40,7 @@ export type Database = {
           booking_number: string
           client_email?: string | null
           client_name: string
+          client_note?: string | null
           client_phone?: string | null
           created_at?: string
           deposit_amount?: number
@@ -59,6 +61,7 @@ export type Database = {
           booking_number?: string
           client_email?: string | null
           client_name?: string
+          client_note?: string | null
           client_phone?: string | null
           created_at?: string
           deposit_amount?: number
@@ -82,9 +85,12 @@ export type Database = {
           address: string | null
           created_at: string
           email: string | null
+          full_name: string | null
           id: string
           logo_url: string | null
           phone: string | null
+          show_signature: boolean | null
+          signature_url: string | null
           studio_name: string
           updated_at: string
           user_id: string
@@ -93,9 +99,12 @@ export type Database = {
           address?: string | null
           created_at?: string
           email?: string | null
+          full_name?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
+          show_signature?: boolean | null
+          signature_url?: string | null
           studio_name?: string
           updated_at?: string
           user_id: string
@@ -104,9 +113,12 @@ export type Database = {
           address?: string | null
           created_at?: string
           email?: string | null
+          full_name?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
+          show_signature?: boolean | null
+          signature_url?: string | null
           studio_name?: string
           updated_at?: string
           user_id?: string
