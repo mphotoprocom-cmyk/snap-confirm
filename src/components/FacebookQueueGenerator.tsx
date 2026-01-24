@@ -19,9 +19,9 @@ type TextPosition = 'left' | 'center' | 'right';
 type TextSize = 'small' | 'medium' | 'large';
 
 const textSizeConfig: Record<TextSize, { overlayWidth: number; overlayHeight: number; fontScale: number; name: string }> = {
-  small: { overlayWidth: 0.50, overlayHeight: 0.32, fontScale: 0.8, name: 'เล็ก' },
-  medium: { overlayWidth: 0.60, overlayHeight: 0.36, fontScale: 1, name: 'กลาง' },
-  large: { overlayWidth: 0.70, overlayHeight: 0.42, fontScale: 1.2, name: 'ใหญ่' },
+  small: { overlayWidth: 0.50, overlayHeight: 0.22, fontScale: 0.8, name: 'เล็ก' },
+  medium: { overlayWidth: 0.60, overlayHeight: 0.24, fontScale: 1, name: 'กลาง' },
+  large: { overlayWidth: 0.70, overlayHeight: 0.28, fontScale: 1.2, name: 'ใหญ่' },
 };
 
 const themeStyles: Record<TemplateTheme, { 
@@ -256,93 +256,91 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
 
       // Decorative line
       ctx.fillStyle = theme.accent;
-      ctx.fillRect(contentX, currentY - innerPadding * 0.5, overlayWidth - innerPadding * 2, 3);
+      ctx.fillRect(contentX, currentY - innerPadding * 0.3, overlayWidth - innerPadding * 2, 2);
+
+      // Use overlayWidth as base for font sizing to match preview proportions
+      const baseFontSize = overlayWidth;
 
       // "BOOKING" label
       ctx.fillStyle = theme.textSecondary;
-      ctx.font = `500 ${outputWidth * 0.018 * fontScale}px Inter, sans-serif`;
+      ctx.font = `500 ${baseFontSize * 0.028 * fontScale}px Inter, sans-serif`;
       ctx.textAlign = 'left';
-      ctx.fillText('— BOOKING —', contentX, currentY + innerPadding * 0.5);
-      currentY += innerPadding * 1.5;
+      ctx.fillText('— BOOKING —', contentX, currentY + innerPadding * 0.3);
+      currentY += innerPadding * 1.0;
 
       // Job type (custom text)
       if (customText.jobType) {
         ctx.fillStyle = theme.textPrimary;
-        ctx.font = `700 ${outputWidth * 0.055 * fontScale}px Sarabun, sans-serif`;
+        ctx.font = `700 ${baseFontSize * 0.085 * fontScale}px Sarabun, sans-serif`;
         ctx.fillText(customText.jobType, contentX, currentY);
-        currentY += innerPadding * 1.8;
+        currentY += innerPadding * 1.2;
       }
 
       // Location (custom text)
       if (customText.location) {
         ctx.fillStyle = theme.accent;
-        ctx.font = `600 ${outputWidth * 0.032 * fontScale}px Sarabun, sans-serif`;
+        ctx.font = `600 ${baseFontSize * 0.050 * fontScale}px Sarabun, sans-serif`;
         ctx.fillText(customText.location, contentX, currentY);
-        currentY += innerPadding * 1.4;
+        currentY += innerPadding * 1.0;
       }
 
       // Studio tagline and name (custom text)
       if (customText.studioName) {
         if (customText.studioTagline) {
           ctx.fillStyle = theme.textSecondary;
-          ctx.font = `italic 500 ${outputWidth * 0.022 * fontScale}px Georgia, serif`;
+          ctx.font = `italic 500 ${baseFontSize * 0.035 * fontScale}px Georgia, serif`;
           ctx.fillText(customText.studioTagline, contentX, currentY);
-          currentY += innerPadding * 0.9;
+          currentY += innerPadding * 0.6;
         }
         
-        ctx.font = `italic 600 ${outputWidth * 0.038 * fontScale}px Georgia, serif`;
+        ctx.font = `italic 600 ${baseFontSize * 0.058 * fontScale}px Georgia, serif`;
         ctx.fillStyle = theme.accent;
         ctx.fillText(customText.studioName, contentX, currentY);
-        currentY += innerPadding * 1.6;
+        currentY += innerPadding * 1.0;
       }
 
       // Date section
-      ctx.fillStyle = theme.accentBg;
-      const dayBoxWidth = outputWidth * 0.12 * fontScale;
-      const dayBoxHeight = innerPadding * 0.9;
-      ctx.fillRect(contentX, currentY - dayBoxHeight * 0.7, dayBoxWidth, dayBoxHeight);
-      
       ctx.fillStyle = theme.textPrimary;
-      ctx.font = `500 ${outputWidth * 0.018 * fontScale}px Sarabun, sans-serif`;
-      ctx.fillText(`วัน${thaiDate.dayName}`, contentX + dayBoxWidth * 0.12, currentY);
-      currentY += innerPadding * 0.3;
+      ctx.font = `500 ${baseFontSize * 0.028 * fontScale}px Sarabun, sans-serif`;
+      ctx.fillText(`วัน${thaiDate.dayName}`, contentX, currentY);
+      currentY += innerPadding * 0.2;
 
-      const dayNumY = currentY + innerPadding * 1.8;
+      const dayNumY = currentY + innerPadding * 1.2;
       
       ctx.fillStyle = theme.accent;
-      ctx.font = `700 ${outputWidth * 0.09 * fontScale}px Inter, sans-serif`;
+      ctx.font = `700 ${baseFontSize * 0.12 * fontScale}px Inter, sans-serif`;
       ctx.fillText(thaiDate.day.toString(), contentX, dayNumY);
       
       const dayNumWidth = ctx.measureText(thaiDate.day.toString()).width;
       
-      const lineX = contentX + dayNumWidth + innerPadding * 0.5;
+      const lineX = contentX + dayNumWidth + innerPadding * 0.4;
       ctx.strokeStyle = theme.borderColor;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(lineX, currentY + innerPadding * 0.3);
-      ctx.lineTo(lineX, dayNumY + innerPadding * 0.2);
+      ctx.moveTo(lineX, currentY + innerPadding * 0.2);
+      ctx.lineTo(lineX, dayNumY + innerPadding * 0.1);
       ctx.stroke();
 
-      const monthX = lineX + innerPadding * 0.5;
+      const monthX = lineX + innerPadding * 0.4;
       ctx.fillStyle = theme.textPrimary;
-      ctx.font = `600 ${outputWidth * 0.028 * fontScale}px Sarabun, sans-serif`;
-      ctx.fillText(thaiDate.monthName, monthX, currentY + innerPadding * 1);
+      ctx.font = `600 ${baseFontSize * 0.042 * fontScale}px Sarabun, sans-serif`;
+      ctx.fillText(thaiDate.monthName, monthX, currentY + innerPadding * 0.7);
       
       ctx.fillStyle = theme.textSecondary;
-      ctx.font = `400 ${outputWidth * 0.02 * fontScale}px Sarabun, sans-serif`;
-      ctx.fillText(`${thaiDate.year}${timeSlot ? ` | ${timeSlot}` : ''}`, monthX, currentY + innerPadding * 1.7);
+      ctx.font = `400 ${baseFontSize * 0.032 * fontScale}px Sarabun, sans-serif`;
+      ctx.fillText(`${thaiDate.year}${timeSlot ? ` | ${timeSlot}` : ''}`, monthX, currentY + innerPadding * 1.2);
 
-      currentY = dayNumY + innerPadding * 1;
+      currentY = dayNumY + innerPadding * 0.6;
 
       // Contact (custom text)
       if (customText.contact) {
         ctx.fillStyle = theme.textSecondary;
-        ctx.font = `400 ${outputWidth * 0.016 * fontScale}px Sarabun, sans-serif`;
+        ctx.font = `400 ${baseFontSize * 0.025 * fontScale}px Sarabun, sans-serif`;
         ctx.fillText(`สอบถามรายละเอียดเพิ่มเติม ติดต่อ`, contentX, currentY);
-        currentY += innerPadding * 0.6;
+        currentY += innerPadding * 0.4;
         
         ctx.fillStyle = theme.textPrimary;
-        ctx.font = `600 ${outputWidth * 0.02 * fontScale}px Inter, sans-serif`;
+        ctx.font = `600 ${baseFontSize * 0.032 * fontScale}px Inter, sans-serif`;
         ctx.fillText(customText.contact, contentX, currentY);
       }
 
