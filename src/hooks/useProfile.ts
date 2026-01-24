@@ -45,10 +45,10 @@ export function useUpdateProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
-      toast.success('Profile updated successfully');
+      toast.success('บันทึกการตั้งค่าสำเร็จ');
     },
     onError: (error) => {
-      toast.error('Failed to update profile: ' + error.message);
+      toast.error('ไม่สามารถบันทึกได้: ' + error.message);
     },
   });
 }

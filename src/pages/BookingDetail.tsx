@@ -336,10 +336,10 @@ export default function BookingDetail() {
                       <p className="font-medium">{booking.client_phone}</p>
                     </div>
                   )}
-                  {booking.client_email && (
+                  {booking.client_note && (
                     <div>
-                      <p className="text-sm text-muted-foreground">อีเมล</p>
-                      <p className="font-medium">{booking.client_email}</p>
+                      <p className="text-sm text-muted-foreground">ข้อมูลเพิ่มเติม</p>
+                      <p className="font-medium">{booking.client_note}</p>
                     </div>
                   )}
                 </div>
