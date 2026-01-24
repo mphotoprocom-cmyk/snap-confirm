@@ -727,66 +727,82 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                   </div>
                 )}
 
-                {/* Overlay Section - Dynamic Position and Size */}
+                {/* Overlay Section - Match Canvas Rendering Exactly */}
                 <div 
-                  className={`absolute bottom-2 p-2 rounded-lg ${
-                    textPosition === 'left' ? 'left-2' : 
-                    textPosition === 'right' ? 'right-2' : 
-                    'left-1/2 -translate-x-1/2'
-                  }`}
+                  className="absolute rounded-lg"
                   style={{ 
                     backgroundColor: theme.overlayBg,
                     width: `${textSizeConfig[textSize].overlayWidth * 100}%`,
+                    height: `${textSizeConfig[textSize].overlayHeight * 100}%`,
+                    bottom: '3%',
+                    left: textPosition === 'left' ? '3%' : textPosition === 'right' ? 'auto' : '50%',
+                    right: textPosition === 'right' ? '3%' : 'auto',
+                    transform: textPosition === 'center' ? 'translateX(-50%)' : 'none',
+                    paddingTop: '3.6%',
+                    paddingLeft: '3.6%',
+                    paddingRight: '3.6%',
+                    paddingBottom: '2%',
+                    overflow: 'hidden',
                   }}
                 >
-                  {/* Top line */}
+                  {/* Top line - matches canvas: overlayWidth - innerPadding * 2 */}
                   <div 
-                    className="w-full h-[1px] mb-1"
-                    style={{ backgroundColor: theme.accent }}
+                    className="w-full mb-[2%]"
+                    style={{ 
+                      backgroundColor: theme.accent,
+                      height: '1.5%',
+                    }}
                   />
                   
+                  {/* BOOKING label - matches canvas: 0.018 * fontScale */}
                   <p 
-                    className="tracking-wider mb-0.5"
+                    className="tracking-wider"
                     style={{ 
                       color: theme.textSecondary,
-                      fontSize: `${5 * textSizeConfig[textSize].fontScale}px`
+                      fontSize: `${1.8 * textSizeConfig[textSize].fontScale}%`,
+                      marginBottom: '1%',
                     }}
                   >
                     — BOOKING —
                   </p>
 
+                  {/* Job type - matches canvas: 0.055 * fontScale */}
                   {customText.jobType && (
                     <h3 
                       className="font-bold leading-tight"
                       style={{ 
                         color: theme.textPrimary,
-                        fontSize: `${9 * textSizeConfig[textSize].fontScale}px`
+                        fontSize: `${5.5 * textSizeConfig[textSize].fontScale}%`,
+                        marginBottom: '2%',
                       }}
                     >
                       {customText.jobType}
                     </h3>
                   )}
 
+                  {/* Location - matches canvas: 0.032 * fontScale */}
                   {customText.location && (
                     <p 
-                      className="mt-0.5"
                       style={{ 
                         color: theme.accent,
-                        fontSize: `${6 * textSizeConfig[textSize].fontScale}px`
+                        fontSize: `${3.2 * textSizeConfig[textSize].fontScale}%`,
+                        marginBottom: '1.5%',
                       }}
                     >
                       {customText.location}
                     </p>
                   )}
 
+                  {/* Studio info - matches canvas: tagline 0.022, name 0.038 */}
                   {customText.studioName && (
                     <>
                       {customText.studioTagline && (
                         <p 
-                          className="italic mt-0.5"
+                          className="italic"
                           style={{ 
                             color: theme.textSecondary,
-                            fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
+                            fontSize: `${2.2 * textSizeConfig[textSize].fontScale}%`,
+                            marginBottom: '0.5%',
                           }}
                         >
                           {customText.studioTagline}
@@ -796,7 +812,8 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                         className="italic font-semibold"
                         style={{ 
                           color: theme.accent,
-                          fontSize: `${6 * textSizeConfig[textSize].fontScale}px`
+                          fontSize: `${3.8 * textSizeConfig[textSize].fontScale}%`,
+                          marginBottom: '2%',
                         }}
                       >
                         {customText.studioName}
@@ -804,13 +821,13 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                     </>
                   )}
 
-                  {/* Date section */}
-                  <div className="flex items-center gap-1.5 mt-1">
+                  {/* Date section - matches canvas ratios */}
+                  <div className="flex items-center" style={{ gap: '2%', marginTop: '1%' }}>
                     <div>
                       <p 
                         style={{ 
                           color: theme.textPrimary,
-                          fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
+                          fontSize: `${1.8 * textSizeConfig[textSize].fontScale}%`,
                         }}
                       >
                         วัน{thaiDate?.dayName}
@@ -819,22 +836,26 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                         className="font-bold leading-none"
                         style={{ 
                           color: theme.accent,
-                          fontSize: `${12 * textSizeConfig[textSize].fontScale}px`
+                          fontSize: `${9 * textSizeConfig[textSize].fontScale}%`,
                         }}
                       >
                         {thaiDate?.day}
                       </p>
                     </div>
                     <div 
-                      className="w-[1px] h-4"
-                      style={{ backgroundColor: theme.borderColor }}
+                      style={{ 
+                        backgroundColor: theme.borderColor,
+                        width: '1px',
+                        height: `${8 * textSizeConfig[textSize].fontScale}%`,
+                        minHeight: '12px',
+                      }}
                     />
                     <div>
                       <p 
                         className="font-semibold"
                         style={{ 
                           color: theme.textPrimary,
-                          fontSize: `${5 * textSizeConfig[textSize].fontScale}px`
+                          fontSize: `${2.8 * textSizeConfig[textSize].fontScale}%`,
                         }}
                       >
                         {thaiDate?.monthName}
@@ -842,7 +863,7 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                       <p 
                         style={{ 
                           color: theme.textSecondary,
-                          fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
+                          fontSize: `${2 * textSizeConfig[textSize].fontScale}%`,
                         }}
                       >
                         {thaiDate?.year} | {getTimeSlot() || 'ตลอดวัน'}
@@ -850,16 +871,27 @@ export function FacebookQueueGenerator({ booking, onClose }: FacebookQueueGenera
                     </div>
                   </div>
 
+                  {/* Contact - matches canvas: 0.016, 0.02 */}
                   {customText.contact && (
-                    <p 
-                      className="mt-1"
-                      style={{ 
-                        color: theme.textSecondary,
-                        fontSize: `${4 * textSizeConfig[textSize].fontScale}px`
-                      }}
-                    >
-                      ติดต่อ: {customText.contact}
-                    </p>
+                    <div style={{ marginTop: '2%' }}>
+                      <p 
+                        style={{ 
+                          color: theme.textSecondary,
+                          fontSize: `${1.6 * textSizeConfig[textSize].fontScale}%`,
+                        }}
+                      >
+                        สอบถามรายละเอียดเพิ่มเติม ติดต่อ
+                      </p>
+                      <p 
+                        className="font-semibold"
+                        style={{ 
+                          color: theme.textPrimary,
+                          fontSize: `${2 * textSizeConfig[textSize].fontScale}%`,
+                        }}
+                      >
+                        {customText.contact}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
