@@ -48,7 +48,7 @@ export default function Dashboard() {
       <main className="container py-8">
         {/* Page Header */}
         <div className="page-header">
-          <h1 className="page-title">รายการจอง</h1>
+          <h1 className="page-title">รายการจอง 2</h1>
           <p className="page-subtitle">จัดการการจองถ่ายภาพของคุณ</p>
         </div>
 
