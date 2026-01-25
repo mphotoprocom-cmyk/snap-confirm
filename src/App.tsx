@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import NewBooking from "./pages/NewBooking";
 import BookingDetail from "./pages/BookingDetail";
 import Settings from "./pages/Settings";
+import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/bookings/new" element={<NewBooking />} />
             <Route path="/bookings/:id" element={<BookingDetail />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
