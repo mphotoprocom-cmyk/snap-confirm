@@ -49,7 +49,7 @@ export default function Dashboard() {
         {/* Page Header */}
         <div className="page-header">
           <h1 className="page-title">รายการจอง 56</h1>
-          <p className="page-subtitle">จัดการการจองถ่ายภาพของคุณ</p>
+          <p className="page-subtitle">จัดการการจองถ่ายภาพของคุณ aa</p>
         </div>
 
         {/* Stats Cards */}
