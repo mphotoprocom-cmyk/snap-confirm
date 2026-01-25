@@ -2,7 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { Camera, LogOut, Settings, Plus } from 'lucide-react';
+import { useIsAdmin } from '@/hooks/useUserManagement';
+import { Camera, LogOut, Settings, Plus, Users } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ export function Header() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
+  const { data: isAdmin } = useIsAdmin();
 
   if (!user) return null;
 
@@ -56,6 +58,14 @@ export function Header() {
                 </p>
               </div>
               <DropdownMenuSeparator />
+              {isAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link to="/admin/users" className="cursor-pointer">
+                    <Users className="w-4 h-4 mr-2" />
+                    จัดการผู้ใช้
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="cursor-pointer">
                   <Settings className="w-4 h-4 mr-2" />
