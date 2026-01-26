@@ -112,13 +112,13 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
         {/* Service Details */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">รายละเอียดบริการ</h3>
-          <div className="bg-gray-50 rounded-lg p-4 space-y-1.5 text-sm text-gray-700">
-            <p>• ถ่ายภาพไม่จำกัดจำนวน</p>
-            <p>• ปรับโทน/แสง/สี ทุกภาพ</p>
-            <p>• ส่ง Demo 30-80 ภาพใน 24 ชั่วโมง</p>
-            <p>• ส่งไฟล์ภาพทั้งหมดภายใน 3-7 วัน</p>
-            <p>• ส่งไฟล์ภาพทาง Google Drive / Google Photos</p>
-            <p>• Backup ไฟล์ไว้ให้ 1 ปี</p>
+          <div className="bg-gray-50 rounded-lg p-4 space-y-1.5 text-sm text-gray-700 whitespace-pre-line">
+            {profile?.service_details || `• ถ่ายภาพไม่จำกัดจำนวน
+• ปรับโทน/แสง/สี ทุกภาพ
+• ส่ง Demo 30-80 ภาพใน 24 ชั่วโมง
+• ส่งไฟล์ภาพทั้งหมดภายใน 3-7 วัน
+• ส่งไฟล์ภาพทาง Google Drive / Google Photos
+• Backup ไฟล์ไว้ให้ 1 ปี`}
           </div>
         </div>
 
@@ -164,10 +164,12 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
         {/* Terms */}
         <div className="text-xs text-gray-500 border-t pt-4 space-y-1">
           <p className="font-medium text-gray-700">เงื่อนไขการจอง:</p>
-          <p>• ใบยืนยันการจองนี้มีผลเมื่อได้รับการชำระค่ามัดจำแล้ว</p>
-          <p>• ยอดคงเหลือชำระในวันงาน หรือก่อนวันงาน</p>
-          <p>• นโยบายการยกเลิกการจองจะไม่คืนมัดจำ</p>
-          <p>• กรุณาติดต่อเราหากต้องการเปลี่ยนแปลงรายละเอียดการจอง</p>
+          <div className="whitespace-pre-line">
+            {profile?.booking_terms || `• ใบยืนยันการจองนี้มีผลเมื่อได้รับการชำระค่ามัดจำแล้ว
+• ยอดคงเหลือชำระในวันงาน หรือก่อนวันงาน
+• นโยบายการยกเลิกการจองจะไม่คืนมัดจำ
+• กรุณาติดต่อเราหากต้องการเปลี่ยนแปลงรายละเอียดการจอง`}
+          </div>
         </div>
 
         {/* Footer */}
