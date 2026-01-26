@@ -83,6 +83,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          booking_terms: string | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -90,6 +91,7 @@ export type Database = {
           is_blocked: boolean | null
           logo_url: string | null
           phone: string | null
+          service_details: string | null
           show_signature: boolean | null
           signature_url: string | null
           studio_name: string
@@ -98,6 +100,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          booking_terms?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -105,6 +108,7 @@ export type Database = {
           is_blocked?: boolean | null
           logo_url?: string | null
           phone?: string | null
+          service_details?: string | null
           show_signature?: boolean | null
           signature_url?: string | null
           studio_name?: string
@@ -113,6 +117,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          booking_terms?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -120,6 +125,7 @@ export type Database = {
           is_blocked?: boolean | null
           logo_url?: string | null
           phone?: string | null
+          service_details?: string | null
           show_signature?: boolean | null
           signature_url?: string | null
           studio_name?: string

@@ -15,6 +15,8 @@ export interface Profile {
   signature_url: string | null;
   full_name: string | null;
   show_signature: boolean;
+  service_details: string | null;
+  booking_terms: string | null;
   created_at: string;
   updated_at: string;
 }

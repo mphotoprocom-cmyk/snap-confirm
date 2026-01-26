@@ -24,6 +24,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Loader2, Upload, X, Camera, Signature } from 'lucide-react';
 import { toast } from 'sonner';
 
+const DEFAULT_SERVICE_DETAILS = `• ถ่ายภาพไม่จำกัดจำนวน
+• ปรับโทน/แสง/สี ทุกภาพ
+• ส่ง Demo 30-80 ภาพใน 24 ชั่วโมง
+• ส่งไฟล์ภาพทั้งหมดภายใน 3-7 วัน
+• ส่งไฟล์ภาพทาง Google Drive / Google Photos
+• Backup ไฟล์ไว้ให้ 1 ปี`;
+
+const DEFAULT_BOOKING_TERMS = `• ใบยืนยันการจองนี้มีผลเมื่อได้รับการชำระค่ามัดจำแล้ว
+• ยอดคงเหลือชำระในวันงาน หรือก่อนวันงาน
+• นโยบายการยกเลิกการจองจะไม่คืนมัดจำ
+• กรุณาติดต่อเราหากต้องการเปลี่ยนแปลงรายละเอียดการจอง`;
+
 const profileSchema = z.object({
   studio_name: z.string().min(1, 'กรุณากรอกชื่อสตูดิโอ').max(100),
   phone: z.string().max(20).optional(),
@@ -31,6 +43,8 @@ const profileSchema = z.object({
   address: z.string().max(200).optional(),
   full_name: z.string().max(100).optional(),
   show_signature: z.boolean().optional(),
+  service_details: z.string().max(2000).optional(),
+  booking_terms: z.string().max(2000).optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -55,6 +69,8 @@ export default function Settings() {
       address: '',
       full_name: '',
       show_signature: false,
+      service_details: DEFAULT_SERVICE_DETAILS,
+      booking_terms: DEFAULT_BOOKING_TERMS,
     },
   });
 
@@ -73,6 +89,8 @@ export default function Settings() {
         address: profile.address || '',
         full_name: profile.full_name || '',
         show_signature: profile.show_signature || false,
+        service_details: profile.service_details || DEFAULT_SERVICE_DETAILS,
+        booking_terms: profile.booking_terms || DEFAULT_BOOKING_TERMS,
       });
     }
   }, [profile, form]);
@@ -400,6 +418,66 @@ export default function Settings() {
                       </FormItem>
                     )}
                   />
+                </div>
+
+                {/* Service Details & Booking Terms */}
+                <div className="border-t pt-6 space-y-4">
+                  <h3 className="font-display text-lg font-medium">รายละเอียดบริการและเงื่อนไขการจอง</h3>
+                  <p className="text-sm text-muted-foreground">ข้อความเหล่านี้จะแสดงในใบยืนยันการจอง</p>
+                  
+                  <FormField
+                    control={form.control}
+                    name="service_details"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>รายละเอียดบริการ</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="รายละเอียดบริการ..."
+                            className="input-elegant min-h-[150px] font-mono text-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          ใส่รายละเอียดบริการที่ลูกค้าจะได้รับ (ขึ้นบรรทัดใหม่ได้)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="booking_terms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>เงื่อนไขการจอง</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="เงื่อนไขการจอง..."
+                            className="input-elegant min-h-[120px] font-mono text-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          ระบุเงื่อนไขและนโยบายการจอง (ขึ้นบรรทัดใหม่ได้)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      form.setValue('service_details', DEFAULT_SERVICE_DETAILS);
+                      form.setValue('booking_terms', DEFAULT_BOOKING_TERMS);
+                    }}
+                  >
+                    รีเซ็ตเป็นค่าเริ่มต้น
+                  </Button>
                 </div>
 
                 <div className="flex justify-end pt-4 border-t">
