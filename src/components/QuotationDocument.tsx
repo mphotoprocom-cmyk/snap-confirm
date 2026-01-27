@@ -1,0 +1,190 @@
+import { forwardRef } from 'react';
+import { Quotation } from '@/types/package';
+import { Profile, JOB_TYPE_LABELS } from '@/types/booking';
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
+import { Camera } from 'lucide-react';
+
+interface QuotationDocumentProps {
+  quotation: Quotation;
+  profile: Profile | null;
+}
+
+// Helper function to convert to Buddhist Era
+const toBuddhistYear = (date: Date) => {
+  return date.getFullYear() + 543;
+};
+
+const formatThaiDate = (date: Date) => {
+  const day = format(date, 'd', { locale: th });
+  const month = format(date, 'MMMM', { locale: th });
+  const year = toBuddhistYear(date);
+  return `${day} ${month} ${year}`;
+};
+
+export const QuotationDocument = forwardRef<HTMLDivElement, QuotationDocumentProps>(
+  ({ quotation, profile }, ref) => {
+    const formatTime = (time: string | null) => {
+      if (!time) return '';
+      const [hours, minutes] = time.split(':');
+      const date = new Date();
+      date.setHours(parseInt(hours), parseInt(minutes));
+      return format(date, 'HH:mm น.');
+    };
+
+    return (
+      <div
+        ref={ref}
+        className="bg-white p-8 max-w-2xl mx-auto"
+        style={{ fontFamily: 'Sarabun, Inter, system-ui, sans-serif' }}
+      >
+        {/* Header */}
+        <div className="text-center border-b pb-6 mb-6">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            {profile?.logo_url ? (
+              <img 
+                src={profile.logo_url} 
+                alt="โลโก้สตูดิโอ" 
+                className="h-12 w-auto object-contain"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
+            )}
+            <h1 className="text-2xl font-semibold text-gray-900" style={{ fontFamily: 'Playfair Display, Georgia, serif' }}>
+              {profile?.studio_name || 'Photography Studio'}
+            </h1>
+          </div>
+          {profile?.phone && <p className="text-sm text-gray-600">{profile.phone}</p>}
+          {profile?.email && <p className="text-sm text-gray-600">{profile.email}</p>}
+          {profile?.address && <p className="text-sm text-gray-600">{profile.address}</p>}
+        </div>
+
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-1" style={{ fontFamily: 'Playfair Display, Georgia, serif' }}>
+            ใบเสนอราคา
+          </h2>
+          <p className="text-sm text-gray-500">เลขที่อ้างอิง: {quotation.quotation_number}</p>
+        </div>
+
+        {/* Client Details */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">ข้อมูลลูกค้า</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="font-medium text-gray-900">{quotation.client_name}</p>
+            {quotation.client_phone && <p className="text-sm text-gray-600">{quotation.client_phone}</p>}
+            {quotation.client_email && <p className="text-sm text-gray-600">{quotation.client_email}</p>}
+            {quotation.client_note && <p className="text-sm text-gray-600">{quotation.client_note}</p>}
+          </div>
+        </div>
+
+        {/* Event Details */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">รายละเอียดงาน</h3>
+          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-600">ประเภทงาน:</span>
+              <span className="font-medium text-gray-900">{JOB_TYPE_LABELS[quotation.job_type]}</span>
+            </div>
+            {quotation.event_date && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">วันที่:</span>
+                <span className="font-medium text-gray-900">{formatThaiDate(new Date(quotation.event_date))}</span>
+              </div>
+            )}
+            {(quotation.time_start || quotation.time_end) && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">เวลา:</span>
+                <span className="font-medium text-gray-900">
+                  {formatTime(quotation.time_start)}
+                  {quotation.time_end && ` - ${formatTime(quotation.time_end)}`}
+                </span>
+              </div>
+            )}
+            {quotation.location && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">สถานที่:</span>
+                <span className="font-medium text-gray-900">{quotation.location}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Service Details */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">รายละเอียดบริการ</h3>
+          <div className="bg-gray-50 rounded-lg p-4 space-y-1.5 text-sm text-gray-700 whitespace-pre-line">
+            {profile?.service_details || `• ถ่ายภาพไม่จำกัดจำนวน
+• ปรับโทน/แสง/สี ทุกภาพ
+• ส่ง Demo 30-80 ภาพใน 24 ชั่วโมง
+• ส่งไฟล์ภาพทั้งหมดภายใน 3-7 วัน
+• ส่งไฟล์ภาพทาง Google Drive / Google Photos
+• Backup ไฟล์ไว้ให้ 1 ปี`}
+          </div>
+        </div>
+
+        {/* Price */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">ราคาเสนอ</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-900">ราคารวม:</span>
+              <span className="text-2xl font-bold text-gray-900">฿{quotation.total_price.toLocaleString()}</span>
+            </div>
+            {quotation.valid_until && (
+              <p className="text-sm text-gray-500 mt-2">
+                ใบเสนอราคานี้ใช้ได้ถึงวันที่ {formatThaiDate(new Date(quotation.valid_until))}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Notes */}
+        {quotation.notes && (
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">หมายเหตุ</h3>
+            <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 whitespace-pre-line">
+              {quotation.notes}
+            </div>
+          </div>
+        )}
+
+        {/* Signature */}
+        {profile?.show_signature && profile?.signature_url && (
+          <div className="mb-6 flex flex-col items-end">
+            <img 
+              src={profile.signature_url} 
+              alt="ลายเซ็น" 
+              className="h-16 object-contain mb-1"
+            />
+            {profile?.full_name && (
+              <p className="text-sm text-gray-700">{profile.full_name}</p>
+            )}
+          </div>
+        )}
+
+        {/* Terms */}
+        <div className="text-xs text-gray-500 border-t pt-4 space-y-1">
+          <p className="font-medium text-gray-700">เงื่อนไขการจอง:</p>
+          <div className="whitespace-pre-line">
+            {profile?.booking_terms || `• ใบเสนอราคานี้มีผลเมื่อได้รับการยืนยันจากลูกค้า
+• ยอดคงเหลือชำระในวันงาน หรือก่อนวันงาน
+• นโยบายการยกเลิกการจองจะไม่คืนมัดจำ
+• กรุณาติดต่อเราหากต้องการเปลี่ยนแปลงรายละเอียดการจอง`}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-8 pt-4 border-t">
+          <p className="text-xs text-gray-400">
+            สร้างเมื่อ {formatThaiDate(new Date())} เวลา {format(new Date(), 'HH:mm น.')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+);
+
+QuotationDocument.displayName = 'QuotationDocument';
