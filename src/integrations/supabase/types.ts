@@ -29,6 +29,7 @@ export type Database = {
           job_type: Database["public"]["Enums"]["job_type"]
           location: string | null
           notes: string | null
+          package_id: string | null
           status: Database["public"]["Enums"]["booking_status"]
           time_end: string | null
           time_start: string | null
@@ -50,6 +51,7 @@ export type Database = {
           job_type?: Database["public"]["Enums"]["job_type"]
           location?: string | null
           notes?: string | null
+          package_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           time_end?: string | null
           time_start?: string | null
@@ -71,10 +73,58 @@ export type Database = {
           job_type?: Database["public"]["Enums"]["job_type"]
           location?: string | null
           notes?: string | null
+          package_id?: string | null
           status?: Database["public"]["Enums"]["booking_status"]
           time_end?: string | null
           time_start?: string | null
           total_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packages: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          job_type: Database["public"]["Enums"]["job_type"] | null
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          job_type?: Database["public"]["Enums"]["job_type"] | null
+          name: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          job_type?: Database["public"]["Enums"]["job_type"] | null
+          name?: string
+          price?: number
+          sort_order?: number
           updated_at?: string
           user_id?: string
         }
@@ -133,6 +183,80 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quotations: {
+        Row: {
+          client_email: string | null
+          client_name: string
+          client_note: string | null
+          client_phone: string | null
+          created_at: string
+          event_date: string | null
+          id: string
+          job_type: Database["public"]["Enums"]["job_type"]
+          location: string | null
+          notes: string | null
+          package_id: string | null
+          quotation_number: string
+          status: string
+          time_end: string | null
+          time_start: string | null
+          total_price: number
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          client_email?: string | null
+          client_name: string
+          client_note?: string | null
+          client_phone?: string | null
+          created_at?: string
+          event_date?: string | null
+          id?: string
+          job_type?: Database["public"]["Enums"]["job_type"]
+          location?: string | null
+          notes?: string | null
+          package_id?: string | null
+          quotation_number: string
+          status?: string
+          time_end?: string | null
+          time_start?: string | null
+          total_price?: number
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string
+          client_note?: string | null
+          client_phone?: string | null
+          created_at?: string
+          event_date?: string | null
+          id?: string
+          job_type?: Database["public"]["Enums"]["job_type"]
+          location?: string | null
+          notes?: string | null
+          package_id?: string | null
+          quotation_number?: string
+          status?: string
+          time_end?: string | null
+          time_start?: string | null
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

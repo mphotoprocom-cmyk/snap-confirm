@@ -19,61 +19,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Booking, JobType, BookingStatus, JOB_TYPE_LABELS, STATUS_LABELS } from '@/types/booking';
+import { Quotation, QUOTATION_STATUS_LABELS, QuotationStatus } from '@/types/package';
+import { JobType, JOB_TYPE_LABELS } from '@/types/booking';
 import { useActivePackages } from '@/hooks/usePackages';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 
-const bookingSchema = z.object({
+const quotationSchema = z.object({
   client_name: z.string().min(1, 'กรุณากรอกชื่อลูกค้า').max(100),
   client_phone: z.string().max(20).optional(),
+  client_email: z.string().email('อีเมลไม่ถูกต้อง').optional().or(z.literal('')),
   client_note: z.string().max(500).optional(),
   job_type: z.enum(['wedding', 'event', 'corporate', 'portrait', 'other']),
-  event_date: z.string().min(1, 'กรุณาเลือกวันที่'),
+  event_date: z.string().optional(),
   time_start: z.string().optional(),
   time_end: z.string().optional(),
   location: z.string().max(200).optional(),
   total_price: z.coerce.number().min(0, 'ราคาต้องไม่ติดลบ'),
-  deposit_amount: z.coerce.number().min(0, 'มัดจำต้องไม่ติดลบ'),
   notes: z.string().max(1000).optional(),
-  status: z.enum(['draft', 'waiting_deposit', 'booked', 'completed', 'cancelled']),
+  valid_until: z.string().optional(),
+  status: z.enum(['draft', 'sent', 'accepted', 'rejected', 'expired']),
   package_id: z.string().optional(),
 });
 
-type BookingFormData = z.infer<typeof bookingSchema>;
+type QuotationFormData = z.infer<typeof quotationSchema>;
 
-interface BookingFormProps {
-  booking?: Booking;
-  onSubmit: (data: BookingFormData) => Promise<void>;
+interface QuotationFormProps {
+  quotation?: Quotation;
+  onSubmit: (data: QuotationFormData) => Promise<void>;
   isSubmitting: boolean;
 }
 
-export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProps) {
+export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFormProps) {
   const { data: packages } = useActivePackages();
 
-  const form = useForm<BookingFormData>({
-    resolver: zodResolver(bookingSchema),
+  const form = useForm<QuotationFormData>({
+    resolver: zodResolver(quotationSchema),
     defaultValues: {
-      client_name: booking?.client_name || '',
-      client_phone: booking?.client_phone || '',
-      client_note: booking?.client_note || '',
-      job_type: booking?.job_type || 'event',
-      event_date: booking?.event_date || '',
-      time_start: booking?.time_start || '',
-      time_end: booking?.time_end || '',
-      location: booking?.location || '',
-      total_price: booking?.total_price || 0,
-      deposit_amount: booking?.deposit_amount || 0,
-      notes: booking?.notes || '',
-      status: booking?.status || 'draft',
-      package_id: (booking as any)?.package_id || '',
+      client_name: quotation?.client_name || '',
+      client_phone: quotation?.client_phone || '',
+      client_email: quotation?.client_email || '',
+      client_note: quotation?.client_note || '',
+      job_type: quotation?.job_type || 'event',
+      event_date: quotation?.event_date || '',
+      time_start: quotation?.time_start || '',
+      time_end: quotation?.time_end || '',
+      location: quotation?.location || '',
+      total_price: quotation?.total_price || 0,
+      notes: quotation?.notes || '',
+      valid_until: quotation?.valid_until || '',
+      status: quotation?.status || 'draft',
+      package_id: quotation?.package_id || '',
     },
   });
 
   const selectedPackageId = form.watch('package_id');
 
   useEffect(() => {
-    if (selectedPackageId && packages && !booking) {
+    if (selectedPackageId && packages) {
       const selectedPackage = packages.find(p => p.id === selectedPackageId);
       if (selectedPackage) {
         form.setValue('total_price', selectedPackage.price);
@@ -82,7 +85,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
         }
       }
     }
-  }, [selectedPackageId, packages, form, booking]);
+  }, [selectedPackageId, packages, form]);
 
   return (
     <Form {...form}>
@@ -152,9 +155,22 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
               />
               <FormField
                 control={form.control}
-                name="client_note"
+                name="client_email"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>อีเมล</FormLabel>
+                    <FormControl>
+                      <Input placeholder="email@example.com" className="input-elegant" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="client_note"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-3">
                     <FormLabel>ข้อมูลเพิ่มเติม</FormLabel>
                     <FormControl>
                       <Input placeholder="เช่น Line ID, Facebook, หมายเหตุ" className="input-elegant" {...field} />
@@ -176,7 +192,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>ประเภทงาน *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="input-elegant">
                           <SelectValue placeholder="เลือกประเภทงาน" />
@@ -199,7 +215,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 name="event_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>วันที่จัดงาน *</FormLabel>
+                    <FormLabel>วันที่จัดงาน (ถ้ามี)</FormLabel>
                     <FormControl>
                       <Input type="date" className="input-elegant" {...field} />
                     </FormControl>
@@ -251,14 +267,14 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
 
           {/* Pricing */}
           <div className="space-y-4 md:col-span-2">
-            <h3 className="font-display text-lg font-medium">ราคา</h3>
+            <h3 className="font-display text-lg font-medium">ราคาและสถานะ</h3>
             <div className="grid gap-4 md:grid-cols-3">
               <FormField
                 control={form.control}
                 name="total_price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ราคารวม (฿)</FormLabel>
+                    <FormLabel>ราคาเสนอ (฿)</FormLabel>
                     <FormControl>
                       <Input type="number" min="0" step="0.01" className="input-elegant" {...field} />
                     </FormControl>
@@ -268,12 +284,12 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
               />
               <FormField
                 control={form.control}
-                name="deposit_amount"
+                name="valid_until"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ค่ามัดจำ (฿)</FormLabel>
+                    <FormLabel>ใช้ได้ถึงวันที่</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" step="0.01" className="input-elegant" {...field} />
+                      <Input type="date" className="input-elegant" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -285,16 +301,16 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>สถานะ</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="input-elegant">
                           <SelectValue placeholder="เลือกสถานะ" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {(Object.keys(STATUS_LABELS) as BookingStatus[]).map((status) => (
+                        {(Object.keys(QUOTATION_STATUS_LABELS) as QuotationStatus[]).map((status) => (
                           <SelectItem key={status} value={status}>
-                            {STATUS_LABELS[status]}
+                            {QUOTATION_STATUS_LABELS[status]}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -315,7 +331,7 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 <FormLabel>หมายเหตุ</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับการจอง..."
+                    placeholder="รายละเอียดเพิ่มเติมสำหรับใบเสนอราคา..."
                     className="input-elegant min-h-[100px]"
                     {...field}
                   />
@@ -333,10 +349,10 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 กำลังบันทึก...
               </>
-            ) : booking ? (
-              'อัพเดทการจอง'
+            ) : quotation ? (
+              'อัพเดทใบเสนอราคา'
             ) : (
-              'สร้างการจอง'
+              'สร้างใบเสนอราคา'
             )}
           </Button>
         </div>

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useIsAdmin } from '@/hooks/useUserManagement';
-import { Camera, LogOut, Settings, Plus, Users } from 'lucide-react';
+import { Camera, LogOut, Settings, Plus, Users, Package, FileText } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +33,20 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <Link to="/quotations">
+            <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex">
+              <FileText className="w-4 h-4" />
+              ใบเสนอราคา
+            </Button>
+          </Link>
+          
+          <Link to="/packages">
+            <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex">
+              <Package className="w-4 h-4" />
+              แพ็กเกจ
+            </Button>
+          </Link>
+
           <Link to="/bookings/new">
             <Button variant="default" size="sm" className="gap-2">
               <Plus className="w-4 h-4" />
@@ -58,6 +72,18 @@ export function Header() {
                 </p>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild className="sm:hidden">
+                <Link to="/quotations" className="cursor-pointer">
+                  <FileText className="w-4 h-4 mr-2" />
+                  ใบเสนอราคา
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="sm:hidden">
+                <Link to="/packages" className="cursor-pointer">
+                  <Package className="w-4 h-4 mr-2" />
+                  แพ็กเกจ
+                </Link>
+              </DropdownMenuItem>
               {isAdmin && (
                 <DropdownMenuItem asChild>
                   <Link to="/admin/users" className="cursor-pointer">
