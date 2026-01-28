@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useBookings } from '@/hooks/useBookings';
 import { BookingCard } from '@/components/BookingCard';
+import { BookingCalendar } from '@/components/BookingCalendar';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BookingStatus, STATUS_LABELS } from '@/types/booking';
-import { Plus, Search, Calendar, CheckCircle, Clock, FileX, Loader2 } from 'lucide-react';
+import { Plus, Search, Calendar, CheckCircle, Clock, FileX, Loader2, LayoutGrid, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+type ViewMode = 'grid' | 'calendar';
 
 const statusFilters: { value: BookingStatus | 'all'; label: string; icon: React.ReactNode }[] = [
   { value: 'all', label: 'ทั้งหมด', icon: null },
@@ -20,6 +23,7 @@ export default function Dashboard() {
   const { data: bookings, isLoading } = useBookings();
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   const filteredBookings = bookings?.filter((booking) => {
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
@@ -47,9 +51,29 @@ export default function Dashboard() {
       
       <main className="container py-8">
         {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">รายการจอง</h1>
-          <p className="page-subtitle">จัดการการจองถ่ายภาพของคุณ aa</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="page-title">รายการจอง</h1>
+            <p className="page-subtitle">จัดการการจองถ่ายภาพของคุณ</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('grid')}
+              title="มุมมองการ์ด"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'calendar' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('calendar')}
+              title="มุมมองปฏิทิน"
+            >
+              <CalendarDays className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -99,39 +123,46 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Bookings Grid */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : filteredBookings && filteredBookings.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredBookings.map((booking) => (
-              <BookingCard key={booking.id} booking={booking} />
-            ))}
-          </div>
+        {/* Content */}
+        {viewMode === 'calendar' ? (
+          <BookingCalendar bookings={bookings || []} />
         ) : (
-          <div className="text-center py-12 card-elevated">
-            <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="font-display text-lg font-medium text-foreground mb-2">
-              {searchQuery || statusFilter !== 'all' ? 'ไม่พบการจอง' : 'ยังไม่มีการจอง'}
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              {searchQuery || statusFilter !== 'all'
-                ? 'ลองปรับเปลี่ยนตัวกรองดู'
-                : 'สร้างการจองแรกของคุณเพื่อเริ่มต้น'}
-            </p>
-            {!searchQuery && statusFilter === 'all' && (
-              <Link to="/bookings/new">
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  สร้างการจอง
-                </Button>
-              </Link>
+          <>
+            {/* Bookings Grid */}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : filteredBookings && filteredBookings.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredBookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 card-elevated">
+                <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="font-display text-lg font-medium text-foreground mb-2">
+                  {searchQuery || statusFilter !== 'all' ? 'ไม่พบการจอง' : 'ยังไม่มีการจอง'}
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  {searchQuery || statusFilter !== 'all'
+                    ? 'ลองปรับเปลี่ยนตัวกรองดู'
+                    : 'สร้างการจองแรกของคุณเพื่อเริ่มต้น'}
+                </p>
+                {!searchQuery && statusFilter === 'all' && (
+                  <Link to="/bookings/new">
+                    <Button className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      สร้างการจอง
+                    </Button>
+                  </Link>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </main>
     </div>
