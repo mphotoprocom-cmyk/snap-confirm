@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { useBookings } from '@/hooks/useBookings';
 import { BookingCard } from '@/components/BookingCard';
 import { BookingCalendar } from '@/components/BookingCalendar';
+import { DashboardStats } from '@/components/DashboardStats';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookingStatus, STATUS_LABELS } from '@/types/booking';
-import { Plus, Search, Calendar, CheckCircle, Clock, FileX, Loader2, LayoutGrid, CalendarDays } from 'lucide-react';
+import { BookingStatus } from '@/types/booking';
+import { Plus, Search, Calendar, CheckCircle, Clock, FileX, Loader2, LayoutGrid, CalendarDays, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-type ViewMode = 'grid' | 'calendar';
+type ViewMode = 'grid' | 'calendar' | 'stats';
 
 const statusFilters: { value: BookingStatus | 'all'; label: string; icon: React.ReactNode }[] = [
   { value: 'all', label: 'ทั้งหมด', icon: null },
@@ -34,17 +35,6 @@ export default function Dashboard() {
     return matchesStatus && matchesSearch;
   });
 
-  const stats = {
-    total: bookings?.length || 0,
-    booked: bookings?.filter(b => b.status === 'booked').length || 0,
-    waiting: bookings?.filter(b => b.status === 'waiting_deposit').length || 0,
-    thisMonth: bookings?.filter(b => {
-      const eventDate = new Date(b.event_date);
-      const now = new Date();
-      return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear();
-    }).length || 0,
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -57,6 +47,14 @@ export default function Dashboard() {
             <p className="page-subtitle">จัดการการจองถ่ายภาพของคุณ</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'stats' ? 'default' : 'outline'}
+              size="icon"
+              onClick={() => setViewMode('stats')}
+              title="สถิติ"
+            >
+              <BarChart3 className="w-4 h-4" />
+            </Button>
             <Button
               variant={viewMode === 'grid' ? 'default' : 'outline'}
               size="icon"
@@ -76,58 +74,40 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">การจองทั้งหมด</p>
-            <p className="text-2xl font-semibold text-foreground">{stats.total}</p>
-          </div>
-          <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">ยืนยันแล้ว</p>
-            <p className="text-2xl font-semibold text-success">{stats.booked}</p>
-          </div>
-          <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">รอมัดจำ</p>
-            <p className="text-2xl font-semibold text-warning">{stats.waiting}</p>
-          </div>
-          <div className="card-elevated p-4">
-            <p className="text-sm text-muted-foreground">เดือนนี้</p>
-            <p className="text-2xl font-semibold text-foreground">{stats.thisMonth}</p>
-          </div>
-        </div>
-
-        {/* Filters & Search */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="ค้นหาการจอง..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 input-elegant"
-            />
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
-            {statusFilters.map((filter) => (
-              <Button
-                key={filter.value}
-                variant={statusFilter === filter.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setStatusFilter(filter.value)}
-                className="whitespace-nowrap gap-1.5"
-              >
-                {filter.icon}
-                {filter.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-
         {/* Content */}
-        {viewMode === 'calendar' ? (
+        {viewMode === 'stats' ? (
+          <DashboardStats bookings={bookings || []} />
+        ) : viewMode === 'calendar' ? (
           <BookingCalendar bookings={bookings || []} />
         ) : (
           <>
+            {/* Filters & Search */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="ค้นหาการจอง..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 input-elegant"
+                />
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+                {statusFilters.map((filter) => (
+                  <Button
+                    key={filter.value}
+                    variant={statusFilter === filter.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter(filter.value)}
+                    className="whitespace-nowrap gap-1.5"
+                  >
+                    {filter.icon}
+                    {filter.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             {/* Bookings Grid */}
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
