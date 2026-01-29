@@ -258,6 +258,48 @@ export type Database = {
           },
         ]
       }
+      share_tokens: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          quotation_id: string | null
+          token: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          quotation_id?: string | null
+          token?: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          quotation_id?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "share_tokens_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "share_tokens_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -284,6 +326,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_quotation_by_token: {
+        Args: { share_token: string }
+        Returns: boolean
+      }
+      get_share_data: { Args: { share_token: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
