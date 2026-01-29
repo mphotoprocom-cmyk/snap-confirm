@@ -8,6 +8,7 @@ import { BookingForm } from '@/components/BookingForm';
 import { BookingConfirmation } from '@/components/BookingConfirmation';
 import { FacebookQueueGenerator } from '@/components/FacebookQueueGenerator';
 import { StatusBadge } from '@/components/StatusBadge';
+import { ShareButtons } from '@/components/ShareButtons';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -51,6 +52,7 @@ const formatThaiDate = (date: Date) => {
   const year = toBuddhistYear(date);
   return `${day} ${month} ${year}`;
 };
+
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -262,6 +264,16 @@ export default function BookingDetail() {
           <div className="flex flex-wrap gap-2">
             {!isEditing && (
               <>
+                <ShareButtons
+                  type="booking"
+                  id={booking.id}
+                  clientName={booking.client_name}
+                  jobType={booking.job_type}
+                  eventDate={booking.event_date}
+                  studioName={profile?.studio_name}
+                  totalPrice={booking.total_price}
+                />
+                
                 <Button
                   variant="outline"
                   size="sm"

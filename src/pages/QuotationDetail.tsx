@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { QuotationForm } from '@/components/QuotationForm';
 import { QuotationDocument } from '@/components/QuotationDocument';
+import { ShareButtons } from '@/components/ShareButtons';
 import { useQuotation, useUpdateQuotation, useDeleteQuotation, useConvertToBooking } from '@/hooks/useQuotations';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
@@ -119,6 +120,17 @@ export default function QuotationDetail() {
             </Button>
           </Link>
           <div className="flex gap-2">
+            {quotation.event_date && (
+              <ShareButtons
+                type="quotation"
+                id={quotation.id}
+                clientName={quotation.client_name}
+                jobType={quotation.job_type}
+                eventDate={quotation.event_date}
+                studioName={profile?.studio_name}
+                totalPrice={quotation.total_price}
+              />
+            )}
             {quotation.status !== 'accepted' && quotation.status !== 'rejected' && (
               <Button
                 variant="outline"
