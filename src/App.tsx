@@ -15,6 +15,8 @@ import Quotations from "./pages/Quotations";
 import NewQuotation from "./pages/NewQuotation";
 import QuotationDetail from "./pages/QuotationDetail";
 import ShareView from "./pages/ShareView";
+import PublicPortfolio from "./pages/PublicPortfolio";
+import PortfolioManagement from "./pages/PortfolioManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/quotations/new" element={<NewQuotation />} />
             <Route path="/quotations/:id" element={<QuotationDetail />} />
             <Route path="/share/:token" element={<ShareView />} />
+            <Route path="/portfolio/:userId" element={<PublicPortfolio />} />
+            <Route path="/portfolio" element={<PortfolioManagement />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="*" element={<NotFound />} />
