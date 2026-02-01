@@ -149,33 +149,57 @@ export default function PublicDeliveryGallery() {
         </div>
       </header>
 
-      <main className="container max-w-6xl py-8">
-        {/* Gallery Info */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-display font-semibold mb-2">{gallery.title}</h1>
-          <p className="text-muted-foreground mb-4">
-            สำหรับคุณ {gallery.client_name}
-          </p>
-          
-          {gallery.description && (
-            <p className="text-sm text-muted-foreground mb-4">{gallery.description}</p>
-          )}
-          
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Image className="w-4 h-4" />
-              {images.length} รูปภาพ
-            </span>
-            {totalSize > 0 && (
-              <span>ขนาดรวม {formatFileSize(totalSize)}</span>
-            )}
-            {gallery.expires_at && (
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                ดาวน์โหลดได้ถึง {format(new Date(gallery.expires_at), 'd MMM yyyy', { locale: th })}
-              </span>
-            )}
+      {/* Cover Image */}
+      {gallery.show_cover && gallery.cover_image_url && (
+        <div className="relative w-full">
+          <div className="aspect-[21/9] md:aspect-[3/1] w-full overflow-hidden">
+            <img
+              src={gallery.cover_image_url}
+              alt={gallery.title}
+              className="w-full h-full object-cover"
+            />
           </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+            <div className="container max-w-6xl">
+              <h1 className="text-2xl md:text-4xl font-display font-semibold text-white mb-2">{gallery.title}</h1>
+              <p className="text-white/90 text-lg">
+                สำหรับคุณ {gallery.client_name}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="container max-w-6xl py-8">
+        {/* Gallery Info - Only show if no cover */}
+        {(!gallery.show_cover || !gallery.cover_image_url) && (
+          <div className="mb-8">
+            <h1 className="text-2xl font-display font-semibold mb-2">{gallery.title}</h1>
+            <p className="text-muted-foreground mb-4">
+              สำหรับคุณ {gallery.client_name}
+            </p>
+          </div>
+        )}
+        
+        {gallery.description && (
+          <p className="text-sm text-muted-foreground mb-4">{gallery.description}</p>
+        )}
+        
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-8">
+          <span className="flex items-center gap-1">
+            <Image className="w-4 h-4" />
+            {images.length} รูปภาพ
+          </span>
+          {totalSize > 0 && (
+            <span>ขนาดรวม {formatFileSize(totalSize)}</span>
+          )}
+          {gallery.expires_at && (
+            <span className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              ดาวน์โหลดได้ถึง {format(new Date(gallery.expires_at), 'd MMM yyyy', { locale: th })}
+            </span>
+          )}
         </div>
 
         {/* Download All Button */}
