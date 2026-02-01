@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ImageGallery } from './ImageGallery';
 
 interface InvitationImage {
   id: string;
@@ -199,30 +200,7 @@ export function ClassicTemplate({
 
       {/* Gallery */}
       {images.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 mb-16">
-          <h2
-            className="text-center text-2xl mb-8 tracking-wider"
-            style={{ fontFamily: 'Playfair Display, serif', color: '#1a1a2e' }}
-          >
-            Our Story
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {images.map((img) => (
-              <div key={img.id} className="relative group overflow-hidden">
-                <img
-                  src={img.image_url}
-                  alt={img.caption || ''}
-                  className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                {img.caption && (
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <p className="text-white text-center px-4">{img.caption}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        <ImageGallery images={images} themeColor={themeColor} variant="classic" />
       )}
 
       {/* Event Details */}

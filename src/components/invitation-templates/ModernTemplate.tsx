@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ImageGallery } from './ImageGallery';
 
 interface InvitationImage {
   id: string;
@@ -151,28 +152,7 @@ export function ModernTemplate({
 
       {/* Gallery - Grid */}
       {images.length > 0 && (
-        <div className="py-20 px-4 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            <h2
-              className="text-3xl text-center mb-12 tracking-wider"
-              style={{ fontFamily: 'Italiana, serif' }}
-            >
-              Our Gallery
-            </h2>
-
-            <div className="grid grid-cols-3 gap-2">
-              {images.map((img) => (
-                <div key={img.id} className="relative group overflow-hidden aspect-square">
-                  <img
-                    src={img.image_url}
-                    alt={img.caption || ''}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ImageGallery images={images} themeColor={accentColor} variant="modern" />
       )}
 
       {/* Event Details - Two Column */}
