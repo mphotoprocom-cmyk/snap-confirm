@@ -130,6 +130,45 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_images: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_featured: boolean
+          job_type: Database["public"]["Enums"]["job_type"]
+          sort_order: number
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_featured?: boolean
+          job_type?: Database["public"]["Enums"]["job_type"]
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_featured?: boolean
+          job_type?: Database["public"]["Enums"]["job_type"]
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -330,6 +369,7 @@ export type Database = {
         Args: { share_token: string }
         Returns: boolean
       }
+      get_portfolio_by_user_id: { Args: { p_user_id: string }; Returns: Json }
       get_share_data: { Args: { share_token: string }; Returns: Json }
       has_role: {
         Args: {
