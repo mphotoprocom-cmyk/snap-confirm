@@ -15,13 +15,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Switch } from '@/components/ui/switch';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Plus, Trash2, Copy, Check, ExternalLink, Upload, Image, Calendar, Download, Eye } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
+import { GalleryLayoutSelector, type GalleryLayout } from '@/components/GalleryLayoutSelector';
+import { GalleryImageGrid } from '@/components/GalleryImageGrid';
 
 export default function DeliveryGalleryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +37,8 @@ export default function DeliveryGalleryDetail() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [selectedLayout, setSelectedLayout] = useState<GalleryLayout>('grid-4');
+  const [isLayoutOpen, setIsLayoutOpen] = useState(false);
 
   if (authLoading) {
     return (
@@ -211,6 +214,28 @@ export default function DeliveryGalleryDetail() {
           </CardContent>
         </Card>
 
+        {/* Layout Selector */}
+        <Collapsible open={isLayoutOpen} onOpenChange={setIsLayoutOpen}>
+          <Card className="mb-6">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="w-5 h-5" />
+                    <CardTitle className="text-base">เลือก Layout แสดงผล</CardTitle>
+                  </div>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${isLayoutOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <GalleryLayoutSelector value={selectedLayout} onChange={setSelectedLayout} />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
         {/* Images Section */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -242,54 +267,12 @@ export default function DeliveryGalleryDetail() {
           </CardHeader>
           <CardContent>
             {images.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {images.map((image) => (
-                  <div key={image.id} className="group relative">
-                    <AspectRatio ratio={1}>
-                      <img
-                        src={image.image_url}
-                        alt={image.filename}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </AspectRatio>
-                    
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button size="icon" variant="destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>ลบรูปภาพ</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              คุณแน่ใจหรือไม่ว่าต้องการลบรูปภาพนี้?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => deleteImage.mutate({ id: image.id, galleryId: gallery.id })}
-                            >
-                              ลบ
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                    
-                    {/* File info */}
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent rounded-b-lg">
-                      <p className="text-white text-xs truncate">{image.filename}</p>
-                      {image.file_size && (
-                        <p className="text-white/70 text-xs">{formatFileSize(image.file_size)}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <GalleryImageGrid
+                images={images}
+                layout={selectedLayout}
+                onDeleteImage={(id) => deleteImage.mutate({ id, galleryId: gallery.id })}
+                formatFileSize={formatFileSize}
+              />
             ) : (
               <div className="text-center py-12 border-2 border-dashed rounded-lg">
                 <Image className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
