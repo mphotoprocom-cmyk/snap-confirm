@@ -35,21 +35,29 @@ export default function AdminMigration() {
 
   useEffect(() => {
     async function checkAdmin() {
+      if (authLoading) return; // รอ auth loading ก่อน
+      
       if (!user) {
         setCheckingAdmin(false);
         return;
       }
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      setIsAdmin(!!data);
-      setCheckingAdmin(false);
+      
+      try {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        setIsAdmin(!!data);
+      } catch (err) {
+        console.error('Error checking admin:', err);
+      } finally {
+        setCheckingAdmin(false);
+      }
     }
     checkAdmin();
-  }, [user]);
+  }, [user, authLoading]);
 
   if (authLoading || checkingAdmin) {
     return (
