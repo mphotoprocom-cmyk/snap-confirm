@@ -16,6 +16,7 @@ export interface DeliveryGallery {
   expires_at: string | null;
   download_count: number;
   is_active: boolean;
+  layout: string;
   created_at: string;
   updated_at: string;
 }

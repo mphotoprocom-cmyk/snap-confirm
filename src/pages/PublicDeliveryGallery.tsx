@@ -3,14 +3,14 @@ import { useParams } from 'react-router-dom';
 import { usePublicDeliveryGallery, DeliveryImage } from '@/hooks/useDeliveryGallery';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Camera, Download, X, ChevronLeft, ChevronRight, Image, Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 import JSZip from 'jszip';
+import { PublicGalleryImageGrid } from '@/components/PublicGalleryImageGrid';
+import type { GalleryLayout } from '@/components/GalleryLayoutSelector';
 
 export default function PublicDeliveryGallery() {
   const { token } = useParams<{ token: string }>();
@@ -46,7 +46,7 @@ export default function PublicDeliveryGallery() {
   }
 
   const { gallery, images, profile } = data;
-
+  const galleryLayout = (gallery.layout as GalleryLayout) || 'grid-4';
   const handlePrevImage = () => {
     if (!selectedImage) return;
     const currentIndex = images.findIndex((img) => img.id === selectedImage.id);
@@ -204,37 +204,12 @@ export default function PublicDeliveryGallery() {
 
         {/* Gallery Grid */}
         {images.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {images.map((image) => (
-              <div key={image.id} className="group relative">
-                <button
-                  onClick={() => setSelectedImage(image)}
-                  className="w-full focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden"
-                >
-                  <AspectRatio ratio={1}>
-                    <img
-                      src={image.image_url}
-                      alt={image.filename}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </AspectRatio>
-                </button>
-                
-                {/* Download button */}
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownloadSingle(image);
-                  }}
-                >
-                  <Download className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
+          <PublicGalleryImageGrid
+            images={images}
+            layout={galleryLayout}
+            onImageClick={setSelectedImage}
+            onDownload={handleDownloadSingle}
+          />
         ) : (
           <Card>
             <CardContent className="pt-6 text-center">
