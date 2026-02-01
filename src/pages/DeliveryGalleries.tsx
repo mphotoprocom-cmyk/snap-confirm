@@ -258,14 +258,14 @@ export default function DeliveryGalleries() {
               <div>
                 <Label>เชื่อมกับ Booking (ไม่บังคับ)</Label>
                 <Select
-                  value={newGalleryData.booking_id}
-                  onValueChange={handleBookingSelect}
+                  value={newGalleryData.booking_id || 'none'}
+                  onValueChange={(v) => v === 'none' ? setNewGalleryData({ ...newGalleryData, booking_id: '' }) : handleBookingSelect(v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="เลือก Booking" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">ไม่เชื่อม</SelectItem>
+                    <SelectItem value="none">ไม่เชื่อม</SelectItem>
                     {completedBookings.map((booking) => (
                       <SelectItem key={booking.id} value={booking.id}>
                         {booking.client_name} - {format(new Date(booking.event_date), 'd MMM yyyy', { locale: th })}
