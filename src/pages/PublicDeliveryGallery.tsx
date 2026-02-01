@@ -84,15 +84,34 @@ export default function PublicDeliveryGallery() {
     setIsDownloadingAll(true);
     try {
       const zip = new JSZip();
+      let successCount = 0;
+      let failCount = 0;
       
       for (const image of images) {
         try {
-          const response = await fetch(image.image_url);
+          const response = await fetch(image.image_url, {
+            mode: 'cors',
+            credentials: 'omit',
+          });
+          
+          if (!response.ok) {
+            console.error('Failed to fetch image:', image.filename, response.status);
+            failCount++;
+            continue;
+          }
+          
           const blob = await response.blob();
           zip.file(image.filename, blob);
+          successCount++;
         } catch (error) {
-          console.error('Failed to fetch image:', image.filename);
+          console.error('Failed to fetch image:', image.filename, error);
+          failCount++;
         }
+      }
+      
+      if (successCount === 0) {
+        toast.error('ไม่สามารถดาวน์โหลดรูปภาพได้ กรุณาลองใหม่อีกครั้ง');
+        return;
       }
       
       const content = await zip.generateAsync({ type: 'blob' });
@@ -105,9 +124,14 @@ export default function PublicDeliveryGallery() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      toast.success('ดาวน์โหลดสำเร็จ');
+      if (failCount > 0) {
+        toast.warning(`ดาวน์โหลดได้ ${successCount} รูป (${failCount} รูปไม่สำเร็จ)`);
+      } else {
+        toast.success(`ดาวน์โหลดสำเร็จ ${successCount} รูป`);
+      }
     } catch (error) {
-      toast.error('ดาวน์โหลดไม่สำเร็จ');
+      console.error('Download all error:', error);
+      toast.error('ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsDownloadingAll(false);
     }
