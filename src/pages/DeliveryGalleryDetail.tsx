@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +39,24 @@ export default function DeliveryGalleryDetail() {
   const [copied, setCopied] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<GalleryLayout>('grid-4');
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
+
+  // Load saved layout from gallery data
+  useEffect(() => {
+    if (data?.gallery?.layout) {
+      setSelectedLayout(data.gallery.layout as GalleryLayout);
+    }
+  }, [data?.gallery?.layout]);
+
+  // Save layout when changed
+  const handleLayoutChange = async (newLayout: GalleryLayout) => {
+    setSelectedLayout(newLayout);
+    if (data?.gallery) {
+      await updateGallery.mutateAsync({
+        id: data.gallery.id,
+        layout: newLayout,
+      });
+    }
+  };
 
   if (authLoading) {
     return (
@@ -230,7 +248,10 @@ export default function DeliveryGalleryDetail() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent>
-                <GalleryLayoutSelector value={selectedLayout} onChange={setSelectedLayout} />
+                <p className="text-sm text-muted-foreground mb-4">
+                  Layout ที่เลือกจะแสดงผลในหน้าลูกค้าด้วย
+                </p>
+                <GalleryLayoutSelector value={selectedLayout} onChange={handleLayoutChange} />
               </CardContent>
             </CollapsibleContent>
           </Card>
