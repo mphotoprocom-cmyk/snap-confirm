@@ -121,18 +121,24 @@ export default function Settings() {
     setUploading(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('profile-assets')
-        .upload(fileName, file, { upsert: true });
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('Not authenticated');
+      }
 
-      if (uploadError) throw uploadError;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'profile');
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-assets')
-        .getPublicUrl(fileName);
+      const response = await supabase.functions.invoke('r2-storage?action=upload', {
+        body: formData,
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      const publicUrl = response.data.url;
 
       const updateData = type === 'logo' 
         ? { logo_url: publicUrl } 
