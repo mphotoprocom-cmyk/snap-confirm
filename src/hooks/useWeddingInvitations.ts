@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
+import { TemplateType } from '@/components/invitation-templates/types';
+
 export interface WeddingInvitation {
   id: string;
   user_id: string;
@@ -25,8 +27,19 @@ export interface WeddingInvitation {
   rsvp_enabled: boolean;
   rsvp_deadline: string | null;
   view_count: number;
+  template: TemplateType;
   created_at: string;
   updated_at: string;
+}
+
+export interface InvitationImage {
+  id: string;
+  invitation_id: string;
+  user_id: string;
+  image_url: string;
+  caption: string | null;
+  sort_order: number;
+  created_at: string;
 }
 
 export interface InvitationRsvp {
@@ -207,11 +220,79 @@ export function usePublicInvitation(token: string | undefined) {
       
       return data as unknown as {
         invitation: WeddingInvitation;
+        images: InvitationImage[];
         rsvp_count: { attending: number; not_attending: number };
         profile: any;
       };
     },
     enabled: !!token,
+  });
+}
+
+// Get invitation images
+export function useInvitationImages(invitationId: string | undefined) {
+  return useQuery({
+    queryKey: ['invitation-images', invitationId],
+    queryFn: async () => {
+      if (!invitationId) return [];
+      const { data, error } = await supabase
+        .from('invitation_images')
+        .select('*')
+        .eq('invitation_id', invitationId)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      return data as InvitationImage[];
+    },
+    enabled: !!invitationId,
+  });
+}
+
+// Add invitation image
+export function useAddInvitationImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (image: { invitation_id: string; user_id: string; image_url: string; caption?: string; sort_order?: number }) => {
+      const { data, error } = await supabase
+        .from('invitation_images')
+        .insert(image)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as InvitationImage;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['invitation-images', data.invitation_id] });
+    },
+    onError: (error) => {
+      toast.error('ไม่สามารถเพิ่มรูปภาพได้: ' + error.message);
+    },
+  });
+}
+
+// Delete invitation image
+export function useDeleteInvitationImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, invitationId }: { id: string; invitationId: string }) => {
+      const { error } = await supabase
+        .from('invitation_images')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return invitationId;
+    },
+    onSuccess: (invitationId) => {
+      queryClient.invalidateQueries({ queryKey: ['invitation-images', invitationId] });
+      toast.success('ลบรูปภาพแล้ว');
+    },
+    onError: (error) => {
+      toast.error('ไม่สามารถลบรูปภาพได้: ' + error.message);
+    },
   });
 }
 
