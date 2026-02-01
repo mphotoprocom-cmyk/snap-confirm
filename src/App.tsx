@@ -20,6 +20,10 @@ import PortfolioManagement from "./pages/PortfolioManagement";
 import DeliveryGalleries from "./pages/DeliveryGalleries";
 import DeliveryGalleryDetail from "./pages/DeliveryGalleryDetail";
 import PublicDeliveryGallery from "./pages/PublicDeliveryGallery";
+import WeddingInvitations from "./pages/WeddingInvitations";
+import NewWeddingInvitation from "./pages/NewWeddingInvitation";
+import WeddingInvitationDetail from "./pages/WeddingInvitationDetail";
+import PublicWeddingInvitation from "./pages/PublicWeddingInvitation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +50,10 @@ const App = () => (
             <Route path="/deliveries" element={<DeliveryGalleries />} />
             <Route path="/deliveries/:id" element={<DeliveryGalleryDetail />} />
             <Route path="/delivery/:token" element={<PublicDeliveryGallery />} />
+            <Route path="/invitations" element={<WeddingInvitations />} />
+            <Route path="/invitations/new" element={<NewWeddingInvitation />} />
+            <Route path="/invitations/:id" element={<WeddingInvitationDetail />} />
+            <Route path="/invitation/:token" element={<PublicWeddingInvitation />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="*" element={<NotFound />} />

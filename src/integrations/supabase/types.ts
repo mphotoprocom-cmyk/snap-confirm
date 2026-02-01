@@ -200,6 +200,53 @@ export type Database = {
           },
         ]
       }
+      invitation_rsvps: {
+        Row: {
+          attending: boolean
+          created_at: string
+          dietary_requirements: string | null
+          guest_count: number | null
+          guest_email: string | null
+          guest_name: string
+          guest_phone: string | null
+          id: string
+          invitation_id: string
+          message: string | null
+        }
+        Insert: {
+          attending: boolean
+          created_at?: string
+          dietary_requirements?: string | null
+          guest_count?: number | null
+          guest_email?: string | null
+          guest_name: string
+          guest_phone?: string | null
+          id?: string
+          invitation_id: string
+          message?: string | null
+        }
+        Update: {
+          attending?: boolean
+          created_at?: string
+          dietary_requirements?: string | null
+          guest_count?: number | null
+          guest_email?: string | null
+          guest_name?: string
+          guest_phone?: string | null
+          id?: string
+          invitation_id?: string
+          message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_rsvps_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "wedding_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           created_at: string
@@ -469,6 +516,92 @@ export type Database = {
         }
         Relationships: []
       }
+      wedding_invitations: {
+        Row: {
+          access_token: string
+          booking_id: string | null
+          bride_name: string
+          ceremony_time: string | null
+          cover_image_url: string | null
+          created_at: string
+          event_date: string
+          event_time: string | null
+          google_maps_embed_url: string | null
+          google_maps_url: string | null
+          groom_name: string
+          id: string
+          is_active: boolean
+          message: string | null
+          reception_time: string | null
+          rsvp_deadline: string | null
+          rsvp_enabled: boolean
+          theme_color: string | null
+          updated_at: string
+          user_id: string
+          venue_address: string | null
+          venue_name: string | null
+          view_count: number
+        }
+        Insert: {
+          access_token?: string
+          booking_id?: string | null
+          bride_name: string
+          ceremony_time?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          event_date: string
+          event_time?: string | null
+          google_maps_embed_url?: string | null
+          google_maps_url?: string | null
+          groom_name: string
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          reception_time?: string | null
+          rsvp_deadline?: string | null
+          rsvp_enabled?: boolean
+          theme_color?: string | null
+          updated_at?: string
+          user_id: string
+          venue_address?: string | null
+          venue_name?: string | null
+          view_count?: number
+        }
+        Update: {
+          access_token?: string
+          booking_id?: string | null
+          bride_name?: string
+          ceremony_time?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          event_date?: string
+          event_time?: string | null
+          google_maps_embed_url?: string | null
+          google_maps_url?: string | null
+          groom_name?: string
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          reception_time?: string | null
+          rsvp_deadline?: string | null
+          rsvp_enabled?: boolean
+          theme_color?: string | null
+          updated_at?: string
+          user_id?: string
+          venue_address?: string | null
+          venue_name?: string | null
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_invitations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -479,6 +612,10 @@ export type Database = {
         Returns: boolean
       }
       get_delivery_gallery_by_token: {
+        Args: { p_access_token: string }
+        Returns: Json
+      }
+      get_invitation_by_token: {
         Args: { p_access_token: string }
         Returns: Json
       }
