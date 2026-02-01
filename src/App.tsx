@@ -24,6 +24,7 @@ import WeddingInvitations from "./pages/WeddingInvitations";
 import NewWeddingInvitation from "./pages/NewWeddingInvitation";
 import WeddingInvitationDetail from "./pages/WeddingInvitationDetail";
 import PublicWeddingInvitation from "./pages/PublicWeddingInvitation";
+import AdminMigration from "./pages/AdminMigration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/invitation/:token" element={<PublicWeddingInvitation />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/migration" element={<AdminMigration />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
