@@ -192,14 +192,14 @@ export default function Packages() {
                 <div className="space-y-2">
                   <Label htmlFor="job_type">ประเภทงาน</Label>
                   <Select
-                    value={formData.job_type}
-                    onValueChange={(value) => setFormData({ ...formData, job_type: value })}
+                    value={formData.job_type || "none"}
+                    onValueChange={(value) => setFormData({ ...formData, job_type: value === "none" ? "" : value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="เลือกประเภทงาน (ไม่บังคับ)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">ไม่ระบุ</SelectItem>
+                      <SelectItem value="none">ไม่ระบุ</SelectItem>
                       {(Object.keys(JOB_TYPE_LABELS) as JobType[]).map((type) => (
                         <SelectItem key={type} value={type}>
                           {JOB_TYPE_LABELS[type]}
