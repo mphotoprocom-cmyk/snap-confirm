@@ -200,6 +200,44 @@ export type Database = {
           },
         ]
       }
+      invitation_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          invitation_id: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          invitation_id: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          invitation_id?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_images_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "wedding_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitation_rsvps: {
         Row: {
           attending: boolean
@@ -535,6 +573,7 @@ export type Database = {
           reception_time: string | null
           rsvp_deadline: string | null
           rsvp_enabled: boolean
+          template: string
           theme_color: string | null
           updated_at: string
           user_id: string
@@ -560,6 +599,7 @@ export type Database = {
           reception_time?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean
+          template?: string
           theme_color?: string | null
           updated_at?: string
           user_id: string
@@ -585,6 +625,7 @@ export type Database = {
           reception_time?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean
+          template?: string
           theme_color?: string | null
           updated_at?: string
           user_id?: string
