@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useIsAdmin } from '@/hooks/useUserManagement';
-import { Camera, LogOut, Settings, Plus, Users, Package, FileText, Image } from 'lucide-react';
+import { Camera, LogOut, Settings, Plus, Users, Package, FileText, Image, FolderOpen } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +54,13 @@ export function Header() {
             </Button>
           </Link>
 
+          <Link to="/deliveries">
+            <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex">
+              <FolderOpen className="w-4 h-4" />
+              ส่งงาน
+            </Button>
+          </Link>
+
           <Link to="/bookings/new">
             <Button variant="default" size="sm" className="gap-2">
               <Plus className="w-4 h-4" />
@@ -95,6 +102,12 @@ export function Header() {
                 <Link to="/portfolio" className="cursor-pointer">
                   <Image className="w-4 h-4 mr-2" />
                   Portfolio
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="sm:hidden">
+                <Link to="/deliveries" className="cursor-pointer">
+                  <FolderOpen className="w-4 h-4 mr-2" />
+                  ส่งงาน
                 </Link>
               </DropdownMenuItem>
               {isAdmin && (

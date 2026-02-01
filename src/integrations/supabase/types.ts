@@ -91,6 +91,106 @@ export type Database = {
           },
         ]
       }
+      delivery_galleries: {
+        Row: {
+          access_token: string
+          booking_id: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          description: string | null
+          download_count: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string
+          booking_id?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          booking_id?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_galleries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_images: {
+        Row: {
+          created_at: string
+          file_size: number | null
+          filename: string
+          gallery_id: string
+          id: string
+          image_url: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_size?: number | null
+          filename: string
+          gallery_id: string
+          id?: string
+          image_url: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_size?: number | null
+          filename?: string
+          gallery_id?: string
+          id?: string
+          image_url?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_images_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           created_at: string
@@ -368,6 +468,10 @@ export type Database = {
       accept_quotation_by_token: {
         Args: { share_token: string }
         Returns: boolean
+      }
+      get_delivery_gallery_by_token: {
+        Args: { p_access_token: string }
+        Returns: Json
       }
       get_portfolio_by_user_id: { Args: { p_user_id: string }; Returns: Json }
       get_share_data: { Args: { share_token: string }; Returns: Json }
