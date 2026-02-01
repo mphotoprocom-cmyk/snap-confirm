@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ImageGallery } from './ImageGallery';
 
 interface InvitationImage {
   id: string;
@@ -138,21 +139,7 @@ export function MinimalTemplate({
 
       {/* Gallery - Masonry-like */}
       {images.length > 0 && (
-        <div className="py-20 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="columns-2 md:columns-3 gap-4">
-              {images.map((img) => (
-                <div key={img.id} className="mb-4 break-inside-avoid">
-                  <img
-                    src={img.image_url}
-                    alt={img.caption || ''}
-                    className="w-full"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ImageGallery images={images} themeColor="#1a1a1a" variant="minimal" />
       )}
 
       {/* Details - Grid */}

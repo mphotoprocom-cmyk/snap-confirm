@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ImageGallery } from './ImageGallery';
 
 interface InvitationImage {
   id: string;
@@ -233,43 +234,7 @@ export function LuxuryTemplate({
 
       {/* Gallery */}
       {images.length > 0 && (
-        <div className="py-16 px-4">
-          <div className="max-w-6xl mx-auto">
-            <p
-              className="text-center text-xs tracking-[0.4em] mb-12"
-              style={{ color: goldColor }}
-            >
-              ✦ OUR MOMENTS ✦
-            </p>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((img, index) => (
-                <div
-                  key={img.id}
-                  className={`relative group overflow-hidden ${
-                    index === 0 ? 'md:col-span-2 md:row-span-2' : ''
-                  }`}
-                >
-                  <div className="absolute inset-0 border border-transparent group-hover:border-[#ffd700] transition-colors z-10" />
-                  <img
-                    src={img.image_url}
-                    alt={img.caption || ''}
-                    className="w-full aspect-square object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}
-                  />
-                  {img.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform">
-                      <p className="text-white text-sm">{img.caption}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ImageGallery images={images} themeColor={goldColor} variant="luxury" />
       )}
 
       {/* Event Details */}

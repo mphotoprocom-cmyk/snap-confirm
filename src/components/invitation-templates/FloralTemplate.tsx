@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ImageGallery } from './ImageGallery';
 
 interface InvitationImage {
   id: string;
@@ -189,37 +190,7 @@ export function FloralTemplate({
 
       {/* Gallery */}
       {images.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 mb-16">
-          <h2
-            className="text-center text-4xl mb-8"
-            style={{ fontFamily: 'Great Vibes, cursive', color: primaryColor }}
-          >
-            Our Love Story
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {images.map((img) => (
-              <div
-                key={img.id}
-                className="relative group overflow-hidden rounded-2xl shadow-lg"
-              >
-                <img
-                  src={img.image_url}
-                  alt={img.caption || ''}
-                  className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                {img.caption && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 p-4 text-white text-center"
-                    style={{ background: `linear-gradient(to top, ${primaryColor}cc, transparent)` }}
-                  >
-                    <p className="text-sm">{img.caption}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+        <ImageGallery images={images} themeColor={primaryColor} variant="floral" />
       )}
 
       {/* Schedule */}
