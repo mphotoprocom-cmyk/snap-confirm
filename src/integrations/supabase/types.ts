@@ -98,6 +98,7 @@ export type Database = {
           client_email: string | null
           client_name: string
           client_phone: string | null
+          cover_image_url: string | null
           created_at: string
           description: string | null
           download_count: number
@@ -105,6 +106,7 @@ export type Database = {
           id: string
           is_active: boolean
           layout: string
+          show_cover: boolean
           title: string
           updated_at: string
           user_id: string
@@ -115,6 +117,7 @@ export type Database = {
           client_email?: string | null
           client_name: string
           client_phone?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           download_count?: number
@@ -122,6 +125,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           layout?: string
+          show_cover?: boolean
           title: string
           updated_at?: string
           user_id: string
@@ -132,6 +136,7 @@ export type Database = {
           client_email?: string | null
           client_name?: string
           client_phone?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           download_count?: number
@@ -139,6 +144,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           layout?: string
+          show_cover?: boolean
           title?: string
           updated_at?: string
           user_id?: string

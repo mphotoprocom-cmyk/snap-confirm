@@ -17,6 +17,8 @@ export interface DeliveryGallery {
   download_count: number;
   is_active: boolean;
   layout: string;
+  cover_image_url: string | null;
+  show_cover: boolean;
   created_at: string;
   updated_at: string;
 }

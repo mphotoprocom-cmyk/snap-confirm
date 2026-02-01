@@ -17,12 +17,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown, ImageIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { GalleryLayoutSelector, type GalleryLayout } from '@/components/GalleryLayoutSelector';
 import { GalleryImageGrid } from '@/components/GalleryImageGrid';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function DeliveryGalleryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +37,9 @@ export default function DeliveryGalleryDetail() {
   const updateGallery = useUpdateDeliveryGallery();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<GalleryLayout>('grid-4');
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
@@ -159,6 +163,58 @@ export default function DeliveryGalleryDetail() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsUploadingCover(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${gallery.id}/cover.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('delivery-images')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('delivery-images')
+        .getPublicUrl(fileName);
+
+      await updateGallery.mutateAsync({
+        id: gallery.id,
+        cover_image_url: urlData.publicUrl,
+        show_cover: true,
+      });
+
+      toast.success('อัปโหลดภาพหน้าปกสำเร็จ');
+    } catch (error: any) {
+      toast.error('อัปโหลดไม่สำเร็จ: ' + error.message);
+    } finally {
+      setIsUploadingCover(false);
+      if (coverInputRef.current) {
+        coverInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveCover = async () => {
+    await updateGallery.mutateAsync({
+      id: gallery.id,
+      cover_image_url: null,
+      show_cover: false,
+    });
+    toast.success('ลบภาพหน้าปกแล้ว');
+  };
+
+  const handleToggleCover = async () => {
+    await updateGallery.mutateAsync({
+      id: gallery.id,
+      show_cover: !gallery.show_cover,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -229,6 +285,92 @@ export default function DeliveryGalleryDetail() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Cover Image Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5" />
+                <CardTitle className="text-base">ภาพหน้าปก</CardTitle>
+              </div>
+              {gallery.cover_image_url && (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={gallery.show_cover}
+                    onCheckedChange={handleToggleCover}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {gallery.show_cover ? 'แสดง' : 'ซ่อน'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <CardDescription>
+              ภาพหน้าปกจะแสดงด้านบนสุดของแกลเลอรี่ในหน้าลูกค้า (ค่าเริ่มต้นปิด)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {gallery.cover_image_url ? (
+              <div className="space-y-4">
+                <AspectRatio ratio={16/9} className="bg-muted rounded-lg overflow-hidden">
+                  <img
+                    src={gallery.cover_image_url}
+                    alt="Cover"
+                    className="w-full h-full object-cover"
+                  />
+                </AspectRatio>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={isUploadingCover}
+                  >
+                    {isUploadingCover ? 'กำลังอัปโหลด...' : 'เปลี่ยนภาพ'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleRemoveCover}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    ลบภาพหน้าปก
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div 
+                className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => coverInputRef.current?.click()}
+              >
+                <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="font-semibold mb-2">อัปโหลดภาพหน้าปก</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  แนะนำขนาด 1920x1080 หรืออัตราส่วน 16:9
+                </p>
+                <Button variant="outline" disabled={isUploadingCover}>
+                  {isUploadingCover ? (
+                    <>
+                      <Upload className="w-4 h-4 mr-2 animate-pulse" />
+                      กำลังอัปโหลด...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      เลือกภาพ
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+            />
           </CardContent>
         </Card>
 
