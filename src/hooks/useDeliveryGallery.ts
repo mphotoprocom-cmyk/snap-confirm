@@ -210,21 +210,25 @@ export function useUploadDeliveryImage() {
     mutationFn: async ({ file, galleryId }: { file: File; galleryId: string }) => {
       if (!user) throw new Error('Not authenticated');
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${galleryId}/${Date.now()}.${fileExt}`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('Not authenticated');
+      }
 
-      const { error: uploadError } = await supabase.storage
-        .from('delivery-images')
-        .upload(fileName, file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', `delivery/${galleryId}`);
 
-      if (uploadError) throw uploadError;
+      const response = await supabase.functions.invoke('r2-storage?action=upload', {
+        body: formData,
+      });
 
-      const { data: urlData } = supabase.storage
-        .from('delivery-images')
-        .getPublicUrl(fileName);
+      if (response.error) {
+        throw new Error(response.error.message || 'Upload failed');
+      }
 
       return {
-        url: urlData.publicUrl,
+        url: response.data.url as string,
         filename: file.name,
         fileSize: file.size,
       };

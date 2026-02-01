@@ -169,22 +169,24 @@ export default function DeliveryGalleryDetail() {
 
     setIsUploadingCover(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${gallery.id}/cover.${fileExt}`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('Not authenticated');
+      }
 
-      const { error: uploadError } = await supabase.storage
-        .from('delivery-images')
-        .upload(fileName, file, { upsert: true });
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', `delivery/${gallery.id}`);
 
-      if (uploadError) throw uploadError;
+      const response = await supabase.functions.invoke('r2-storage?action=upload', {
+        body: formData,
+      });
 
-      const { data: urlData } = supabase.storage
-        .from('delivery-images')
-        .getPublicUrl(fileName);
+      if (response.error) throw response.error;
 
       await updateGallery.mutateAsync({
         id: gallery.id,
-        cover_image_url: urlData.publicUrl,
+        cover_image_url: response.data.url,
         show_cover: true,
       });
 

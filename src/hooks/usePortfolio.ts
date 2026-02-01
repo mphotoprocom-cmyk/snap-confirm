@@ -167,20 +167,24 @@ export function useUploadPortfolioImage() {
     mutationFn: async (file: File) => {
       if (!user) throw new Error('Not authenticated');
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('Not authenticated');
+      }
 
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-images')
-        .upload(fileName, file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'portfolio');
 
-      if (uploadError) throw uploadError;
+      const response = await supabase.functions.invoke('r2-storage?action=upload', {
+        body: formData,
+      });
 
-      const { data: urlData } = supabase.storage
-        .from('portfolio-images')
-        .getPublicUrl(fileName);
+      if (response.error) {
+        throw new Error(response.error.message || 'Upload failed');
+      }
 
-      return urlData.publicUrl;
+      return response.data.url as string;
     },
     onError: (error) => {
       toast.error('อัปโหลดไม่สำเร็จ: ' + error.message);

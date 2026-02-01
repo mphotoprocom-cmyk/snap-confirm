@@ -163,22 +163,24 @@ export default function WeddingInvitationDetail() {
 
     setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/invitations/${invitation.id}/cover.${fileExt}`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('Not authenticated');
+      }
 
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-images')
-        .upload(filePath, file, { upsert: true });
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', `invitation/${invitation.id}`);
 
-      if (uploadError) throw uploadError;
+      const response = await supabase.functions.invoke('r2-storage?action=upload', {
+        body: formData,
+      });
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('portfolio-images')
-        .getPublicUrl(filePath);
+      if (response.error) throw response.error;
 
       await updateInvitation.mutateAsync({
         id: invitation.id,
-        cover_image_url: publicUrl,
+        cover_image_url: response.data.url,
       });
     } catch (error: any) {
       toast.error('ไม่สามารถอัปโหลดได้: ' + error.message);
@@ -200,26 +202,28 @@ export default function WeddingInvitationDetail() {
 
     setIsUploadingGallery(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('Not authenticated');
+      }
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${i}.${fileExt}`;
-        const filePath = `${user.id}/invitations/${invitation.id}/gallery/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('portfolio-images')
-          .upload(filePath, file);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', `invitation/${invitation.id}/gallery`);
 
-        if (uploadError) throw uploadError;
+        const response = await supabase.functions.invoke('r2-storage?action=upload', {
+          body: formData,
+        });
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('portfolio-images')
-          .getPublicUrl(filePath);
+        if (response.error) throw response.error;
 
         await addImage.mutateAsync({
           invitation_id: invitation.id,
           user_id: user.id,
-          image_url: publicUrl,
+          image_url: response.data.url,
           sort_order: (galleryImages?.length || 0) + i,
         });
       }
