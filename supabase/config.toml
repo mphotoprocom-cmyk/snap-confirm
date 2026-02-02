@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.migrate-to-r2]
 verify_jwt = false
+
+[functions.download-image]
+verify_jwt = false
+
+[functions.zip-upload]
+verify_jwt = false

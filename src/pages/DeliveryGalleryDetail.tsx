@@ -10,6 +10,7 @@ import {
   useDeleteDeliveryImage,
   useUpdateDeliveryGallery
 } from '@/hooks/useDeliveryGallery';
+import { useZipUpload } from '@/hooks/useZipUpload';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown, ImageIcon, Trash2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown, ImageIcon, Trash2, FileArchive, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -35,8 +37,10 @@ export default function DeliveryGalleryDetail() {
   const addImage = useAddDeliveryImage();
   const deleteImage = useDeleteDeliveryImage();
   const updateGallery = useUpdateDeliveryGallery();
+  const zipUpload = useZipUpload();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const zipInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -139,6 +143,45 @@ export default function DeliveryGalleryDetail() {
     
     if (successCount > 0) {
       toast.success(`อัปโหลดสำเร็จ ${successCount} ไฟล์`);
+    }
+  };
+
+  const handleZipSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const result = await zipUpload.mutateAsync({
+        file,
+        galleryId: gallery.id,
+        folder: 'delivery',
+      });
+
+      // Add each uploaded image to the database
+      for (const uploadedFile of result.uploaded) {
+        await addImage.mutateAsync({
+          gallery_id: gallery.id,
+          filename: uploadedFile.filename,
+          image_url: uploadedFile.url,
+          file_size: uploadedFile.size,
+        });
+      }
+
+      if (result.successCount > 0) {
+        toast.success(`อัปโหลดจาก ZIP สำเร็จ ${result.successCount} รูป`);
+      }
+      
+      if (result.errorCount > 0) {
+        toast.warning(`${result.errorCount} รูปอัปโหลดไม่สำเร็จ`);
+      }
+
+      zipUpload.reset();
+    } catch (error) {
+      console.error('ZIP upload error:', error);
+    } finally {
+      if (zipInputRef.current) {
+        zipInputRef.current.value = '';
+      }
     }
   };
 
@@ -403,24 +446,57 @@ export default function DeliveryGalleryDetail() {
 
         {/* Images Section */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>รูปภาพ</CardTitle>
-              <CardDescription>อัปโหลดรูปภาพเพื่อส่งให้ลูกค้าดาวน์โหลด</CardDescription>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle>รูปภาพ</CardTitle>
+                <CardDescription>อัปโหลดรูปภาพเพื่อส่งให้ลูกค้าดาวน์โหลด</CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => zipInputRef.current?.click()} 
+                  disabled={isUploading || zipUpload.isPending}
+                >
+                  {zipUpload.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      กำลังแตกไฟล์...
+                    </>
+                  ) : (
+                    <>
+                      <FileArchive className="w-4 h-4 mr-2" />
+                      อัปโหลด ZIP
+                    </>
+                  )}
+                </Button>
+                <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading || zipUpload.isPending}>
+                  {isUploading ? (
+                    <>
+                      <Upload className="w-4 h-4 mr-2 animate-pulse" />
+                      กำลังอัปโหลด...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      เพิ่มรูปภาพ
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-            <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-              {isUploading ? (
-                <>
-                  <Upload className="w-4 h-4 mr-2 animate-pulse" />
-                  กำลังอัปโหลด...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  เพิ่มรูปภาพ
-                </>
-              )}
-            </Button>
+            
+            {/* ZIP Upload Progress */}
+            {zipUpload.isPending && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm font-medium">{zipUpload.progress.message}</span>
+                </div>
+                <Progress value={zipUpload.progress.status === 'extracting' ? 50 : 10} className="h-2" />
+              </div>
+            )}
+            
             <input
               ref={fileInputRef}
               type="file"
@@ -428,6 +504,13 @@ export default function DeliveryGalleryDetail() {
               multiple
               className="hidden"
               onChange={handleFileSelect}
+            />
+            <input
+              ref={zipInputRef}
+              type="file"
+              accept=".zip,application/zip,application/x-zip-compressed"
+              className="hidden"
+              onChange={handleZipSelect}
             />
           </CardHeader>
           <CardContent>
@@ -443,12 +526,18 @@ export default function DeliveryGalleryDetail() {
                 <Image className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="font-semibold mb-2">ยังไม่มีรูปภาพ</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  อัปโหลดรูปภาพเพื่อส่งให้ลูกค้า
+                  อัปโหลดรูปภาพทีละรูป หรืออัปโหลดไฟล์ ZIP ที่รวมรูปภาพไว้
                 </p>
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  เพิ่มรูปภาพ
-                </Button>
+                <div className="flex justify-center gap-2">
+                  <Button variant="outline" onClick={() => zipInputRef.current?.click()}>
+                    <FileArchive className="w-4 h-4 mr-2" />
+                    อัปโหลด ZIP
+                  </Button>
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    เพิ่มรูปภาพ
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
