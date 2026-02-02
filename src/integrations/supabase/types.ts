@@ -643,6 +643,56 @@ export type Database = {
           },
         ]
       }
+      zip_upload_jobs: {
+        Row: {
+          created_at: string
+          error: string | null
+          gallery_id: string
+          id: string
+          processed_files: number | null
+          progress: number
+          status: string
+          total_files: number | null
+          updated_at: string
+          uploaded_files: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          gallery_id: string
+          id?: string
+          processed_files?: number | null
+          progress?: number
+          status?: string
+          total_files?: number | null
+          updated_at?: string
+          uploaded_files?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          gallery_id?: string
+          id?: string
+          processed_files?: number | null
+          progress?: number
+          status?: string
+          total_files?: number | null
+          updated_at?: string
+          uploaded_files?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zip_upload_jobs_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
