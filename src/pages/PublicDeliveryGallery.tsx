@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import JSZip from 'jszip';
 import { PublicGalleryImageGrid } from '@/components/PublicGalleryImageGrid';
 import type { GalleryLayout } from '@/components/GalleryLayoutSelector';
-
+import { supabase } from '@/integrations/supabase/client';
 export default function PublicDeliveryGallery() {
   const { token } = useParams<{ token: string }>();
   const { data, isLoading, error } = usePublicDeliveryGallery(token);
@@ -89,19 +89,25 @@ export default function PublicDeliveryGallery() {
       
       for (const image of images) {
         try {
-          const response = await fetch(image.image_url, {
-            mode: 'cors',
-            credentials: 'omit',
+          // Use edge function to proxy the download to avoid CORS
+          const { data, error } = await supabase.functions.invoke('download-image', {
+            body: { url: image.image_url },
           });
           
-          if (!response.ok) {
-            console.error('Failed to fetch image:', image.filename, response.status);
+          if (error || !data?.data) {
+            console.error('Failed to fetch image via proxy:', image.filename, error);
             failCount++;
             continue;
           }
           
-          const blob = await response.blob();
-          zip.file(image.filename, blob);
+          // Convert base64 to blob
+          const binaryString = atob(data.data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          
+          zip.file(image.filename, bytes);
           successCount++;
         } catch (error) {
           console.error('Failed to fetch image:', image.filename, error);
