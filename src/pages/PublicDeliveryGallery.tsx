@@ -66,16 +66,16 @@ export default function PublicDeliveryGallery() {
 
   const handlePrevImage = () => {
     if (!selectedImage) return;
-    const currentIndex = images.findIndex((img) => img.id === selectedImage.id);
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1;
-    setSelectedImage(images[prevIndex]);
+    const currentIndex = displayImages.findIndex((img) => img.id === selectedImage.id);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : displayImages.length - 1;
+    setSelectedImage(displayImages[prevIndex]);
   };
 
   const handleNextImage = () => {
     if (!selectedImage) return;
-    const currentIndex = images.findIndex((img) => img.id === selectedImage.id);
-    const nextIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0;
-    setSelectedImage(images[nextIndex]);
+    const currentIndex = displayImages.findIndex((img) => img.id === selectedImage.id);
+    const nextIndex = currentIndex < displayImages.length - 1 ? currentIndex + 1 : 0;
+    setSelectedImage(displayImages[nextIndex]);
   };
 
   const handleDownloadSingle = async (image: DeliveryImage) => {
