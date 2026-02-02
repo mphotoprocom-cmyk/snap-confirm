@@ -103,6 +103,7 @@ export type Database = {
           description: string | null
           download_count: number
           expires_at: string | null
+          face_search_enabled: boolean
           id: string
           is_active: boolean
           layout: string
@@ -122,6 +123,7 @@ export type Database = {
           description?: string | null
           download_count?: number
           expires_at?: string | null
+          face_search_enabled?: boolean
           id?: string
           is_active?: boolean
           layout?: string
@@ -141,6 +143,7 @@ export type Database = {
           description?: string | null
           download_count?: number
           expires_at?: string | null
+          face_search_enabled?: boolean
           id?: string
           is_active?: boolean
           layout?: string

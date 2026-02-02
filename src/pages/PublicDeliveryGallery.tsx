@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { usePublicDeliveryGallery, DeliveryImage } from '@/hooks/useDeliveryGallery';
 import { useParallelDownload } from '@/hooks/useParallelDownload';
+import { useFaceSearch } from '@/hooks/useFaceSearch';
+import { FaceSearchDialog } from '@/components/FaceSearchDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DownloadProgressDialog } from '@/components/DownloadProgressDialog';
-import { Camera, Download, X, ChevronLeft, ChevronRight, Image, Calendar, Loader2 } from 'lucide-react';
+import { Camera, Download, X, ChevronLeft, ChevronRight, Image, Calendar, Loader2, UserRound } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -20,6 +22,7 @@ export default function PublicDeliveryGallery() {
   const [selectedImage, setSelectedImage] = useState<DeliveryImage | null>(null);
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
   const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [showFaceSearchDialog, setShowFaceSearchDialog] = useState(false);
   
   const { progress, isDownloading, downloadAll, cancel, reset } = useParallelDownload();
 
@@ -52,6 +55,13 @@ export default function PublicDeliveryGallery() {
 
   const { gallery, images, profile } = data;
   const galleryLayout = (gallery.layout as GalleryLayout) || 'grid-4';
+  const faceSearchEnabled = (gallery as any).face_search_enabled !== false;
+
+  // Face search hook
+  const faceSearch = useFaceSearch(images);
+
+  // Display images - show matched images if face search has results, otherwise all images
+  const displayImages = faceSearch.matchedImages.length > 0 ? faceSearch.matchedImages : images;
 
   const handlePrevImage = () => {
     if (!selectedImage) return;
@@ -218,9 +228,9 @@ export default function PublicDeliveryGallery() {
           )}
         </div>
 
-        {/* Download All Button */}
+        {/* Action Buttons */}
         {images.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 flex flex-wrap gap-3">
             <Button 
               size="lg" 
               onClick={handleDownloadAll}
@@ -235,22 +245,48 @@ export default function PublicDeliveryGallery() {
               ) : (
                 <>
                   <Download className="w-5 h-5" />
-                  ดาวน์โหลดทั้งหมด ({images.length} รูป)
+                  ดาวน์โหลดทั้งหมด ({displayImages.length} รูป)
                 </>
               )}
             </Button>
+            
+            {faceSearchEnabled && (
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => setShowFaceSearchDialog(true)}
+                disabled={faceSearch.isLoading}
+                className="gap-2"
+              >
+                <UserRound className="w-5 h-5" />
+                ค้นหารูปของฉัน
+              </Button>
+            )}
+            
             {images.length > 500 && (
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground w-full">
                 * Gallery นี้มีรูปภาพมากกว่า 500 รูป จะถูกแบ่งเป็นหลายไฟล์ ZIP
               </p>
             )}
           </div>
         )}
 
+        {/* Face Search Results Banner */}
+        {faceSearch.matchedImages.length > 0 && (
+          <div className="mb-6 p-4 bg-primary/10 rounded-lg flex items-center justify-between">
+            <span className="text-sm">
+              แสดง <span className="font-semibold text-primary">{faceSearch.matchedImages.length}</span> รูปที่พบใบหน้าของคุณ (จากทั้งหมด {images.length} รูป)
+            </span>
+            <Button variant="ghost" size="sm" onClick={faceSearch.resetSearch}>
+              แสดงทั้งหมด
+            </Button>
+          </div>
+        )}
+
         {/* Gallery Grid */}
         {images.length > 0 ? (
           <PublicGalleryImageGrid
-            images={images}
+            images={displayImages}
             layout={galleryLayout}
             onImageClick={setSelectedImage}
             onDownload={handleDownloadSingle}
@@ -335,6 +371,18 @@ export default function PublicDeliveryGallery() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Face Search Dialog */}
+      <FaceSearchDialog
+        open={showFaceSearchDialog}
+        onOpenChange={setShowFaceSearchDialog}
+        isLoading={faceSearch.isLoading}
+        progress={faceSearch.progress}
+        error={faceSearch.error}
+        matchedCount={faceSearch.matchedImages.length}
+        onSearch={faceSearch.searchFaces}
+        onReset={faceSearch.resetSearch}
+      />
     </div>
   );
 }

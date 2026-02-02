@@ -10,6 +10,8 @@ import {
   useDeleteDeliveryImage,
   useUpdateDeliveryGallery
 } from '@/hooks/useDeliveryGallery';
+import { useFaceSearch } from '@/hooks/useFaceSearch';
+import { FaceSearchDialog } from '@/components/FaceSearchDialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown, ImageIcon, Trash2, FileArchive, Loader2, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown, ImageIcon, Trash2, FileArchive, Loader2, ArrowUpDown, UserRound } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -75,7 +77,7 @@ export default function DeliveryGalleryDetail() {
   const [selectedLayout, setSelectedLayout] = useState<GalleryLayout>('grid-4');
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
-
+  const [showFaceSearchDialog, setShowFaceSearchDialog] = useState(false);
   // Load saved layout from gallery data
   useEffect(() => {
     if (data?.gallery?.layout) {
@@ -142,12 +144,24 @@ export default function DeliveryGalleryDetail() {
   const shareUrl = `${window.location.origin}/delivery/${gallery.access_token}`;
   const isExpired = gallery.expires_at && new Date(gallery.expires_at) < new Date();
 
-  // Sort images based on sort order
-  const sortedImages = [...images].sort((a, b) => {
-    const dateA = new Date(a.created_at).getTime();
-    const dateB = new Date(b.created_at).getTime();
-    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-  });
+  // Face search hook
+  const faceSearch = useFaceSearch(images);
+
+  // Sort images based on sort order or face search results
+  const displayImages = faceSearch.matchedImages.length > 0 
+    ? faceSearch.matchedImages 
+    : [...images].sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+      });
+
+  const handleToggleFaceSearch = async () => {
+    await updateGallery.mutateAsync({
+      id: gallery.id,
+      face_search_enabled: !gallery.face_search_enabled,
+    });
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -549,6 +563,42 @@ export default function DeliveryGalleryDetail() {
           </Card>
         </Collapsible>
 
+        {/* Face Search Settings */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserRound className="w-5 h-5" />
+                <CardTitle className="text-base">ค้นหาด้วยใบหน้า</CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={gallery.face_search_enabled}
+                  onCheckedChange={handleToggleFaceSearch}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {gallery.face_search_enabled ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                </span>
+              </div>
+            </div>
+            <CardDescription>
+              ให้ลูกค้าอัปโหลดรูปหน้าตัวเองเพื่อค้นหารูปที่มีใบหน้าตรงกันในแกลเลอรี่
+            </CardDescription>
+          </CardHeader>
+          {gallery.face_search_enabled && images.length > 0 && (
+            <CardContent>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFaceSearchDialog(true)}
+                disabled={faceSearch.isLoading}
+              >
+                <UserRound className="w-4 h-4 mr-2" />
+                ทดสอบค้นหาใบหน้า
+              </Button>
+            </CardContent>
+          )}
+        </Card>
+
         {/* Images Section */}
         <Card>
           <CardHeader>
@@ -640,12 +690,24 @@ export default function DeliveryGalleryDetail() {
           </CardHeader>
           <CardContent>
             {images.length > 0 ? (
-              <GalleryImageGrid
-                images={sortedImages}
-                layout={selectedLayout}
-                onDeleteImage={(id) => deleteImage.mutate({ id, galleryId: gallery.id })}
-                formatFileSize={formatFileSize}
-              />
+              <>
+                {faceSearch.matchedImages.length > 0 && (
+                  <div className="mb-4 p-3 bg-primary/10 rounded-lg flex items-center justify-between">
+                    <span className="text-sm">
+                      แสดง <span className="font-semibold">{faceSearch.matchedImages.length}</span> รูปที่พบใบหน้าตรงกัน (จากทั้งหมด {images.length} รูป)
+                    </span>
+                    <Button variant="ghost" size="sm" onClick={faceSearch.resetSearch}>
+                      แสดงทั้งหมด
+                    </Button>
+                  </div>
+                )}
+                <GalleryImageGrid
+                  images={displayImages}
+                  layout={selectedLayout}
+                  onDeleteImage={(id) => deleteImage.mutate({ id, galleryId: gallery.id })}
+                  formatFileSize={formatFileSize}
+                />
+              </>
             ) : (
               <div className="text-center py-12 border-2 border-dashed rounded-lg">
                 <Image className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -668,6 +730,18 @@ export default function DeliveryGalleryDetail() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Face Search Dialog */}
+      <FaceSearchDialog
+        open={showFaceSearchDialog}
+        onOpenChange={setShowFaceSearchDialog}
+        isLoading={faceSearch.isLoading}
+        progress={faceSearch.progress}
+        error={faceSearch.error}
+        matchedCount={faceSearch.matchedImages.length}
+        onSearch={faceSearch.searchFaces}
+        onReset={faceSearch.resetSearch}
+      />
     </div>
   );
 }
