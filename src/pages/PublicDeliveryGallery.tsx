@@ -63,8 +63,25 @@ export default function PublicDeliveryGallery() {
 
   const handleDownloadSingle = async (image: DeliveryImage) => {
     try {
-      const response = await fetch(image.image_url);
-      const blob = await response.blob();
+      // Use edge function to proxy the download to avoid CORS
+      const { data, error } = await supabase.functions.invoke('download-image', {
+        body: { url: image.image_url },
+      });
+      
+      if (error || !data?.data) {
+        console.error('Failed to fetch image via proxy:', error);
+        toast.error('ดาวน์โหลดไม่สำเร็จ');
+        return;
+      }
+      
+      // Convert base64 to blob
+      const binaryString = atob(data.data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const blob = new Blob([bytes], { type: data.contentType || 'image/jpeg' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -73,7 +90,10 @@ export default function PublicDeliveryGallery() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      toast.success('ดาวน์โหลดสำเร็จ');
     } catch (error) {
+      console.error('Download error:', error);
       toast.error('ดาวน์โหลดไม่สำเร็จ');
     }
   };
