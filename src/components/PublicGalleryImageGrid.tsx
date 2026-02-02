@@ -5,6 +5,26 @@ import { cn } from '@/lib/utils';
 import type { GalleryLayout } from './GalleryLayoutSelector';
 import type { DeliveryImage } from '@/hooks/useDeliveryGallery';
 
+function SafeImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      className={className}
+      onError={(e) => {
+        const img = e.currentTarget;
+        // prevent infinite loop
+        if (!img.dataset.fallback) {
+          img.dataset.fallback = '1';
+          img.src = '/placeholder.svg';
+        }
+      }}
+    />
+  );
+}
+
 interface PublicGalleryImageGridProps {
   images: DeliveryImage[];
   layout: GalleryLayout;
@@ -127,7 +147,7 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
               onClick={() => onImageClick(image)}
               className="w-full focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden"
             >
-              <img
+              <SafeImage
                 src={image.image_url}
                 alt={image.filename}
                 className="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
@@ -170,7 +190,7 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
           >
             {isSpecialLayout ? (
               <div className="w-full h-full">
-                <img
+                <SafeImage
                   src={image.image_url}
                   alt={image.filename}
                   className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
@@ -178,7 +198,7 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
               </div>
             ) : (
               <AspectRatio ratio={1}>
-                <img
+                <SafeImage
                   src={image.image_url}
                   alt={image.filename}
                   className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
