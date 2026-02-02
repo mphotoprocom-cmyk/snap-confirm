@@ -19,7 +19,8 @@ import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown, ImageIcon, Trash2, FileArchive, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Copy, Check, ExternalLink, Upload, Image, Calendar, Eye, LayoutGrid, ChevronDown, ImageIcon, Trash2, FileArchive, Loader2, ArrowUpDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -73,6 +74,7 @@ export default function DeliveryGalleryDetail() {
   const [copied, setCopied] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<GalleryLayout>('grid-4');
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
   // Load saved layout from gallery data
   useEffect(() => {
@@ -139,6 +141,13 @@ export default function DeliveryGalleryDetail() {
   const { gallery, images } = data;
   const shareUrl = `${window.location.origin}/delivery/${gallery.access_token}`;
   const isExpired = gallery.expires_at && new Date(gallery.expires_at) < new Date();
+
+  // Sort images based on sort order
+  const sortedImages = [...images].sort((a, b) => {
+    const dateA = new Date(a.created_at).getTime();
+    const dateB = new Date(b.created_at).getTime();
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -548,6 +557,18 @@ export default function DeliveryGalleryDetail() {
                 <CardTitle>รูปภาพ</CardTitle>
                 <CardDescription>อัปโหลดรูปภาพเพื่อส่งให้ลูกค้าดาวน์โหลด</CardDescription>
               </div>
+              <div className="flex items-center gap-2">
+                <Select value={sortOrder} onValueChange={(value: 'newest' | 'oldest') => setSortOrder(value)}>
+                  <SelectTrigger className="w-[160px]">
+                    <ArrowUpDown className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">ล่าสุดก่อน</SelectItem>
+                    <SelectItem value="oldest">เก่าสุดก่อน</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
@@ -620,7 +641,7 @@ export default function DeliveryGalleryDetail() {
           <CardContent>
             {images.length > 0 ? (
               <GalleryImageGrid
-                images={images}
+                images={sortedImages}
                 layout={selectedLayout}
                 onDeleteImage={(id) => deleteImage.mutate({ id, galleryId: gallery.id })}
                 formatFileSize={formatFileSize}
