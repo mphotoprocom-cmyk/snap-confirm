@@ -66,12 +66,28 @@ export function FaceSearchDialog({
   };
 
   const handleClose = () => {
-    handleReset();
+    // Close dialog but DO NOT reset face search results.
+    // Users expect to close this dialog and then see the filtered results in the gallery.
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
+    setSelectedFile(null);
+    setHasSearched(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        // Only handle close here; keep results when closing via backdrop/esc.
+        if (!nextOpen) handleClose();
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
