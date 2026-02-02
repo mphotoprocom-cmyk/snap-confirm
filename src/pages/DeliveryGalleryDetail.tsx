@@ -146,9 +146,13 @@ export default function DeliveryGalleryDetail() {
   }
 
   const { gallery, images } = data;
-  // Use preview URL (lovable.app) for sharing instead of lovableproject.com (dev-only)
+  // IMPORTANT:
+  // - The editor domain (lovableproject.com) is not accessible to customers.
+  // - For pre-publish testing, we must share the Preview URL (id-preview--*.lovable.app).
+  // When the app is published later, you can change this to the published domain.
+  const PUBLIC_PREVIEW_ORIGIN = 'https://id-preview--81ed6ab9-49d8-4e47-8152-992a7126d3e3.lovable.app';
   const baseUrl = window.location.origin.includes('lovableproject.com')
-    ? window.location.origin.replace('lovableproject.com', 'lovable.app')
+    ? PUBLIC_PREVIEW_ORIGIN
     : window.location.origin;
   const shareUrl = `${baseUrl}/delivery/${gallery.access_token}`;
   const isExpired = gallery.expires_at && new Date(gallery.expires_at) < new Date();

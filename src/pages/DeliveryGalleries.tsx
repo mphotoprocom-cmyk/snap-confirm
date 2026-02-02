@@ -18,6 +18,11 @@ import { format, addDays } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
 
+// IMPORTANT:
+// - The editor domain (lovableproject.com) is not accessible to customers.
+// - For pre-publish testing, share links should use the Preview URL (id-preview--*.lovable.app).
+const PUBLIC_PREVIEW_ORIGIN = 'https://id-preview--81ed6ab9-49d8-4e47-8152-992a7126d3e3.lovable.app';
+
 export default function DeliveryGalleries() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -100,7 +105,10 @@ export default function DeliveryGalleries() {
   };
 
   const handleCopyLink = (gallery: any) => {
-    const url = `${window.location.origin}/delivery/${gallery.access_token}`;
+    const baseUrl = window.location.origin.includes('lovableproject.com')
+      ? PUBLIC_PREVIEW_ORIGIN
+      : window.location.origin;
+    const url = `${baseUrl}/delivery/${gallery.access_token}`;
     navigator.clipboard.writeText(url);
     setCopiedId(gallery.id);
     toast.success('คัดลอกลิงก์แล้ว');
