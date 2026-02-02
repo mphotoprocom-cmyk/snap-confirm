@@ -10,7 +10,6 @@ import {
   useDeleteDeliveryImage,
   useUpdateDeliveryGallery
 } from '@/hooks/useDeliveryGallery';
-import { useZipUpload } from '@/hooks/useZipUpload';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +26,27 @@ import { th } from 'date-fns/locale';
 import { GalleryLayoutSelector, type GalleryLayout } from '@/components/GalleryLayoutSelector';
 import { GalleryImageGrid } from '@/components/GalleryImageGrid';
 import { supabase } from '@/integrations/supabase/client';
+import JSZip from 'jszip';
+
+type ZipUiProgress = {
+  status: 'idle' | 'extracting' | 'uploading' | 'complete' | 'error';
+  message: string;
+  progress: number;
+  totalFiles: number;
+  processedFiles: number;
+};
+
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.tif'];
+
+function isImageFile(filename: string): boolean {
+  const lower = filename.toLowerCase();
+  return IMAGE_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
+function getBasename(filepath: string): string {
+  const parts = filepath.split('/');
+  return parts[parts.length - 1] || filepath;
+}
 
 export default function DeliveryGalleryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +57,13 @@ export default function DeliveryGalleryDetail() {
   const addImage = useAddDeliveryImage();
   const deleteImage = useDeleteDeliveryImage();
   const updateGallery = useUpdateDeliveryGallery();
-  const zipUpload = useZipUpload();
+  const [zipProgress, setZipProgress] = useState<ZipUiProgress>({
+    status: 'idle',
+    message: '',
+    progress: 0,
+    totalFiles: 0,
+    processedFiles: 0,
+  });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
@@ -147,41 +173,111 @@ export default function DeliveryGalleryDetail() {
   };
 
   const handleZipSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const zipFile = e.target.files?.[0];
+    if (!zipFile) return;
 
+    // IMPORTANT:
+    // Large ZIPs (e.g. 200MB) can exceed backend function limits.
+    // We unzip in the browser and reuse the existing per-image upload pipeline.
     try {
-      const result = await zipUpload.mutateAsync({
-        file,
-        galleryId: gallery.id,
-        folder: 'delivery',
+      setZipProgress({
+        status: 'extracting',
+        message: 'กำลังอ่านไฟล์ ZIP...',
+        progress: 0,
+        totalFiles: 0,
+        processedFiles: 0,
       });
 
-      // Add each uploaded image to the database
-      for (const uploadedFile of result.uploaded) {
-        await addImage.mutateAsync({
-          gallery_id: gallery.id,
-          filename: uploadedFile.filename,
-          image_url: uploadedFile.url,
-          file_size: uploadedFile.size,
+      const zip = await JSZip.loadAsync(zipFile);
+      const entries = Object.entries(zip.files)
+        .filter(([name, entry]) => !entry.dir)
+        .filter(([name]) => isImageFile(name))
+        .filter(([name]) => !name.startsWith('__MACOSX') && !name.startsWith('.') && !name.includes('/.__MACOSX'));
+
+      if (entries.length === 0) {
+        throw new Error('ไม่พบไฟล์รูปภาพใน ZIP');
+      }
+
+      setZipProgress({
+        status: 'uploading',
+        message: `พบ ${entries.length} รูป กำลังอัปโหลด...`,
+        progress: 0,
+        totalFiles: entries.length,
+        processedFiles: 0,
+      });
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Small concurrency to keep memory stable in the browser.
+      const CONCURRENCY = 3;
+      for (let i = 0; i < entries.length; i += CONCURRENCY) {
+        const batch = entries.slice(i, i + CONCURRENCY);
+
+        const results = await Promise.all(
+          batch.map(async ([path, entry]) => {
+            const filename = getBasename(path);
+            try {
+              const blob = await entry.async('blob');
+              const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+
+              const uploaded = await uploadImage.mutateAsync({ file, galleryId: gallery.id });
+              await addImage.mutateAsync({
+                gallery_id: gallery.id,
+                filename: uploaded.filename,
+                image_url: uploaded.url,
+                file_size: uploaded.fileSize,
+              });
+
+              return { ok: true };
+            } catch (err) {
+              console.error('ZIP image upload error:', filename, err);
+              return { ok: false };
+            }
+          })
+        );
+
+        for (const r of results) {
+          if (r.ok) successCount++;
+          else errorCount++;
+        }
+
+        const processedFiles = successCount + errorCount;
+        const progress = Math.round((processedFiles / entries.length) * 100);
+        setZipProgress({
+          status: 'uploading',
+          message: `กำลังอัปโหลด... (${processedFiles}/${entries.length})`,
+          progress,
+          totalFiles: entries.length,
+          processedFiles,
         });
       }
 
-      if (result.successCount > 0) {
-        toast.success(`อัปโหลดจาก ZIP สำเร็จ ${result.successCount} รูป`);
-      }
-      
-      if (result.errorCount > 0) {
-        toast.warning(`${result.errorCount} รูปอัปโหลดไม่สำเร็จ`);
-      }
+      setZipProgress({
+        status: 'complete',
+        message: `เสร็จสิ้น ${successCount} รูป`,
+        progress: 100,
+        totalFiles: entries.length,
+        processedFiles: entries.length,
+      });
 
-      zipUpload.reset();
-    } catch (error) {
-      console.error('ZIP upload error:', error);
+      if (successCount > 0) toast.success(`อัปโหลดจาก ZIP สำเร็จ ${successCount} รูป`);
+      if (errorCount > 0) toast.warning(`${errorCount} รูปอัปโหลดไม่สำเร็จ`);
+    } catch (error: any) {
+      setZipProgress({
+        status: 'error',
+        message: error?.message || 'เกิดข้อผิดพลาด',
+        progress: 0,
+        totalFiles: 0,
+        processedFiles: 0,
+      });
+      toast.error('อัปโหลด ZIP ไม่สำเร็จ: ' + (error?.message || 'Unknown error'));
     } finally {
-      if (zipInputRef.current) {
-        zipInputRef.current.value = '';
-      }
+      if (zipInputRef.current) zipInputRef.current.value = '';
+      // Reset UI after a short delay (but keep completion message briefly)
+      setTimeout(() => {
+        setZipProgress({ status: 'idle', message: '', progress: 0, totalFiles: 0, processedFiles: 0 });
+      }, 2500);
     }
   };
 
@@ -456,12 +552,12 @@ export default function DeliveryGalleryDetail() {
                 <Button 
                   variant="outline" 
                   onClick={() => zipInputRef.current?.click()} 
-                  disabled={isUploading || zipUpload.isPending}
+                  disabled={isUploading || zipProgress.status === 'extracting' || zipProgress.status === 'uploading'}
                 >
-                  {zipUpload.isPending ? (
+                  {zipProgress.status === 'extracting' || zipProgress.status === 'uploading' ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      กำลังแตกไฟล์...
+                      {zipProgress.status === 'extracting' ? 'กำลังอ่าน ZIP...' : 'กำลังอัปโหลด...'}
                     </>
                   ) : (
                     <>
@@ -470,7 +566,10 @@ export default function DeliveryGalleryDetail() {
                     </>
                   )}
                 </Button>
-                <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading || zipUpload.isPending}>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading || zipProgress.status === 'extracting' || zipProgress.status === 'uploading'}
+                >
                   {isUploading ? (
                     <>
                       <Upload className="w-4 h-4 mr-2 animate-pulse" />
@@ -487,18 +586,18 @@ export default function DeliveryGalleryDetail() {
             </div>
             
             {/* ZIP Upload Progress */}
-            {zipUpload.isPending && (
+            {(zipProgress.status === 'extracting' || zipProgress.status === 'uploading') && (
               <div className="mt-4 p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm font-medium">{zipUpload.progress.message}</span>
+                  <span className="text-sm font-medium">{zipProgress.message}</span>
                 </div>
-                {zipUpload.progress.totalFiles > 0 && (
+                {zipProgress.totalFiles > 0 && (
                   <p className="text-xs text-muted-foreground mb-2">
-                    {zipUpload.progress.processedFiles} / {zipUpload.progress.totalFiles} รูป
+                    {zipProgress.processedFiles} / {zipProgress.totalFiles} รูป
                   </p>
                 )}
-                <Progress value={zipUpload.progress.progress || 10} className="h-2" />
+                <Progress value={zipProgress.progress || 10} className="h-2" />
               </div>
             )}
             
