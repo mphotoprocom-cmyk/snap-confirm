@@ -1,22 +1,27 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { usePublicDeliveryGallery, DeliveryImage } from '@/hooks/useDeliveryGallery';
+import { useParallelDownload } from '@/hooks/useParallelDownload';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { DownloadProgressDialog } from '@/components/DownloadProgressDialog';
 import { Camera, Download, X, ChevronLeft, ChevronRight, Image, Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
-import JSZip from 'jszip';
 import { PublicGalleryImageGrid } from '@/components/PublicGalleryImageGrid';
 import type { GalleryLayout } from '@/components/GalleryLayoutSelector';
 import { supabase } from '@/integrations/supabase/client';
+
 export default function PublicDeliveryGallery() {
   const { token } = useParams<{ token: string }>();
   const { data, isLoading, error } = usePublicDeliveryGallery(token);
   const [selectedImage, setSelectedImage] = useState<DeliveryImage | null>(null);
-  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  
+  const { progress, isDownloading, downloadAll, cancel, reset } = useParallelDownload();
 
   if (isLoading) {
     return (
@@ -47,6 +52,7 @@ export default function PublicDeliveryGallery() {
 
   const { gallery, images, profile } = data;
   const galleryLayout = (gallery.layout as GalleryLayout) || 'grid-4';
+
   const handlePrevImage = () => {
     if (!selectedImage) return;
     const currentIndex = images.findIndex((img) => img.id === selectedImage.id);
@@ -62,8 +68,8 @@ export default function PublicDeliveryGallery() {
   };
 
   const handleDownloadSingle = async (image: DeliveryImage) => {
+    setIsDownloadingSingle(true);
     try {
-      // Use edge function to proxy the download to avoid CORS
       const { data, error } = await supabase.functions.invoke('download-image', {
         body: { url: image.image_url },
       });
@@ -74,7 +80,6 @@ export default function PublicDeliveryGallery() {
         return;
       }
       
-      // Convert base64 to blob
       const binaryString = atob(data.data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
@@ -95,72 +100,33 @@ export default function PublicDeliveryGallery() {
     } catch (error) {
       console.error('Download error:', error);
       toast.error('ดาวน์โหลดไม่สำเร็จ');
+    } finally {
+      setIsDownloadingSingle(false);
     }
   };
 
   const handleDownloadAll = async () => {
     if (images.length === 0) return;
     
-    setIsDownloadingAll(true);
-    try {
-      const zip = new JSZip();
-      let successCount = 0;
-      let failCount = 0;
-      
-      for (const image of images) {
-        try {
-          // Use edge function to proxy the download to avoid CORS
-          const { data, error } = await supabase.functions.invoke('download-image', {
-            body: { url: image.image_url },
-          });
-          
-          if (error || !data?.data) {
-            console.error('Failed to fetch image via proxy:', image.filename, error);
-            failCount++;
-            continue;
-          }
-          
-          // Convert base64 to blob
-          const binaryString = atob(data.data);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          
-          zip.file(image.filename, bytes);
-          successCount++;
-        } catch (error) {
-          console.error('Failed to fetch image:', image.filename, error);
-          failCount++;
-        }
-      }
-      
-      if (successCount === 0) {
-        toast.error('ไม่สามารถดาวน์โหลดรูปภาพได้ กรุณาลองใหม่อีกครั้ง');
-        return;
-      }
-      
-      const content = await zip.generateAsync({ type: 'blob' });
-      const url = window.URL.createObjectURL(content);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${gallery.title}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      if (failCount > 0) {
-        toast.warning(`ดาวน์โหลดได้ ${successCount} รูป (${failCount} รูปไม่สำเร็จ)`);
+    reset();
+    setShowProgressDialog(true);
+    
+    const result = await downloadAll(images, gallery.title);
+    
+    if (result.success) {
+      if (result.totalFailed > 0) {
+        toast.warning(`ดาวน์โหลดได้ ${result.totalSuccess} รูป (${result.totalFailed} รูปไม่สำเร็จ)`);
       } else {
-        toast.success(`ดาวน์โหลดสำเร็จ ${successCount} รูป`);
+        toast.success(`ดาวน์โหลดสำเร็จ ${result.totalSuccess} รูป`);
       }
-    } catch (error) {
-      console.error('Download all error:', error);
-      toast.error('ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
-    } finally {
-      setIsDownloadingAll(false);
+    } else if (result.totalSuccess === 0) {
+      toast.error('ไม่สามารถดาวน์โหลดรูปภาพได้ กรุณาลองใหม่อีกครั้ง');
     }
+  };
+
+  const handleCancelDownload = () => {
+    cancel();
+    toast.info('ยกเลิกการดาวน์โหลด');
   };
 
   const formatFileSize = (bytes: number | null) => {
@@ -258,13 +224,13 @@ export default function PublicDeliveryGallery() {
             <Button 
               size="lg" 
               onClick={handleDownloadAll}
-              disabled={isDownloadingAll}
+              disabled={isDownloading}
               className="gap-2"
             >
-              {isDownloadingAll ? (
+              {isDownloading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  กำลังเตรียมไฟล์...
+                  กำลังดาวน์โหลด...
                 </>
               ) : (
                 <>
@@ -273,6 +239,11 @@ export default function PublicDeliveryGallery() {
                 </>
               )}
             </Button>
+            {images.length > 500 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                * Gallery นี้มีรูปภาพมากกว่า 500 รูป จะถูกแบ่งเป็นหลายไฟล์ ZIP
+              </p>
+            )}
           </div>
         )}
 
@@ -294,6 +265,14 @@ export default function PublicDeliveryGallery() {
           </Card>
         )}
       </main>
+
+      {/* Download Progress Dialog */}
+      <DownloadProgressDialog
+        open={showProgressDialog}
+        onOpenChange={setShowProgressDialog}
+        progress={progress}
+        onCancel={handleCancelDownload}
+      />
 
       {/* Lightbox */}
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
@@ -340,8 +319,16 @@ export default function PublicDeliveryGallery() {
                   <p className="text-white/70 text-sm">{formatFileSize(selectedImage.file_size)}</p>
                 )}
               </div>
-              <Button variant="secondary" onClick={() => handleDownloadSingle(selectedImage)}>
-                <Download className="w-4 h-4 mr-2" />
+              <Button 
+                variant="secondary" 
+                onClick={() => handleDownloadSingle(selectedImage)}
+                disabled={isDownloadingSingle}
+              >
+                {isDownloadingSingle ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
                 ดาวน์โหลด
               </Button>
             </div>
