@@ -4,26 +4,7 @@ import { Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GalleryLayout } from './GalleryLayoutSelector';
 import type { DeliveryImage } from '@/hooks/useDeliveryGallery';
-
-function SafeImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
-  return (
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      referrerPolicy="no-referrer"
-      className={className}
-      onError={(e) => {
-        const img = e.currentTarget;
-        // prevent infinite loop
-        if (!img.dataset.fallback) {
-          img.dataset.fallback = '1';
-          img.src = '/placeholder.svg';
-        }
-      }}
-    />
-  );
-}
+import { SafeImage } from '@/components/SafeImage';
 
 interface PublicGalleryImageGridProps {
   images: DeliveryImage[];

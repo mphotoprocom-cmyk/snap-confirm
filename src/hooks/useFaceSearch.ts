@@ -1,5 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import * as faceapi from 'face-api.js';
+import { useState, useCallback, useRef } from 'react';
 import type { DeliveryImage } from '@/hooks/useDeliveryGallery';
 
 interface FaceSearchState {
@@ -11,6 +10,16 @@ interface FaceSearchState {
 }
 
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/model';
+
+let faceApiModulePromise: Promise<typeof import('face-api.js')> | null = null;
+
+async function getFaceApi() {
+  // Lazy-load to keep public gallery initial load fast.
+  if (!faceApiModulePromise) {
+    faceApiModulePromise = import('face-api.js');
+  }
+  return faceApiModulePromise;
+}
 
 export function useFaceSearch(images: DeliveryImage[]) {
   const [state, setState] = useState<FaceSearchState>({
@@ -29,6 +38,7 @@ export function useFaceSearch(images: DeliveryImage[]) {
     if (modelsLoadedRef.current) return true;
 
     try {
+      const faceapi = await getFaceApi();
       await Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -46,6 +56,7 @@ export function useFaceSearch(images: DeliveryImage[]) {
 
   // Get face descriptor from an image element
   const getFaceDescriptors = async (img: HTMLImageElement): Promise<Float32Array[]> => {
+    const faceapi = await getFaceApi();
     const detections = await faceapi
       .detectAllFaces(img)
       .withFaceLandmarks()
@@ -59,6 +70,9 @@ export function useFaceSearch(images: DeliveryImage[]) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
+      // Helps when storage blocks Referer, and improves consistency with <SafeImage />
+      // (supported in modern browsers; ignored otherwise)
+      img.referrerPolicy = 'no-referrer';
       img.onload = async () => {
         try {
           const descriptors = await getFaceDescriptors(img);

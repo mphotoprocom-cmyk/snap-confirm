@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { PublicGalleryImageGrid } from '@/components/PublicGalleryImageGrid';
 import type { GalleryLayout } from '@/components/GalleryLayoutSelector';
 import { supabase } from '@/integrations/supabase/client';
+import { SafeImage } from '@/components/SafeImage';
 
 export default function PublicDeliveryGallery() {
   const { token } = useParams<{ token: string }>();
@@ -155,9 +156,10 @@ export default function PublicDeliveryGallery() {
         <div className="container max-w-6xl py-4">
           <div className="flex items-center gap-3">
             {profile?.logo_url ? (
-              <img 
-                src={profile.logo_url} 
+              <SafeImage
+                src={profile.logo_url}
                 alt={profile.studio_name}
+                loading="eager"
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -179,9 +181,10 @@ export default function PublicDeliveryGallery() {
       {gallery.show_cover && gallery.cover_image_url && (
         <div className="relative w-full">
           <div className="aspect-[21/9] md:aspect-[3/1] w-full overflow-hidden">
-            <img
+            <SafeImage
               src={gallery.cover_image_url}
               alt={gallery.title}
+              loading="eager"
               className="w-full h-full object-cover"
             />
           </div>
@@ -339,9 +342,10 @@ export default function PublicDeliveryGallery() {
           
           {selectedImage && (
             <div className="flex items-center justify-center min-h-[50vh]">
-              <img
+              <SafeImage
                 src={selectedImage.image_url}
                 alt={selectedImage.filename}
+                loading="eager"
                 className="max-w-full max-h-[80vh] object-contain"
               />
             </div>
