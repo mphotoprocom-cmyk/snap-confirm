@@ -1,22 +1,33 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { usePublicDeliveryGallery, DeliveryImage } from '@/hooks/useDeliveryGallery';
-import { useParallelDownload } from '@/hooks/useParallelDownload';
-import { useFaceSearch } from '@/hooks/useFaceSearch';
-import { FaceSearchDialog } from '@/components/FaceSearchDialog';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { DownloadProgressDialog } from '@/components/DownloadProgressDialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Download, X, ChevronLeft, ChevronRight, Image, Calendar, Loader2, UserRound, ArrowUpDown } from 'lucide-react';
-import { format } from 'date-fns';
-import { th } from 'date-fns/locale';
-import { toast } from 'sonner';
-import { PublicGalleryImageGrid } from '@/components/PublicGalleryImageGrid';
-import type { GalleryLayout } from '@/components/GalleryLayoutSelector';
-import { supabase } from '@/integrations/supabase/client';
-import { SafeImage } from '@/components/SafeImage';
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { usePublicDeliveryGallery, DeliveryImage } from "@/hooks/useDeliveryGallery";
+import { useParallelDownload } from "@/hooks/useParallelDownload";
+import { useFaceSearch } from "@/hooks/useFaceSearch";
+import { FaceSearchDialog } from "@/components/FaceSearchDialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DownloadProgressDialog } from "@/components/DownloadProgressDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Camera,
+  Download,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Image,
+  Calendar,
+  Loader2,
+  UserRound,
+  ArrowUpDown,
+} from "lucide-react";
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
+import { toast } from "sonner";
+import { PublicGalleryImageGrid } from "@/components/PublicGalleryImageGrid";
+import type { GalleryLayout } from "@/components/GalleryLayoutSelector";
+import { supabase } from "@/integrations/supabase/client";
+import { SafeImage } from "@/components/SafeImage";
 
 export default function PublicDeliveryGallery() {
   const { token } = useParams<{ token: string }>();
@@ -25,8 +36,8 @@ export default function PublicDeliveryGallery() {
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
   const [showProgressDialog, setShowProgressDialog] = useState(false);
   const [showFaceSearchDialog, setShowFaceSearchDialog] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
-  
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+
   const { progress, isDownloading, downloadAll, cancel, reset } = useParallelDownload();
 
   // Derive safe values – hooks below must be called unconditionally (Rules of Hooks)
@@ -34,7 +45,7 @@ export default function PublicDeliveryGallery() {
   const images: DeliveryImage[] = data?.images ?? [];
   const profile = data?.profile ?? null;
 
-  const galleryLayout = (gallery?.layout as GalleryLayout) || 'grid-4';
+  const galleryLayout = (gallery?.layout as GalleryLayout) || "grid-4";
   const faceSearchEnabled = (gallery as any)?.face_search_enabled !== false;
 
   // Face search hook – must be called before any early return
@@ -44,7 +55,7 @@ export default function PublicDeliveryGallery() {
   const sortedImages = [...images].sort((a, b) => {
     const dateA = new Date(a.created_at).getTime();
     const dateB = new Date(b.created_at).getTime();
-    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
   });
   const displayImages = faceSearch.matchedImages.length > 0 ? faceSearch.matchedImages : sortedImages;
 
@@ -66,9 +77,7 @@ export default function PublicDeliveryGallery() {
           <CardContent className="pt-6 text-center">
             <Camera className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h1 className="text-xl font-semibold mb-2">ไม่พบแกลเลอรี่</h1>
-            <p className="text-muted-foreground">
-              ลิงก์นี้ไม่ถูกต้อง หมดอายุ หรือถูกปิดใช้งาน
-            </p>
+            <p className="text-muted-foreground">ลิงก์นี้ไม่ถูกต้อง หมดอายุ หรือถูกปิดใช้งาน</p>
           </CardContent>
         </Card>
       </div>
@@ -92,36 +101,36 @@ export default function PublicDeliveryGallery() {
   const handleDownloadSingle = async (image: DeliveryImage) => {
     setIsDownloadingSingle(true);
     try {
-      const { data, error } = await supabase.functions.invoke('download-image', {
+      const { data, error } = await supabase.functions.invoke("download-image", {
         body: { url: image.image_url },
       });
-      
+
       if (error || !data?.data) {
-        console.error('Failed to fetch image via proxy:', error);
-        toast.error('ดาวน์โหลดไม่สำเร็จ');
+        console.error("Failed to fetch image via proxy:", error);
+        toast.error("ดาวน์โหลดไม่สำเร็จ");
         return;
       }
-      
+
       const binaryString = atob(data.data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      
-      const blob = new Blob([bytes], { type: data.contentType || 'image/jpeg' });
+
+      const blob = new Blob([bytes], { type: data.contentType || "image/jpeg" });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = image.filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
-      toast.success('ดาวน์โหลดสำเร็จ');
+
+      toast.success("ดาวน์โหลดสำเร็จ");
     } catch (error) {
-      console.error('Download error:', error);
-      toast.error('ดาวน์โหลดไม่สำเร็จ');
+      console.error("Download error:", error);
+      toast.error("ดาวน์โหลดไม่สำเร็จ");
     } finally {
       setIsDownloadingSingle(false);
     }
@@ -129,12 +138,12 @@ export default function PublicDeliveryGallery() {
 
   const handleDownloadAll = async () => {
     if (images.length === 0) return;
-    
+
     reset();
     setShowProgressDialog(true);
-    
+
     const result = await downloadAll(images, gallery.title);
-    
+
     if (result.success) {
       if (result.totalFailed > 0) {
         toast.warning(`ดาวน์โหลดได้ ${result.totalSuccess} รูป (${result.totalFailed} รูปไม่สำเร็จ)`);
@@ -142,17 +151,17 @@ export default function PublicDeliveryGallery() {
         toast.success(`ดาวน์โหลดสำเร็จ ${result.totalSuccess} รูป`);
       }
     } else if (result.totalSuccess === 0) {
-      toast.error('ไม่สามารถดาวน์โหลดรูปภาพได้ กรุณาลองใหม่อีกครั้ง');
+      toast.error("ไม่สามารถดาวน์โหลดรูปภาพได้ กรุณาลองใหม่อีกครั้ง");
     }
   };
 
   const handleCancelDownload = () => {
     cancel();
-    toast.info('ยกเลิกการดาวน์โหลด');
+    toast.info("ยกเลิกการดาวน์โหลด");
   };
 
   const formatFileSize = (bytes: number | null) => {
-    if (!bytes) return '';
+    if (!bytes) return "";
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -179,10 +188,8 @@ export default function PublicDeliveryGallery() {
               </div>
             )}
             <div>
-              <h1 className="font-display font-semibold">{profile?.studio_name || 'Photo Studio'}</h1>
-              {profile?.full_name && (
-                <p className="text-sm text-muted-foreground">{profile.full_name}</p>
-              )}
+              <h1 className="font-display font-semibold">{profile?.studio_name || "Photo Studio"}</h1>
+              {profile?.full_name && <p className="text-sm text-muted-foreground">{profile.full_name}</p>}
             </div>
           </div>
         </div>
@@ -203,9 +210,7 @@ export default function PublicDeliveryGallery() {
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
             <div className="container max-w-6xl">
               <h1 className="text-2xl md:text-4xl font-display font-semibold text-white mb-2">{gallery.title}</h1>
-              <p className="text-white/90 text-lg">
-                สำหรับคุณ {gallery.client_name}
-              </p>
+              <p className="text-white/90 text-lg">สำหรับคุณ {gallery.client_name}</p>
             </div>
           </div>
         </div>
@@ -216,28 +221,22 @@ export default function PublicDeliveryGallery() {
         {(!gallery.show_cover || !gallery.cover_image_url) && (
           <div className="mb-8">
             <h1 className="text-2xl font-display font-semibold mb-2">{gallery.title}</h1>
-            <p className="text-muted-foreground mb-4">
-              สำหรับคุณ {gallery.client_name}
-            </p>
+            <p className="text-muted-foreground mb-4">สำหรับคุณ {gallery.client_name}</p>
           </div>
         )}
-        
-        {gallery.description && (
-          <p className="text-sm text-muted-foreground mb-4">{gallery.description}</p>
-        )}
-        
+
+        {gallery.description && <p className="text-sm text-muted-foreground mb-4">{gallery.description}</p>}
+
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-8">
           <span className="flex items-center gap-1">
             <Image className="w-4 h-4" />
             {images.length} รูปภาพ
           </span>
-          {totalSize > 0 && (
-            <span>ขนาดรวม {formatFileSize(totalSize)}</span>
-          )}
+          {totalSize > 0 && <span>ขนาดรวม {formatFileSize(totalSize)}</span>}
           {gallery.expires_at && (
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              ดาวน์โหลดได้ถึง {format(new Date(gallery.expires_at), 'd MMM yyyy', { locale: th })}
+              ดาวน์โหลดได้ถึง {format(new Date(gallery.expires_at), "d MMM yyyy", { locale: th })}
             </span>
           )}
         </div>
@@ -245,12 +244,7 @@ export default function PublicDeliveryGallery() {
         {/* Action Buttons */}
         {images.length > 0 && (
           <div className="mb-6 flex flex-wrap items-center gap-3">
-            <Button 
-              size="lg" 
-              onClick={handleDownloadAll}
-              disabled={isDownloading}
-              className="gap-2"
-            >
+            <Button size="lg" onClick={handleDownloadAll} disabled={isDownloading} className="gap-2">
               {isDownloading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -263,10 +257,10 @@ export default function PublicDeliveryGallery() {
                 </>
               )}
             </Button>
-            
+
             {faceSearchEnabled && (
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
                 onClick={() => setShowFaceSearchDialog(true)}
                 disabled={faceSearch.isLoading}
@@ -280,7 +274,7 @@ export default function PublicDeliveryGallery() {
             {/* Sorting */}
             <div className="flex items-center gap-2 ml-auto">
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
-              <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as 'newest' | 'oldest')}>
+              <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "newest" | "oldest")}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -290,7 +284,7 @@ export default function PublicDeliveryGallery() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {images.length > 500 && (
               <p className="text-sm text-muted-foreground w-full">
                 * Gallery นี้มีรูปภาพมากกว่า 500 รูป จะถูกแบ่งเป็นหลายไฟล์ ZIP
@@ -303,7 +297,8 @@ export default function PublicDeliveryGallery() {
         {faceSearch.matchedImages.length > 0 && (
           <div className="mb-6 p-4 bg-primary/10 rounded-lg flex items-center justify-between">
             <span className="text-sm">
-              แสดง <span className="font-semibold text-primary">{faceSearch.matchedImages.length}</span> รูปที่พบใบหน้าของคุณ (จากทั้งหมด {images.length} รูป)
+              แสดง <span className="font-semibold text-primary">{faceSearch.matchedImages.length}</span>{" "}
+              รูปที่พบใบหน้าของคุณ (จากทั้งหมด {images.length} รูป)
             </span>
             <Button variant="ghost" size="sm" onClick={faceSearch.resetSearch}>
               แสดงทั้งหมด
@@ -347,7 +342,7 @@ export default function PublicDeliveryGallery() {
           >
             <X className="w-6 h-6" />
           </button>
-          
+
           {images.length > 1 && (
             <>
               <button
@@ -364,7 +359,7 @@ export default function PublicDeliveryGallery() {
               </button>
             </>
           )}
-          
+
           {selectedImage && (
             <div className="flex items-center justify-center min-h-[50vh]">
               <SafeImage
@@ -375,7 +370,7 @@ export default function PublicDeliveryGallery() {
               />
             </div>
           )}
-          
+
           {selectedImage && (
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex justify-between items-center">
               <div>
@@ -384,8 +379,8 @@ export default function PublicDeliveryGallery() {
                   <p className="text-white/70 text-sm">{formatFileSize(selectedImage.file_size)}</p>
                 )}
               </div>
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={() => handleDownloadSingle(selectedImage)}
                 disabled={isDownloadingSingle}
               >
