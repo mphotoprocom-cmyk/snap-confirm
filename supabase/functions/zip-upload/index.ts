@@ -1,5 +1,9 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { default as JSZip } from "https://esm.sh/jszip@3.10.1";
+
+declare const EdgeRuntime: {
+  waitUntil(promise: Promise<unknown>): void;
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -158,96 +162,45 @@ interface UploadedFile {
   key: string;
 }
 
-Deno.serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+// Background processing function
+async function processZipInBackground(
+  jobId: string,
+  zipBuffer: ArrayBuffer,
+  userId: string,
+  galleryId: string,
+  folder: string,
+  supabaseServiceClient: SupabaseClient
+) {
+  const bucketName = requireEnv("R2_BUCKET_NAME");
+  const publicUrl = requireEnv("R2_PUBLIC_URL").replace(/\/$/, "");
+  const accountId = requireEnv("R2_ACCOUNT_ID");
+  const accessKeyId = requireEnv("R2_ACCESS_KEY_ID");
+  const secretAccessKey = requireEnv("R2_SECRET_ACCESS_KEY");
+  const host = `${accountId}.r2.cloudflarestorage.com`;
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabase = createClient(
-      requireEnv("SUPABASE_URL"),
-      requireEnv("SUPABASE_ANON_KEY"),
-      { global: { headers: { Authorization: authHeader } } }
+    console.log(`[Job ${jobId}] Starting ZIP extraction...`);
+    
+    const zip = await JSZip.loadAsync(zipBuffer);
+    
+    const files = Object.entries(zip.files).filter(([name, file]) => 
+      !file.dir && isImageFile(name) && !name.startsWith('__MACOSX') && !name.startsWith('.')
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    console.log(`[Job ${jobId}] Found ${files.length} image files`);
 
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const userId = claimsData.claims.sub;
-    const bucketName = requireEnv("R2_BUCKET_NAME");
-    const publicUrl = requireEnv("R2_PUBLIC_URL").replace(/\/$/, "");
-    const accountId = requireEnv("R2_ACCOUNT_ID");
-    const accessKeyId = requireEnv("R2_ACCESS_KEY_ID");
-    const secretAccessKey = requireEnv("R2_SECRET_ACCESS_KEY");
-    const host = `${accountId}.r2.cloudflarestorage.com`;
-
-    if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const formData = await req.formData();
-    const zipFile = formData.get("file") as File | null;
-    const folder = (formData.get("folder") as string | null) || "delivery";
-    const galleryId = formData.get("galleryId") as string | null;
-
-    if (!zipFile) {
-      return new Response(JSON.stringify({ error: "No ZIP file provided" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Check if it's a ZIP file
-    const isZip = zipFile.name.toLowerCase().endsWith('.zip') || 
-                  zipFile.type === 'application/zip' || 
-                  zipFile.type === 'application/x-zip-compressed';
-
-    if (!isZip) {
-      return new Response(JSON.stringify({ error: "File must be a ZIP archive" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    console.log(`Processing ZIP file: ${zipFile.name}, size: ${zipFile.size} bytes`);
-
-    // Read and extract ZIP
-    const zipBuffer = await zipFile.arrayBuffer();
-    const zip = await JSZip.loadAsync(zipBuffer);
+    // Update job with total files count
+    await supabaseServiceClient
+      .from('zip_upload_jobs')
+      .update({ total_files: files.length, status: 'processing' } as Record<string, unknown>)
+      .eq('id', jobId);
 
     const uploadedFiles: UploadedFile[] = [];
     const errors: string[] = [];
     let processedCount = 0;
 
-    // Get all files from ZIP
-    const files = Object.entries(zip.files).filter(([name, file]) => 
-      !file.dir && isImageFile(name) && !name.startsWith('__MACOSX') && !name.startsWith('.')
-    );
-
-    console.log(`Found ${files.length} image files in ZIP`);
-
-    // Process files in batches to avoid overwhelming the system
-    const BATCH_SIZE = 10;
+    // Process files in small batches to minimize memory usage
+    const BATCH_SIZE = 5;
     
     for (let i = 0; i < files.length; i += BATCH_SIZE) {
       const batch = files.slice(i, i + BATCH_SIZE);
@@ -277,10 +230,10 @@ Deno.serve(async (req) => {
 
           if (!putRes.ok) {
             const errText = await putRes.text();
-            console.error(`Failed to upload ${originalFilename}:`, putRes.status, errText);
+            console.error(`[Job ${jobId}] Failed to upload ${originalFilename}:`, putRes.status, errText);
             throw new Error(`Upload failed: ${putRes.status}`);
           } else {
-            await putRes.text(); // Consume body
+            await putRes.text();
           }
 
           const fileUrl = `${publicUrl}/${key}`;
@@ -295,7 +248,7 @@ Deno.serve(async (req) => {
             }
           };
         } catch (error) {
-          console.error(`Error processing ${filename}:`, error);
+          console.error(`[Job ${jobId}] Error processing ${filename}:`, error);
           return {
             success: false,
             filename: getBasename(filename),
@@ -315,19 +268,162 @@ Deno.serve(async (req) => {
         }
       }
 
-      console.log(`Processed ${processedCount}/${files.length} files`);
+      // Update progress
+      const progress = Math.round((processedCount / files.length) * 100);
+      await supabaseServiceClient
+        .from('zip_upload_jobs')
+        .update({ 
+          progress, 
+          processed_files: processedCount,
+          uploaded_files: uploadedFiles 
+        } as Record<string, unknown>)
+        .eq('id', jobId);
+
+      console.log(`[Job ${jobId}] Progress: ${processedCount}/${files.length} (${progress}%)`);
     }
 
-    console.log(`ZIP extraction complete. Success: ${uploadedFiles.length}, Errors: ${errors.length}`);
+    // Mark as completed
+    await supabaseServiceClient
+      .from('zip_upload_jobs')
+      .update({ 
+        status: 'completed',
+        progress: 100,
+        processed_files: processedCount,
+        uploaded_files: uploadedFiles,
+        error: errors.length > 0 ? errors.slice(0, 10).join('\n') : null
+      } as Record<string, unknown>)
+      .eq('id', jobId);
 
+    console.log(`[Job ${jobId}] Completed. Success: ${uploadedFiles.length}, Errors: ${errors.length}`);
+
+  } catch (error) {
+    console.error(`[Job ${jobId}] Fatal error:`, error);
+    await supabaseServiceClient
+      .from('zip_upload_jobs')
+      .update({ 
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      } as Record<string, unknown>)
+      .eq('id', jobId);
+  }
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseUrl = requireEnv("SUPABASE_URL");
+    const supabaseAnonKey = requireEnv("SUPABASE_ANON_KEY");
+    const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+    
+    // Client for auth verification
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, { 
+      global: { headers: { Authorization: authHeader } } 
+    });
+
+    // Service client for background operations (bypasses RLS)
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claimsData.claims.sub as string;
+
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const formData = await req.formData();
+    const zipFile = formData.get("file") as File | null;
+    const folder = (formData.get("folder") as string | null) || "delivery";
+    const galleryId = formData.get("galleryId") as string | null;
+
+    if (!zipFile) {
+      return new Response(JSON.stringify({ error: "No ZIP file provided" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!galleryId) {
+      return new Response(JSON.stringify({ error: "Gallery ID is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check if it's a ZIP file
+    const isZip = zipFile.name.toLowerCase().endsWith('.zip') || 
+                  zipFile.type === 'application/zip' || 
+                  zipFile.type === 'application/x-zip-compressed';
+
+    if (!isZip) {
+      return new Response(JSON.stringify({ error: "File must be a ZIP archive" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`Processing ZIP file: ${zipFile.name}, size: ${zipFile.size} bytes`);
+
+    // Create a job record
+    const { data: job, error: jobError } = await supabaseService
+      .from('zip_upload_jobs')
+      .insert({
+        user_id: userId,
+        gallery_id: galleryId,
+        status: 'pending',
+        progress: 0,
+      })
+      .select()
+      .single();
+
+    if (jobError || !job) {
+      console.error("Failed to create job:", jobError);
+      return new Response(JSON.stringify({ error: "Failed to create upload job" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`Created job: ${job.id}`);
+
+    // Read ZIP buffer before starting background task
+    const zipBuffer = await zipFile.arrayBuffer();
+
+    // Start background processing
+    EdgeRuntime.waitUntil(
+      processZipInBackground(job.id, zipBuffer, userId, galleryId, folder, supabaseService)
+    );
+
+    // Return immediately with job ID
     return new Response(
       JSON.stringify({
         success: true,
-        uploaded: uploadedFiles,
-        totalFiles: files.length,
-        successCount: uploadedFiles.length,
-        errorCount: errors.length,
-        errors: errors.slice(0, 10), // Only return first 10 errors
+        jobId: job.id,
+        message: "Upload job started. Poll for status updates.",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

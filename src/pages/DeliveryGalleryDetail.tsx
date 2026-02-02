@@ -493,7 +493,12 @@ export default function DeliveryGalleryDetail() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm font-medium">{zipUpload.progress.message}</span>
                 </div>
-                <Progress value={zipUpload.progress.status === 'extracting' ? 50 : 10} className="h-2" />
+                {zipUpload.progress.totalFiles > 0 && (
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {zipUpload.progress.processedFiles} / {zipUpload.progress.totalFiles} รูป
+                  </p>
+                )}
+                <Progress value={zipUpload.progress.progress || 10} className="h-2" />
               </div>
             )}
             
