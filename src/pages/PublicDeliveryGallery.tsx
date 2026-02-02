@@ -8,7 +8,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DownloadProgressDialog } from '@/components/DownloadProgressDialog';
-import { Camera, Download, X, ChevronLeft, ChevronRight, Image, Calendar, Loader2, UserRound } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Camera, Download, X, ChevronLeft, ChevronRight, Image, Calendar, Loader2, UserRound, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ export default function PublicDeliveryGallery() {
   const [isDownloadingSingle, setIsDownloadingSingle] = useState(false);
   const [showProgressDialog, setShowProgressDialog] = useState(false);
   const [showFaceSearchDialog, setShowFaceSearchDialog] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   
   const { progress, isDownloading, downloadAll, cancel, reset } = useParallelDownload();
 
@@ -61,8 +63,13 @@ export default function PublicDeliveryGallery() {
   // Face search hook
   const faceSearch = useFaceSearch(images);
 
-  // Display images - show matched images if face search has results, otherwise all images
-  const displayImages = faceSearch.matchedImages.length > 0 ? faceSearch.matchedImages : images;
+  // Display images - show matched images if face search has results, otherwise all images (sorted)
+  const sortedImages = [...images].sort((a, b) => {
+    const dateA = new Date(a.created_at).getTime();
+    const dateB = new Date(b.created_at).getTime();
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+  const displayImages = faceSearch.matchedImages.length > 0 ? faceSearch.matchedImages : sortedImages;
 
   const handlePrevImage = () => {
     if (!selectedImage) return;
@@ -233,7 +240,7 @@ export default function PublicDeliveryGallery() {
 
         {/* Action Buttons */}
         {images.length > 0 && (
-          <div className="mb-6 flex flex-wrap gap-3">
+          <div className="mb-6 flex flex-wrap items-center gap-3">
             <Button 
               size="lg" 
               onClick={handleDownloadAll}
@@ -265,6 +272,20 @@ export default function PublicDeliveryGallery() {
                 ค้นหารูปของฉัน
               </Button>
             )}
+
+            {/* Sorting */}
+            <div className="flex items-center gap-2 ml-auto">
+              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as 'newest' | 'oldest')}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">ล่าสุดก่อน</SelectItem>
+                  <SelectItem value="oldest">เก่าสุดก่อน</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             {images.length > 500 && (
               <p className="text-sm text-muted-foreground w-full">
