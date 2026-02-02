@@ -60,6 +60,10 @@ export default function DeliveryGalleryDetail() {
   const addImage = useAddDeliveryImage();
   const deleteImage = useDeleteDeliveryImage();
   const updateGallery = useUpdateDeliveryGallery();
+  
+  // Face search hook - must be called before any conditional returns
+  const faceSearch = useFaceSearch(data?.images ?? []);
+  
   const [zipProgress, setZipProgress] = useState<ZipUiProgress>({
     status: 'idle',
     message: '',
@@ -78,6 +82,7 @@ export default function DeliveryGalleryDetail() {
   const [isLayoutOpen, setIsLayoutOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [showFaceSearchDialog, setShowFaceSearchDialog] = useState(false);
+  
   // Load saved layout from gallery data
   useEffect(() => {
     if (data?.gallery?.layout) {
@@ -143,9 +148,6 @@ export default function DeliveryGalleryDetail() {
   const { gallery, images } = data;
   const shareUrl = `${window.location.origin}/delivery/${gallery.access_token}`;
   const isExpired = gallery.expires_at && new Date(gallery.expires_at) < new Date();
-
-  // Face search hook
-  const faceSearch = useFaceSearch(images);
 
   // Sort images based on sort order or face search results
   const displayImages = faceSearch.matchedImages.length > 0 
