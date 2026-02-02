@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -19,7 +19,7 @@ interface FaceSearchDialogProps {
   onReset: () => void;
 }
 
-export const FaceSearchDialog = forwardRef<HTMLDivElement, FaceSearchDialogProps>(function FaceSearchDialog({
+export function FaceSearchDialog({
   open,
   onOpenChange,
   isLoading,
@@ -28,7 +28,7 @@ export const FaceSearchDialog = forwardRef<HTMLDivElement, FaceSearchDialogProps
   matchedCount,
   onSearch,
   onReset,
-}, ref) {
+}: FaceSearchDialogProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [threshold, setThreshold] = useState(0.5);
@@ -238,6 +238,4 @@ export const FaceSearchDialog = forwardRef<HTMLDivElement, FaceSearchDialogProps
       </DialogContent>
     </Dialog>
   );
-});
-
-FaceSearchDialog.displayName = 'FaceSearchDialog';
+}
