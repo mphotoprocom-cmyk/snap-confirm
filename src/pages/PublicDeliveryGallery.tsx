@@ -29,6 +29,25 @@ export default function PublicDeliveryGallery() {
   
   const { progress, isDownloading, downloadAll, cancel, reset } = useParallelDownload();
 
+  // Derive safe values – hooks below must be called unconditionally (Rules of Hooks)
+  const gallery = data?.gallery ?? null;
+  const images: DeliveryImage[] = data?.images ?? [];
+  const profile = data?.profile ?? null;
+
+  const galleryLayout = (gallery?.layout as GalleryLayout) || 'grid-4';
+  const faceSearchEnabled = (gallery as any)?.face_search_enabled !== false;
+
+  // Face search hook – must be called before any early return
+  const faceSearch = useFaceSearch(images);
+
+  // Display images - show matched images if face search has results, otherwise all images (sorted)
+  const sortedImages = [...images].sort((a, b) => {
+    const dateA = new Date(a.created_at).getTime();
+    const dateB = new Date(b.created_at).getTime();
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+  const displayImages = faceSearch.matchedImages.length > 0 ? faceSearch.matchedImages : sortedImages;
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -40,7 +59,7 @@ export default function PublicDeliveryGallery() {
     );
   }
 
-  if (error || !data?.gallery) {
+  if (error || !gallery) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md mx-4">
@@ -55,21 +74,6 @@ export default function PublicDeliveryGallery() {
       </div>
     );
   }
-
-  const { gallery, images, profile } = data;
-  const galleryLayout = (gallery.layout as GalleryLayout) || 'grid-4';
-  const faceSearchEnabled = (gallery as any).face_search_enabled !== false;
-
-  // Face search hook
-  const faceSearch = useFaceSearch(images);
-
-  // Display images - show matched images if face search has results, otherwise all images (sorted)
-  const sortedImages = [...images].sort((a, b) => {
-    const dateA = new Date(a.created_at).getTime();
-    const dateB = new Date(b.created_at).getTime();
-    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-  });
-  const displayImages = faceSearch.matchedImages.length > 0 ? faceSearch.matchedImages : sortedImages;
 
   const handlePrevImage = () => {
     if (!selectedImage) return;
