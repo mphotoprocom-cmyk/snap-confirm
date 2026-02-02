@@ -146,7 +146,11 @@ export default function DeliveryGalleryDetail() {
   }
 
   const { gallery, images } = data;
-  const shareUrl = `${window.location.origin}/delivery/${gallery.access_token}`;
+  // Use preview URL (lovable.app) for sharing instead of lovableproject.com (dev-only)
+  const baseUrl = window.location.origin.includes('lovableproject.com')
+    ? window.location.origin.replace('lovableproject.com', 'lovable.app')
+    : window.location.origin;
+  const shareUrl = `${baseUrl}/delivery/${gallery.access_token}`;
   const isExpired = gallery.expires_at && new Date(gallery.expires_at) < new Date();
 
   // Sort images based on sort order or face search results
