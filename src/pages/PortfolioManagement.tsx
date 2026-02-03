@@ -10,24 +10,13 @@ import {
   useUpdatePortfolioImage,
   PortfolioImage,
 } from '@/hooks/usePortfolio';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -80,7 +69,6 @@ export default function PortfolioManagement() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<PortfolioImage | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
   const [newImageData, setNewImageData] = useState({
@@ -134,38 +122,51 @@ export default function PortfolioManagement() {
 
   return (
     <>
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className={`text-2xl font-semibold font-display ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            จัดการ Portfolio
+          </h1>
+          <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+            จัดการรูปภาพผลงานและลิงก์แชร์ Portfolio ของคุณ
+          </p>
+        </div>
+      </div>
+
       {/* Portfolio Link */}
-      <Card className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
-        <CardContent>
-          <div className="flex items-center gap-2 mb-2">
-            <Camera className="w-5 h-5 text-emerald-500" />
-            <h2 className="text-lg font-semibold">ลิงก์ Portfolio ของคุณ</h2>
-          </div>
-          <div className="flex gap-2">
-            <Input value={portfolioUrl} readOnly />
-            <Button size="icon" onClick={handleCopyLink}>
-              {copied ? <Check /> : <Copy />}
-            </Button>
-            <Link to={`/portfolio/${user.id}`} target="_blank">
-              <Button size="icon" variant="outline">
-                <ExternalLink />
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
+        <div className="flex items-center gap-2 mb-2">
+          <Camera className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>ลิงก์ Portfolio ของคุณ</h2>
+        </div>
+        <p className={`text-sm mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+          แชร์ลิงก์นี้ให้ลูกค้าเพื่อดูผลงานและแพ็กเกจบริการของคุณ
+        </p>
+        <div className="flex gap-2">
+          <Input value={portfolioUrl} readOnly className="font-mono text-sm" />
+          <button className={`p-2 rounded-lg ${isDark ? 'glass-btn' : 'light-glass-btn'}`} onClick={handleCopyLink}>
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          </button>
+          <Link to={`/portfolio/${user.id}`} target="_blank" className={`p-2 rounded-lg ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+            <ExternalLink className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
 
       {/* Upload Section */}
-      <Card className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
+        <div className="flex flex-row items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">รูปภาพผลงาน</h2>
-            <p className="text-sm opacity-70">อัปโหลดรูปภาพเพื่อแสดงในหน้า Portfolio</p>
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>รูปภาพผลงาน</h2>
+            <p className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+              อัปโหลดรูปภาพเพื่อแสดงในหน้า Portfolio
+            </p>
           </div>
-          <Button onClick={() => fileInputRef.current?.click()}>
-            <Plus className="w-4 h-4 mr-2" />
+          <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+            <Plus className="w-4 h-4" />
             เพิ่มรูปภาพ
-          </Button>
+          </button>
           <input
             ref={fileInputRef}
             type="file"
@@ -174,27 +175,39 @@ export default function PortfolioManagement() {
             hidden
             onChange={handleFileSelect}
           />
-        </CardHeader>
+        </div>
 
-        <CardContent>
+        <div>
           {isLoading ? (
-            <div>Loading...</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <AspectRatio ratio={1}>
+                    <div className="w-full h-full bg-muted rounded-lg" />
+                  </AspectRatio>
+                </div>
+              ))}
+            </div>
           ) : images && images.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {images.map((image) => (
                 <div key={image.id} className="relative group">
                   <AspectRatio ratio={1}>
-                    <img src={image.image_url} className="rounded-lg object-cover" />
+                    <img
+                      src={image.image_url}
+                      alt={image.title || 'Portfolio image'}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
                   </AspectRatio>
 
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2">
                     <Button size="icon" onClick={() => setSelectedImage(image)}>
-                      <Edit />
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button size="icon" variant="destructive">
-                          <Trash2 />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
@@ -206,7 +219,9 @@ export default function PortfolioManagement() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteImage.mutate(image.id)}>
+                          <AlertDialogAction
+                            onClick={() => deleteImage.mutate(image.id)}
+                          >
                             ลบ
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -214,23 +229,81 @@ export default function PortfolioManagement() {
                     </AlertDialog>
                   </div>
 
-                  <div className="absolute top-2 left-2 flex gap-1">
-                    {image.is_featured && <Badge>แนะนำ</Badge>}
-                  </div>
+                  {image.is_featured && (
+                    <div className="absolute top-2 left-2">
+                      <Badge>แนะนำ</Badge>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Image className="mx-auto mb-4" />
-              ยังไม่มีรูปภาพ
+            <div className={`text-center py-12 border-2 border-dashed rounded-lg ${isDark ? 'border-white/20' : 'border-gray-300'}`}>
+              <Image className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+              <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>ยังไม่มีรูปภาพ</h3>
+              <p className={`text-sm mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                เริ่มต้นอัปโหลดรูปภาพผลงานของคุณ
+              </p>
+              <button onClick={() => fileInputRef.current?.click()} className={`flex items-center gap-2 px-4 py-2 rounded-lg mx-auto ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+                <Plus className="w-4 h-4" />
+                เพิ่มรูปภาพ
+              </button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Upload Dialog / Edit Dialog — โครงสร้างเดิม ถูกต้องแล้ว */}
-      {/* ไม่ต้องแก้อะไรเพิ่ม */}
+      {/* Upload Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>อัปโหลดรูปภาพ</DialogTitle>
+            <DialogDescription>
+              กำหนดข้อมูลสำหรับรูปภาพ
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>ชื่อผลงาน</Label>
+              <Input
+                value={newImageData.title}
+                onChange={(e) =>
+                  setNewImageData({ ...newImageData, title: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label>คำอธิบาย</Label>
+              <Textarea
+                value={newImageData.description}
+                onChange={(e) =>
+                  setNewImageData({
+                    ...newImageData,
+                    description: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={newImageData.is_featured}
+                onCheckedChange={(v) =>
+                  setNewImageData({ ...newImageData, is_featured: v })
+                }
+              />
+              <Label>แสดงเป็นผลงานแนะนำ</Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+              ยกเลิก
+            </Button>
+            <Button onClick={handleUpload}>อัปโหลด</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
