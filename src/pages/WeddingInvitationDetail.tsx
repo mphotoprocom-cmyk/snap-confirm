@@ -785,7 +785,6 @@ export default function WeddingInvitationDetail() {
             </Card>
           </div>
         </div>
-      </div>
     </>
   );
 }

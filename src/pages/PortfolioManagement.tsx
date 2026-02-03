@@ -165,17 +165,17 @@ export default function PortfolioManagement() {
             <Plus className="w-4 h-4" />
             เพิ่มรูปภาพ
           </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </div>
+
+        {isLoading ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="animate-pulse">
