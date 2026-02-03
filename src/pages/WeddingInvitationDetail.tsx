@@ -310,6 +310,7 @@ export default function WeddingInvitationDetail() {
             </CardContent>
           </Card>
         </div>
+      </div>
     </>
   );
 }
