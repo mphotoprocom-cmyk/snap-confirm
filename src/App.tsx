@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
+import { AppLayout } from "@/components/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NewBooking from "./pages/NewBooking";
@@ -32,36 +34,44 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/bookings/new" element={<NewBooking />} />
-            <Route path="/bookings/:id" element={<BookingDetail />} />
-            <Route path="/packages" element={<Packages />} />
-            <Route path="/quotations" element={<Quotations />} />
-            <Route path="/quotations/new" element={<NewQuotation />} />
-            <Route path="/quotations/:id" element={<QuotationDetail />} />
-            <Route path="/share/:token" element={<ShareView />} />
-            <Route path="/portfolio/:userId" element={<PublicPortfolio />} />
-            <Route path="/portfolio" element={<PortfolioManagement />} />
-            <Route path="/deliveries" element={<DeliveryGalleries />} />
-            <Route path="/deliveries/:id" element={<DeliveryGalleryDetail />} />
-            <Route path="/delivery/:token" element={<PublicDeliveryGallery />} />
-            <Route path="/invitations" element={<WeddingInvitations />} />
-            <Route path="/invitations/new" element={<NewWeddingInvitation />} />
-            <Route path="/invitations/:id" element={<WeddingInvitationDetail />} />
-            <Route path="/invitation/:token" element={<PublicWeddingInvitation />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/migration" element={<AdminMigration />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes - no layout */}
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/share/:token" element={<ShareView />} />
+              <Route path="/portfolio/:userId" element={<PublicPortfolio />} />
+              <Route path="/delivery/:token" element={<PublicDeliveryGallery />} />
+              <Route path="/invitation/:token" element={<PublicWeddingInvitation />} />
+
+              {/* Authenticated routes - with AppLayout */}
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/bookings/new" element={<NewBooking />} />
+                <Route path="/bookings/:id" element={<BookingDetail />} />
+                <Route path="/packages" element={<Packages />} />
+                <Route path="/quotations" element={<Quotations />} />
+                <Route path="/quotations/new" element={<NewQuotation />} />
+                <Route path="/quotations/:id" element={<QuotationDetail />} />
+                <Route path="/portfolio" element={<PortfolioManagement />} />
+                <Route path="/deliveries" element={<DeliveryGalleries />} />
+                <Route path="/deliveries/:id" element={<DeliveryGalleryDetail />} />
+                <Route path="/invitations" element={<WeddingInvitations />} />
+                <Route path="/invitations/new" element={<NewWeddingInvitation />} />
+                <Route path="/invitations/:id" element={<WeddingInvitationDetail />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/migration" element={<AdminMigration />} />
+              </Route>
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
