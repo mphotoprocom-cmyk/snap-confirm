@@ -28,6 +28,7 @@ import { PublicGalleryImageGrid } from "@/components/PublicGalleryImageGrid";
 import type { GalleryLayout } from "@/components/GalleryLayoutSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { SafeImage } from "@/components/SafeImage";
+import { cn } from "@/lib/utils";
 
 export default function PublicDeliveryGallery() {
   const { token } = useParams<{ token: string }>();
@@ -335,7 +336,14 @@ export default function PublicDeliveryGallery() {
 
       {/* Lightbox */}
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl p-0 bg-black/95 border-none">
+        <DialogContent 
+          className={cn(
+            "p-0 border-none",
+            gallery.fullscreen_mode 
+              ? "max-w-none w-screen h-screen max-h-screen bg-black" 
+              : "max-w-4xl bg-black/95"
+          )}
+        >
           <button
             onClick={() => setSelectedImage(null)}
             className="absolute top-4 right-4 z-50 text-white/80 hover:text-white"
@@ -343,7 +351,7 @@ export default function PublicDeliveryGallery() {
             <X className="w-6 h-6" />
           </button>
 
-          {images.length > 1 && (
+          {displayImages.length > 1 && (
             <>
               <button
                 onClick={handlePrevImage}
@@ -361,12 +369,20 @@ export default function PublicDeliveryGallery() {
           )}
 
           {selectedImage && (
-            <div className="flex items-center justify-center min-h-[50vh]">
+            <div className={cn(
+              "flex items-center justify-center",
+              gallery.fullscreen_mode ? "w-full h-full" : "min-h-[50vh]"
+            )}>
               <SafeImage
                 src={selectedImage.image_url}
                 alt={selectedImage.filename}
                 loading="eager"
-                className="max-w-full max-h-[80vh] object-contain"
+                className={cn(
+                  "object-contain",
+                  gallery.fullscreen_mode 
+                    ? "max-w-full max-h-full w-full h-full" 
+                    : "max-w-full max-h-[80vh]"
+                )}
               />
             </div>
           )}

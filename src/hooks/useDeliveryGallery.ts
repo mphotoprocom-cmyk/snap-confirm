@@ -20,6 +20,7 @@ export interface DeliveryGallery {
   cover_image_url: string | null;
   show_cover: boolean;
   face_search_enabled: boolean;
+  fullscreen_mode: boolean;
   created_at: string;
   updated_at: string;
 }
