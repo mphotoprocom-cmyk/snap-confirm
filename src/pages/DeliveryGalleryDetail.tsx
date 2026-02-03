@@ -602,7 +602,34 @@ export default function DeliveryGalleryDetail() {
           </CardHeader>
         </Card>
 
-        {/* Face Search Settings */}
+        {/* Full Width Layout Setting */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5" />
+                <CardTitle className="text-base">ความกว้างหน้าเว็บ</CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={gallery.full_width_layout ?? false}
+                  onCheckedChange={async () => {
+                    await updateGallery.mutateAsync({
+                      id: gallery.id,
+                      full_width_layout: !gallery.full_width_layout,
+                    });
+                  }}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {gallery.full_width_layout ? 'เต็มจอ' : 'ปกติ'}
+                </span>
+              </div>
+            </div>
+            <CardDescription>
+              หน้าแกลเลอรี่ของลูกค้าจะแสดงแบบเต็มความกว้างหน้าจอ หรือมี margin ด้านข้าง
+            </CardDescription>
+          </CardHeader>
+        </Card>
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center justify-between">

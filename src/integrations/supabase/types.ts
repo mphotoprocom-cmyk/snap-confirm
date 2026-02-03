@@ -104,6 +104,7 @@ export type Database = {
           download_count: number
           expires_at: string | null
           face_search_enabled: boolean
+          full_width_layout: boolean
           fullscreen_mode: boolean
           id: string
           is_active: boolean
@@ -125,6 +126,7 @@ export type Database = {
           download_count?: number
           expires_at?: string | null
           face_search_enabled?: boolean
+          full_width_layout?: boolean
           fullscreen_mode?: boolean
           id?: string
           is_active?: boolean
@@ -146,6 +148,7 @@ export type Database = {
           download_count?: number
           expires_at?: string | null
           face_search_enabled?: boolean
+          full_width_layout?: boolean
           fullscreen_mode?: boolean
           id?: string
           is_active?: boolean
