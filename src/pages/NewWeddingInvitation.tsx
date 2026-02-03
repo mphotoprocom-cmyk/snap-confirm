@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/useTheme';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,8 @@ export default function NewWeddingInvitation() {
   const { user, loading: authLoading } = useAuth();
   const createInvitation = useCreateInvitation();
   const { data: bookings } = useBookings();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   // Filter wedding bookings only
   const weddingBookings = bookings?.filter(b => b.job_type === 'wedding') || [];
@@ -43,8 +45,8 @@ export default function NewWeddingInvitation() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -94,26 +96,23 @@ export default function NewWeddingInvitation() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <div className="mb-6">
+        <Link to="/invitations">
+          <button className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+            <ArrowLeft className="w-4 h-4" />
+            กลับ
+          </button>
+        </Link>
+      </div>
 
-      <main className="container py-8 max-w-2xl">
-        <div className="mb-6">
-          <Link to="/invitations">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              กลับ
-            </Button>
-          </Link>
+      <div className="flex items-center gap-3 mb-8">
+        <Heart className="w-8 h-8 text-pink-500" />
+        <div>
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>สร้างการ์ดเชิญใหม่</h1>
+          <p className={isDark ? 'text-white/50' : 'text-gray-500'}>กรอกข้อมูลเพื่อสร้างการ์ดเชิญงานแต่งออนไลน์</p>
         </div>
-
-        <div className="flex items-center gap-3 mb-8">
-          <Heart className="w-8 h-8 text-pink-500" />
-          <div>
-            <h1 className="text-2xl font-bold">สร้างการ์ดเชิญใหม่</h1>
-            <p className="text-muted-foreground">กรอกข้อมูลเพื่อสร้างการ์ดเชิญงานแต่งออนไลน์</p>
-          </div>
-        </div>
+      </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Link to Booking */}
@@ -325,22 +324,20 @@ export default function NewWeddingInvitation() {
             </CardContent>
           </Card>
 
-          <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/invitations')}
-              className="flex-1"
-            >
-              ยกเลิก
-            </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              สร้างการ์ดเชิญ
-            </Button>
-          </div>
-        </form>
-      </main>
-    </div>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/invitations')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm ${isDark ? 'glass-btn' : 'light-glass-btn'}`}
+          >
+            ยกเลิก
+          </button>
+          <button type="submit" disabled={isSubmitting} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            สร้างการ์ดเชิญ
+          </button>
+        </div>
+      </form>
+    </>
   );
 }

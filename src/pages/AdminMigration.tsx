@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,8 @@ interface MigrationResults {
 
 export default function AdminMigration() {
   const { user, loading: authLoading } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
@@ -61,8 +63,8 @@ export default function AdminMigration() {
 
   if (authLoading || checkingAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">กำลังโหลด...</div>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -123,56 +125,52 @@ export default function AdminMigration() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container max-w-4xl py-8">
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="w-5 h-5" />
-              <ArrowRight className="w-4 h-4" />
-              <Cloud className="w-5 h-5" />
-              ย้ายข้อมูลไปยัง Cloudflare R2
-            </CardTitle>
-            <CardDescription>
-              ย้ายไฟล์รูปภาพทั้งหมดจาก Supabase Storage ไปยัง Cloudflare R2 
-              และอัปเดต URL ในฐานข้อมูลอัตโนมัติ
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Info */}
-            <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-2">
-              <p><strong>ข้อมูลที่จะย้าย:</strong></p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+    <>
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
+        <div className="flex items-center gap-2 mb-2">
+          <Database className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+          <ArrowRight className="w-4 h-4" />
+          <Cloud className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>ย้ายข้อมูลไปยัง Cloudflare R2</h2>
+        </div>
+        <p className={`text-sm mb-6 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+          ย้ายไฟล์รูปภาพทั้งหมดจาก Supabase Storage ไปยัง Cloudflare R2
+          และอัปเดต URL ในฐานข้อมูลอัตโนมัติ
+        </p>
+
+        <div className="space-y-6">
+          {/* Info */}
+          <div className={`rounded-lg p-4 text-sm space-y-2 ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+            <p className={isDark ? 'text-white' : 'text-gray-900'}><strong>ข้อมูลที่จะย้าย:</strong></p>
+            <ul className={`list-disc list-inside space-y-1 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
                 <li>รูปภาพ Portfolio (portfolio_images)</li>
                 <li>รูปภาพส่งงาน Delivery (delivery_images, cover)</li>
                 <li>โลโก้และลายเซ็นโปรไฟล์ (profiles)</li>
                 <li>รูปภาพการ์ดเชิญ (invitation_images, cover)</li>
               </ul>
-              <p className="text-amber-600 mt-3">
-                ⚠️ การดำเนินการนี้อาจใช้เวลาหลายนาที ขึ้นอยู่กับจำนวนไฟล์
-              </p>
-            </div>
+            <p className="text-amber-500 mt-3">
+              ⚠️ การดำเนินการนี้อาจใช้เวลาหลายนาที ขึ้นอยู่กับจำนวนไฟล์
+            </p>
+          </div>
 
-            {/* Action Button */}
-            <Button 
-              onClick={runMigration} 
-              disabled={isRunning}
-              size="lg"
-              className="w-full"
-            >
-              {isRunning ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  กำลังย้ายข้อมูล...
-                </>
-              ) : (
-                <>
-                  <CloudUpload className="w-4 h-4 mr-2" />
-                  เริ่มย้ายข้อมูลไปยัง R2
-                </>
-              )}
-            </Button>
+          {/* Action Button */}
+          <button
+            onClick={runMigration}
+            disabled={isRunning}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white disabled:opacity-50"
+          >
+            {isRunning ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                กำลังย้ายข้อมูล...
+              </>
+            ) : (
+              <>
+                <CloudUpload className="w-4 h-4" />
+                เริ่มย้ายข้อมูลไปยัง R2
+              </>
+            )}
+          </button>
 
             {/* Error */}
             {error && (
@@ -185,51 +183,50 @@ export default function AdminMigration() {
               </div>
             )}
 
-            {/* Results */}
-            {results && (
-              <div className="space-y-4">
-                {/* Summary */}
-                <div className="flex gap-4">
-                  <div className="flex-1 bg-green-50 dark:bg-green-950/30 rounded-lg p-4 text-center">
-                    <div className="text-3xl font-bold text-green-600">{getTotalStats().migrated}</div>
-                    <div className="text-sm text-green-600">ย้ายสำเร็จ</div>
-                  </div>
-                  <div className="flex-1 bg-red-50 dark:bg-red-950/30 rounded-lg p-4 text-center">
-                    <div className="text-3xl font-bold text-red-600">{getTotalStats().failed}</div>
-                    <div className="text-sm text-red-600">ล้มเหลว</div>
-                  </div>
+          {/* Results */}
+          {results && (
+            <div className="space-y-4">
+              {/* Summary */}
+              <div className="flex gap-4">
+                <div className={`flex-1 rounded-lg p-4 text-center ${isDark ? 'bg-green-500/10' : 'bg-green-50'}`}>
+                  <div className="text-3xl font-bold text-green-500">{getTotalStats().migrated}</div>
+                  <div className="text-sm text-green-500">ย้ายสำเร็จ</div>
                 </div>
-
-                {/* Details */}
-                <div className="border rounded-lg divide-y">
-                  {Object.entries(results).map(([key, result]) => (
-                    <div key={key} className="flex items-center justify-between p-3">
-                      <span className="text-sm">{categoryLabels[key] || key}</span>
-                      <div className="flex items-center gap-2">
-                        {result.migrated > 0 && (
-                          <Badge variant="secondary" className="bg-green-100 text-green-700">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            {result.migrated}
-                          </Badge>
-                        )}
-                        {result.failed > 0 && (
-                          <Badge variant="destructive">
-                            <XCircle className="w-3 h-3 mr-1" />
-                            {result.failed}
-                          </Badge>
-                        )}
-                        {result.migrated === 0 && result.failed === 0 && (
-                          <span className="text-xs text-muted-foreground">ไม่มีข้อมูล</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div className={`flex-1 rounded-lg p-4 text-center ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}>
+                  <div className="text-3xl font-bold text-red-500">{getTotalStats().failed}</div>
+                  <div className="text-sm text-red-500">ล้มเหลว</div>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+
+              {/* Details */}
+              <div className={`rounded-lg divide-y ${isDark ? 'border-white/10 divide-white/10' : 'border-gray-200 divide-gray-200'} border`}>
+                {Object.entries(results).map(([key, result]) => (
+                  <div key={key} className="flex items-center justify-between p-3">
+                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{categoryLabels[key] || key}</span>
+                    <div className="flex items-center gap-2">
+                      {result.migrated > 0 && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          {result.migrated}
+                        </Badge>
+                      )}
+                      {result.failed > 0 && (
+                        <Badge variant="destructive">
+                          <XCircle className="w-3 h-3 mr-1" />
+                          {result.failed}
+                        </Badge>
+                      )}
+                      {result.migrated === 0 && result.failed === 0 && (
+                        <span className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-400'}`}>ไม่มีข้อมูล</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate, Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,7 +21,7 @@ import {
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Loader2, Upload, X, Camera, Signature } from 'lucide-react';
+import { Loader2, Upload, X, Camera, Signature } from 'lucide-react';
 import { toast } from 'sonner';
 
 const DEFAULT_SERVICE_DETAILS = `• ถ่ายภาพไม่จำกัดจำนวน
@@ -54,7 +54,9 @@ export default function Settings() {
   const { user, loading: authLoading } = useAuth();
   const { data: profile, isLoading, refetch } = useProfile();
   const updateProfile = useUpdateProfile();
-  
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [logoUploading, setLogoUploading] = useState(false);
   const [signatureUploading, setSignatureUploading] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -97,8 +99,8 @@ export default function Settings() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -167,38 +169,29 @@ export default function Settings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container py-8 max-w-2xl">
-        <div className="mb-6">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-              <ArrowLeft className="w-4 h-4" />
-              กลับไปรายการจอง
-            </Button>
-          </Link>
-        </div>
+    <div className="max-w-2xl">
+      <div className="mb-6">
+        <h1 className={`text-2xl font-semibold font-display ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          ตั้งค่าสตูดิโอ
+        </h1>
+        <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+          กำหนดข้อมูลสตูดิโอสำหรับใบยืนยันการจอง
+        </p>
+      </div>
 
-        <div className="page-header">
-          <h1 className="page-title">ตั้งค่าสตูดิโอ</h1>
-          <p className="page-subtitle">กำหนดข้อมูลสตูดิโอสำหรับใบยืนยันการจอง</p>
-        </div>
-
-        <div className="space-y-6">
-          {/* Logo & Signature Upload */}
-          <div className="card-elevated p-6 animate-fade-in">
-            <h3 className="font-display text-lg font-medium mb-4">โลโก้และลายเซ็น</h3>
+      <div className="space-y-6">
+        {/* Logo & Signature Upload */}
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+          <h3 className={`font-display text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            โลโก้และลายเซ็น
+          </h3>
             
             <div className="grid gap-6 md:grid-cols-2">
               {/* Logo Upload */}
@@ -317,9 +310,9 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Profile Form */}
-          <div className="card-elevated p-6 animate-fade-in">
-            <Form {...form}>
+        {/* Profile Form */}
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+          <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                 <FormField
                   control={form.control}
@@ -497,12 +490,11 @@ export default function Settings() {
                       'บันทึกการตั้งค่า'
                     )}
                   </Button>
-                </div>
-              </form>
-            </Form>
-          </div>
+              </div>
+            </form>
+          </Form>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

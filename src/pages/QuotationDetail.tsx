@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/useTheme';
 import { QuotationForm } from '@/components/QuotationForm';
 import { QuotationDocument } from '@/components/QuotationDocument';
 import { ShareButtons } from '@/components/ShareButtons';
@@ -32,6 +32,8 @@ export default function QuotationDetail() {
   const updateQuotation = useUpdateQuotation();
   const deleteQuotation = useDeleteQuotation();
   const convertToBooking = useConvertToBooking();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const documentRef = useRef<HTMLDivElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -46,8 +48,8 @@ export default function QuotationDetail() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -108,17 +110,14 @@ export default function QuotationDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <main className="container py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <Link to="/quotations">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-              <ArrowLeft className="w-4 h-4" />
-              กลับไปรายการใบเสนอราคา
-            </Button>
-          </Link>
+    <>
+      <div className="mb-6 flex items-center justify-between">
+        <Link to="/quotations">
+          <button className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+            <ArrowLeft className="w-4 h-4" />
+            กลับไปรายการใบเสนอราคา
+          </button>
+        </Link>
           <div className="flex gap-2">
             {quotation.event_date && (
               <ShareButtons
@@ -149,14 +148,14 @@ export default function QuotationDetail() {
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
-        </div>
+      </div>
 
-        <div className="page-header">
-          <h1 className="page-title">{quotation.quotation_number}</h1>
-          <p className="page-subtitle">ใบเสนอราคาสำหรับ {quotation.client_name}</p>
-        </div>
+      <div className="mb-6">
+        <h1 className={`text-2xl font-semibold font-display ${isDark ? 'text-white' : 'text-gray-900'}`}>{quotation.quotation_number}</h1>
+        <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>ใบเสนอราคาสำหรับ {quotation.client_name}</p>
+      </div>
 
-        <Tabs defaultValue="edit" className="mt-6">
+      <Tabs defaultValue="edit" className="mt-6">
           <TabsList>
             <TabsTrigger value="edit" className="gap-2">
               <Pencil className="w-4 h-4" />
@@ -168,33 +167,32 @@ export default function QuotationDetail() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="edit" className="mt-6">
-            <div className="card-elevated p-6">
-              <QuotationForm
-                quotation={quotation}
-                onSubmit={handleUpdate}
-                isSubmitting={updateQuotation.isPending}
-              />
-            </div>
-          </TabsContent>
+        <TabsContent value="edit" className="mt-6">
+          <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+            <QuotationForm
+              quotation={quotation}
+              onSubmit={handleUpdate}
+              isSubmitting={updateQuotation.isPending}
+            />
+          </div>
+        </TabsContent>
 
-          <TabsContent value="preview" className="mt-6">
-            <div className="mb-4 flex justify-end">
-              <Button onClick={handleExportPDF} disabled={isExporting} className="gap-2">
-                {isExporting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-                ดาวน์โหลด PDF
-              </Button>
-            </div>
-            <div className="card-elevated overflow-hidden">
-              <QuotationDocument ref={documentRef} quotation={quotation} profile={profile || null} />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </main>
+        <TabsContent value="preview" className="mt-6">
+          <div className="mb-4 flex justify-end">
+            <button onClick={handleExportPDF} disabled={isExporting} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+              {isExporting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              ดาวน์โหลด PDF
+            </button>
+          </div>
+          <div className={`${isDark ? 'glass-card' : 'light-glass-card'} overflow-hidden`}>
+            <QuotationDocument ref={documentRef} quotation={quotation} profile={profile || null} />
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
@@ -232,6 +230,6 @@ export default function QuotationDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }

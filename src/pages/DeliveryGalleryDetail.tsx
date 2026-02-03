@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { Navigate } from 'react-router-dom';
 import { 
   useDeliveryGallery, 
@@ -60,7 +60,9 @@ export default function DeliveryGalleryDetail() {
   const addImage = useAddDeliveryImage();
   const deleteImage = useDeleteDeliveryImage();
   const updateGallery = useUpdateDeliveryGallery();
-  
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   // Face search hook - must be called before any conditional returns
   const faceSearch = useFaceSearch(data?.images ?? []);
   
@@ -103,8 +105,8 @@ export default function DeliveryGalleryDetail() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">กำลังโหลด...</div>
+      <div className="flex items-center justify-center py-12">
+        <div className={`animate-pulse ${isDark ? 'text-white/50' : 'text-gray-500'}`}>กำลังโหลด...</div>
       </div>
     );
   }
@@ -115,32 +117,19 @@ export default function DeliveryGalleryDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container max-w-4xl py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 w-48 bg-muted rounded"></div>
-            <div className="h-32 bg-muted rounded-lg"></div>
-          </div>
-        </main>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container max-w-4xl py-8">
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <h1 className="text-xl font-semibold mb-2">ไม่พบแกลเลอรี่</h1>
-              <Button variant="outline" onClick={() => navigate('/deliveries')}>
-                กลับหน้ารายการ
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 text-center`}>
+        <h1 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>ไม่พบแกลเลอรี่</h1>
+        <button onClick={() => navigate('/deliveries')} className={`px-4 py-2 rounded-lg ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+          กลับหน้ารายการ
+        </button>
       </div>
     );
   }
@@ -390,14 +379,12 @@ export default function DeliveryGalleryDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container max-w-4xl py-8">
-        {/* Back Button */}
-        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/deliveries')}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          กลับหน้ารายการ
-        </Button>
+    <>
+      {/* Back Button */}
+      <button className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-4 ${isDark ? 'glass-btn' : 'light-glass-btn'}`} onClick={() => navigate('/deliveries')}>
+        <ArrowLeft className="w-4 h-4" />
+        กลับหน้ารายการ
+      </button>
 
         {/* Gallery Info */}
         <Card className="mb-6">
@@ -795,7 +782,6 @@ export default function DeliveryGalleryDetail() {
             )}
           </CardContent>
         </Card>
-      </main>
 
       {/* Face Search Dialog */}
       <FaceSearchDialog
@@ -808,6 +794,6 @@ export default function DeliveryGalleryDetail() {
         onSearch={faceSearch.searchFaces}
         onReset={faceSearch.resetSearch}
       />
-    </div>
+    </>
   );
 }

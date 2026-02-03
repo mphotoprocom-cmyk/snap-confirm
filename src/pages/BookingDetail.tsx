@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBooking, useUpdateBooking, useDeleteBooking, useConfirmDeposit } from '@/hooks/useBookings';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
-import { Header } from '@/components/Header';
+import { useTheme } from '@/hooks/useTheme';
 import { BookingForm } from '@/components/BookingForm';
 import { BookingConfirmation } from '@/components/BookingConfirmation';
 import { FacebookQueueGenerator } from '@/components/FacebookQueueGenerator';
@@ -63,7 +63,9 @@ export default function BookingDetail() {
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
   const confirmDeposit = useConfirmDeposit();
-  
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showFacebookQueue, setShowFacebookQueue] = useState(false);
@@ -77,8 +79,8 @@ export default function BookingDetail() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -214,52 +216,45 @@ export default function BookingDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
 
   if (!booking) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container py-8 text-center">
-          <h1 className="text-xl font-semibold">ไม่พบการจอง</h1>
-          <Link to="/">
-            <Button className="mt-4">กลับไปรายการจอง</Button>
-          </Link>
-        </div>
+      <div className="py-8 text-center">
+        <h1 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>ไม่พบการจอง</h1>
+        <Link to="/">
+          <button className="mt-4 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+            กลับไปรายการจอง
+          </button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container py-8">
-        <div className="mb-6">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-              <ArrowLeft className="w-4 h-4" />
-              กลับไปรายการจอง
-            </Button>
-          </Link>
-        </div>
+    <>
+      <div className="mb-6">
+        <Link to="/">
+          <button className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+            <ArrowLeft className="w-4 h-4" />
+            กลับไปรายการจอง
+          </button>
+        </Link>
+      </div>
 
-        {/* Booking Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="page-title mb-0">{booking.client_name}</h1>
-              <StatusBadge status={booking.status} />
-            </div>
-            <p className="text-muted-foreground">{booking.booking_number}</p>
+      {/* Booking Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className={`text-2xl font-semibold font-display ${isDark ? 'text-white' : 'text-gray-900'}`}>{booking.client_name}</h1>
+            <StatusBadge status={booking.status} />
           </div>
+          <p className={isDark ? 'text-white/50' : 'text-gray-500'}>{booking.booking_number}</p>
+        </div>
           
           <div className="flex flex-wrap gap-2">
             {!isEditing && (
@@ -311,26 +306,26 @@ export default function BookingDetail() {
           </div>
         </div>
 
-        {isEditing ? (
-          <div className="card-elevated p-6 animate-fade-in">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-lg font-medium">แก้ไขการจอง</h2>
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <BookingForm
-              booking={booking}
-              onSubmit={handleUpdate}
-              isSubmitting={updateBooking.isPending}
-            />
+      {isEditing ? (
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className={`font-display text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>แก้ไขการจอง</h2>
+            <button className={`p-2 rounded-lg ${isDark ? 'glass-btn' : 'light-glass-btn'}`} onClick={() => setIsEditing(false)}>
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Main Details */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">รายละเอียดงาน</h2>
+          <BookingForm
+            booking={booking}
+            onSubmit={handleUpdate}
+            isSubmitting={updateBooking.isPending}
+          />
+        </div>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Details */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+              <h2 className={`font-display text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>รายละเอียดงาน</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="text-sm text-muted-foreground">ประเภทงาน</p>
@@ -355,11 +350,11 @@ export default function BookingDetail() {
                       <p className="font-medium">{booking.location}</p>
                     </div>
                   )}
-                </div>
-              </Card>
+              </div>
+            </div>
 
-              <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">ข้อมูลลูกค้า</h2>
+            <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+              <h2 className={`font-display text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>ข้อมูลลูกค้า</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <p className="text-sm text-muted-foreground">ชื่อ</p>
@@ -377,22 +372,22 @@ export default function BookingDetail() {
                       <p className="font-medium">{booking.client_note}</p>
                     </div>
                   )}
-                </div>
-              </Card>
-
-              {booking.notes && (
-                <Card className="card-elevated p-6">
-                  <h2 className="font-display text-lg font-medium mb-4">หมายเหตุ</h2>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{booking.notes}</p>
-                </Card>
-              )}
+              </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Payment Summary */}
-              <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">การชำระเงิน</h2>
+            {booking.notes && (
+              <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+                <h2 className={`font-display text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>หมายเหตุ</h2>
+                <p className={isDark ? 'text-white/50' : 'text-gray-500'}>{booking.notes}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Payment Summary */}
+            <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+              <h2 className={`font-display text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>การชำระเงิน</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">ราคารวม</span>
@@ -414,12 +409,12 @@ export default function BookingDetail() {
                       ฿{(booking.total_price - booking.deposit_amount).toLocaleString()}
                     </span>
                   </div>
-                </div>
-              </Card>
+              </div>
+            </div>
 
-              {/* Actions */}
-              <Card className="card-elevated p-6">
-                <h2 className="font-display text-lg font-medium mb-4">การดำเนินการ</h2>
+            {/* Actions */}
+            <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+              <h2 className={`font-display text-lg font-medium mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>การดำเนินการ</h2>
                 <div className="space-y-3">
                   {(booking.status === 'draft' || booking.status === 'waiting_deposit') && (
                     <Button
@@ -474,15 +469,15 @@ export default function BookingDetail() {
                   </Button>
                 </div>
                 
-                {booking.status !== 'booked' && (
-                  <p className="text-xs text-muted-foreground mt-3">
-                    ยืนยันมัดจำเพื่อเปิดใช้งานฟีเจอร์ใบยืนยันและปฏิทิน
-                  </p>
-                )}
-              </Card>
+              {booking.status !== 'booked' && (
+                <p className={`text-xs mt-3 ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
+                  ยืนยันมัดจำเพื่อเปิดใช้งานฟีเจอร์ใบยืนยันและปฏิทิน
+                </p>
+              )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* Confirmation Modal */}
         {showConfirmation && booking.status === 'booked' && (
@@ -514,14 +509,13 @@ export default function BookingDetail() {
           </div>
         )}
 
-        {/* Facebook Queue Generator Modal */}
-        {showFacebookQueue && booking.status === 'booked' && (
-          <FacebookQueueGenerator
-            booking={booking}
-            onClose={() => setShowFacebookQueue(false)}
-          />
-        )}
-      </main>
-    </div>
+      {/* Facebook Queue Generator Modal */}
+      {showFacebookQueue && booking.status === 'booked' && (
+        <FacebookQueueGenerator
+          booking={booking}
+          onClose={() => setShowFacebookQueue(false)}
+        />
+      )}
+    </>
   );
 }

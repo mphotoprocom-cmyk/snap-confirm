@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/useTheme';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,6 +50,8 @@ export default function WeddingInvitationDetail() {
   const updateInvitation = useUpdateInvitation();
   const addImage = useAddInvitationImage();
   const deleteImage = useDeleteInvitationImage();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const [copied, setCopied] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -99,8 +101,8 @@ export default function WeddingInvitationDetail() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -112,14 +114,11 @@ export default function WeddingInvitationDetail() {
 
   if (!invitation) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container py-8 text-center">
-          <p className="text-muted-foreground">ไม่พบการ์ดเชิญ</p>
-          <Link to="/invitations">
-            <Button className="mt-4">กลับ</Button>
-          </Link>
-        </main>
+      <div className="py-8 text-center">
+        <p className={isDark ? 'text-white/50' : 'text-gray-500'}>ไม่พบการ์ดเชิญ</p>
+        <Link to="/invitations">
+          <button className="mt-4 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">กลับ</button>
+        </Link>
       </div>
     );
   }
@@ -249,36 +248,33 @@ export default function WeddingInvitationDetail() {
   const notAttendingCount = rsvps?.filter(r => !r.attending).length || 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <div className="mb-6">
+        <Link to="/invitations">
+          <button className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+            <ArrowLeft className="w-4 h-4" />
+            กลับ
+          </button>
+        </Link>
+      </div>
 
-      <main className="container py-8">
-        <div className="mb-6">
-          <Link to="/invitations">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              กลับ
-            </Button>
-          </Link>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main Content */}
-          <div className="flex-1 space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Heart className="w-8 h-8 text-pink-500" />
-                <div>
-                  <h1 className="text-2xl font-bold">
-                    {invitation.groom_name} & {invitation.bride_name}
-                  </h1>
-                  <p className="text-muted-foreground">{formatThaiDate(invitation.event_date)}</p>
-                </div>
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Heart className="w-8 h-8 text-pink-500" />
+              <div>
+                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {invitation.groom_name} & {invitation.bride_name}
+                </h1>
+                <p className={isDark ? 'text-white/50' : 'text-gray-500'}>{formatThaiDate(invitation.event_date)}</p>
               </div>
-              <Badge variant={invitation.is_active ? 'default' : 'secondary'}>
-                {invitation.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
-              </Badge>
             </div>
+            <Badge variant={invitation.is_active ? 'default' : 'secondary'}>
+              {invitation.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+            </Badge>
+          </div>
 
             <Tabs defaultValue="template" className="space-y-6">
               <TabsList className="grid w-full grid-cols-4">
@@ -789,7 +785,7 @@ export default function WeddingInvitationDetail() {
             </Card>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }
