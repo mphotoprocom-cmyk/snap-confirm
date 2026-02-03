@@ -4,6 +4,7 @@ import { Calendar, Clock, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
+import { useTheme } from '@/hooks/useTheme';
 
 interface BookingCardProps {
   booking: Booking;
@@ -21,6 +22,9 @@ const formatThaiDate = (date: Date) => {
 };
 
 export function BookingCard({ booking }: BookingCardProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const formatTime = (time: string | null) => {
     if (!time) return null;
     const [hours, minutes] = time.split(':');
@@ -31,13 +35,13 @@ export function BookingCard({ booking }: BookingCardProps) {
 
   return (
     <Link to={`/bookings/${booking.id}`}>
-      <div className="glass-card p-5 cursor-pointer">
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-5 cursor-pointer`}>
         <div className="flex items-start justify-between mb-4">
           <div>
-            <p className="text-[10px] text-white/40 font-medium mb-1 tracking-wide uppercase">
+            <p className={`text-[10px] font-medium mb-1 tracking-wide uppercase ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
               {booking.booking_number}
             </p>
-            <h3 className="font-display text-lg font-semibold text-white">
+            <h3 className={`font-display text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {booking.client_name}
             </h3>
           </div>
@@ -45,8 +49,8 @@ export function BookingCard({ booking }: BookingCardProps) {
         </div>
 
         <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-white/50">
-            <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-white/5">
+          <div className={`flex items-center gap-2 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+            <span className={`inline-flex items-center justify-center w-5 h-5 rounded ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
               <Calendar className="w-3 h-3" />
             </span>
             <span>{formatThaiDate(new Date(booking.event_date))}</span>
@@ -56,8 +60,8 @@ export function BookingCard({ booking }: BookingCardProps) {
           </div>
 
           {(booking.time_start || booking.time_end) && (
-            <div className="flex items-center gap-2 text-white/50">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-white/5">
+            <div className={`flex items-center gap-2 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+              <span className={`inline-flex items-center justify-center w-5 h-5 rounded ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
                 <Clock className="w-3 h-3" />
               </span>
               <span>
@@ -68,8 +72,8 @@ export function BookingCard({ booking }: BookingCardProps) {
           )}
 
           {booking.location && (
-            <div className="flex items-center gap-2 text-white/50">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-white/5">
+            <div className={`flex items-center gap-2 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+              <span className={`inline-flex items-center justify-center w-5 h-5 rounded ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
                 <MapPin className="w-3 h-3" />
               </span>
               <span className="truncate">{booking.location}</span>
@@ -77,16 +81,16 @@ export function BookingCard({ booking }: BookingCardProps) {
           )}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+        <div className={`mt-4 pt-4 border-t flex items-center justify-between ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
           <div>
-            <p className="text-[10px] text-white/40">ราคารวม</p>
-            <p className="font-semibold text-white">
+            <p className={`text-[10px] ${isDark ? 'text-white/40' : 'text-gray-400'}`}>ราคารวม</p>
+            <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               ฿{booking.total_price.toLocaleString()}
             </p>
           </div>
           {booking.deposit_amount > 0 && (
             <div className="text-right">
-              <p className="text-[10px] text-white/40">มัดจำ</p>
+              <p className={`text-[10px] ${isDark ? 'text-white/40' : 'text-gray-400'}`}>มัดจำ</p>
               <p className="text-sm font-medium text-emerald-400">
                 ฿{booking.deposit_amount.toLocaleString()}
               </p>
