@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { Header } from '@/components/Header';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { Navigate, Link } from 'react-router-dom';
 import { 
   usePortfolioImages, 
@@ -39,7 +39,9 @@ export default function PortfolioManagement() {
   const deleteImage = useDeletePortfolioImage();
   const uploadImage = useUploadPortfolioImage();
   const updateImage = useUpdatePortfolioImage();
-  
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -55,8 +57,8 @@ export default function PortfolioManagement() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">กำลังโหลด...</div>
+      <div className="flex items-center justify-center py-12">
+        <div className={`animate-pulse ${isDark ? 'text-white/50' : 'text-gray-500'}`}>กำลังโหลด...</div>
       </div>
     );
   }
@@ -131,46 +133,38 @@ export default function PortfolioManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container max-w-6xl py-8">
-        {/* Portfolio Link Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="w-5 h-5" />
-              ลิงก์ Portfolio ของคุณ
-            </CardTitle>
-            <CardDescription>
-              แชร์ลิงก์นี้ให้ลูกค้าเพื่อดูผลงานและแพ็กเกจบริการของคุณ
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Input value={portfolioUrl} readOnly className="font-mono text-sm" />
-              <Button variant="outline" onClick={handleCopyLink}>
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to={`/portfolio/${user.id}`} target="_blank">
-                  <ExternalLink className="w-4 h-4" />
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+    <>
+      {/* Portfolio Link Card */}
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
+        <div className="flex items-center gap-2 mb-2">
+          <Camera className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>ลิงก์ Portfolio ของคุณ</h2>
+        </div>
+        <p className={`text-sm mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+          แชร์ลิงก์นี้ให้ลูกค้าเพื่อดูผลงานและแพ็กเกจบริการของคุณ
+        </p>
+        <div className="flex gap-2">
+          <Input value={portfolioUrl} readOnly className="font-mono text-sm" />
+          <button className={`p-2 rounded-lg ${isDark ? 'glass-btn' : 'light-glass-btn'}`} onClick={handleCopyLink}>
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          </button>
+          <Link to={`/portfolio/${user.id}`} target="_blank" className={`p-2 rounded-lg ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+            <ExternalLink className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
 
-        {/* Upload Section */}
-        <Card className="mb-8">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>รูปภาพผลงาน</CardTitle>
-              <CardDescription>อัปโหลดรูปภาพเพื่อแสดงในหน้า Portfolio</CardDescription>
-            </div>
-            <Button onClick={() => fileInputRef.current?.click()}>
-              <Plus className="w-4 h-4 mr-2" />
-              เพิ่มรูปภาพ
-            </Button>
+      {/* Upload Section */}
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
+        <div className="flex flex-row items-center justify-between mb-4">
+          <div>
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>รูปภาพผลงาน</h2>
+            <p className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>อัปโหลดรูปภาพเพื่อแสดงในหน้า Portfolio</p>
+          </div>
+          <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+            <Plus className="w-4 h-4" />
+            เพิ่มรูปภาพ
+          </button>
             <input
               ref={fileInputRef}
               type="file"
@@ -245,22 +239,20 @@ export default function PortfolioManagement() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                <Image className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="font-semibold mb-2">ยังไม่มีรูปภาพ</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  เริ่มต้นอัปโหลดรูปภาพผลงานของคุณ
-                </p>
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  เพิ่มรูปภาพ
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+          ) : (
+            <div className={`text-center py-12 border-2 border-dashed rounded-lg ${isDark ? 'border-white/20' : 'border-gray-300'}`}>
+              <Image className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+              <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>ยังไม่มีรูปภาพ</h3>
+              <p className={`text-sm mb-4 ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                เริ่มต้นอัปโหลดรูปภาพผลงานของคุณ
+              </p>
+              <button onClick={() => fileInputRef.current?.click()} className={`flex items-center gap-2 px-4 py-2 rounded-lg mx-auto ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+                <Plus className="w-4 h-4" />
+                เพิ่มรูปภาพ
+              </button>
+            </div>
+          )}
+      </div>
 
       {/* Upload Dialog */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
@@ -415,6 +407,6 @@ export default function PortfolioManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

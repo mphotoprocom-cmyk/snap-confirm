@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin, useAllUsers, useUpdateUserRole, useToggleUserBlock, useDeleteUser, UserWithRole } from '@/hooks/useUserManagement';
-import { Header } from '@/components/Header';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, MoreHorizontal, Shield, ShieldOff, Ban, CheckCircle, Trash2, Loader2, Users } from 'lucide-react';
+import { MoreHorizontal, Shield, ShieldOff, Ban, CheckCircle, Trash2, Loader2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -42,21 +42,23 @@ export default function AdminUsers() {
   const updateRole = useUpdateUserRole();
   const toggleBlock = useToggleUserBlock();
   const deleteUser = useDeleteUser();
-  
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithRole | null>(null);
-  
+
   // Redirect if not logged in
   if (!authLoading && !user) {
     navigate('/auth');
     return null;
   }
-  
+
   // Show loading
   if (authLoading || adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -108,51 +110,42 @@ export default function AdminUsers() {
   };
   
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-6 -ml-2"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          กลับหน้าหลัก
-        </Button>
-        
-        {/* Page Header */}
-        <div className="page-header mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-              <Users className="w-6 h-6 text-accent" />
-            </div>
-            <div>
-              <h1 className="page-title">จัดการผู้ใช้งาน</h1>
-              <p className="page-subtitle">ดูรายชื่อ กำหนดบทบาท และจัดการผู้ใช้ในระบบ</p>
-            </div>
+    <>
+      {/* Page Header */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+            <Users className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <h1 className={`text-2xl font-semibold font-display ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              จัดการผู้ใช้งาน
+            </h1>
+            <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+              ดูรายชื่อ กำหนดบทบาท และจัดการผู้ใช้ในระบบ
+            </p>
           </div>
         </div>
-        
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">ผู้ใช้ทั้งหมด</div>
-            <div className="text-2xl font-bold">{users?.length ?? 0}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">ผู้ดูแลระบบ</div>
-            <div className="text-2xl font-bold">{users?.filter(u => u.role === 'admin').length ?? 0}</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-sm text-muted-foreground">ถูกบล็อก</div>
-            <div className="text-2xl font-bold text-destructive">{users?.filter(u => u.is_blocked).length ?? 0}</div>
-          </Card>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-4`}>
+          <div className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>ผู้ใช้ทั้งหมด</div>
+          <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{users?.length ?? 0}</div>
         </div>
-        
-        {/* Users Table */}
-        <Card className="overflow-hidden">
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-4`}>
+          <div className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>ผู้ดูแลระบบ</div>
+          <div className="text-2xl font-bold text-emerald-400">{users?.filter(u => u.role === 'admin').length ?? 0}</div>
+        </div>
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-4`}>
+          <div className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>ถูกบล็อก</div>
+          <div className="text-2xl font-bold text-red-400">{users?.filter(u => u.is_blocked).length ?? 0}</div>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} overflow-hidden`}>
           {usersLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-accent" />
@@ -263,9 +256,8 @@ export default function AdminUsers() {
               </TableBody>
             </Table>
           )}
-        </Card>
-      </main>
-      
+      </div>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -292,6 +284,6 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }

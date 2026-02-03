@@ -1,17 +1,18 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Header } from '@/components/Header';
+import { useNavigate, Link } from 'react-router-dom';
 import { BookingForm } from '@/components/BookingForm';
 import { useCreateBooking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export default function NewBooking() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const createBooking = useCreateBooking();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     if (!loading && !user) {
@@ -21,8 +22,8 @@ export default function NewBooking() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -37,31 +38,31 @@ export default function NewBooking() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container py-8">
-        <div className="mb-6">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-              <ArrowLeft className="w-4 h-4" />
-              กลับไปรายการจอง
-            </Button>
-          </Link>
-        </div>
+    <>
+      <div className="mb-6">
+        <Link to="/">
+          <button className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+            <ArrowLeft className="w-4 h-4" />
+            กลับไปรายการจอง
+          </button>
+        </Link>
+      </div>
 
-        <div className="page-header">
-          <h1 className="page-title">สร้างการจองใหม่</h1>
-          <p className="page-subtitle">สร้างการจองถ่ายภาพใหม่</p>
-        </div>
+      <div className="mb-6">
+        <h1 className={`text-2xl font-semibold font-display ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          สร้างการจองใหม่
+        </h1>
+        <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+          สร้างการจองถ่ายภาพใหม่
+        </p>
+      </div>
 
-        <div className="card-elevated p-6 animate-fade-in">
-          <BookingForm
-            onSubmit={handleSubmit}
-            isSubmitting={createBooking.isPending}
-          />
-        </div>
-      </main>
-    </div>
+      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+        <BookingForm
+          onSubmit={handleSubmit}
+          isSubmitting={createBooking.isPending}
+        />
+      </div>
+    </>
   );
 }
