@@ -21,6 +21,7 @@ export interface DeliveryGallery {
   show_cover: boolean;
   face_search_enabled: boolean;
   fullscreen_mode: boolean;
+  full_width_layout: boolean;
   created_at: string;
   updated_at: string;
 }

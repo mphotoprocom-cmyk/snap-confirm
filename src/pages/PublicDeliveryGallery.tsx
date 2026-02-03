@@ -174,7 +174,7 @@ export default function PublicDeliveryGallery() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-40">
-        <div className="container max-w-6xl py-4">
+        <div className={cn("py-4", gallery.full_width_layout ? "px-4 md:px-8" : "container max-w-6xl")}>
           <div className="flex items-center gap-3">
             {profile?.logo_url ? (
               <SafeImage
@@ -209,7 +209,7 @@ export default function PublicDeliveryGallery() {
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-            <div className="container max-w-6xl">
+            <div className={gallery.full_width_layout ? "px-4 md:px-8" : "container max-w-6xl"}>
               <h1 className="text-2xl md:text-4xl font-display font-semibold text-white mb-2">{gallery.title}</h1>
               <p className="text-white/90 text-lg">สำหรับคุณ {gallery.client_name}</p>
             </div>
@@ -217,7 +217,7 @@ export default function PublicDeliveryGallery() {
         </div>
       )}
 
-      <main className="container max-w-6xl py-8">
+      <main className={cn("py-8", gallery.full_width_layout ? "px-4 md:px-8" : "container max-w-6xl")}>
         {/* Gallery Info - Only show if no cover */}
         {(!gallery.show_cover || !gallery.cover_image_url) && (
           <div className="mb-8">
