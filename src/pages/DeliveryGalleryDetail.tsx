@@ -573,6 +573,35 @@ export default function DeliveryGalleryDetail() {
           </Card>
         </Collapsible>
 
+        {/* Fullscreen Mode Setting */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                <CardTitle className="text-base">โหมดดูภาพเต็มจอ</CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={gallery.fullscreen_mode ?? false}
+                  onCheckedChange={async () => {
+                    await updateGallery.mutateAsync({
+                      id: gallery.id,
+                      fullscreen_mode: !gallery.fullscreen_mode,
+                    });
+                  }}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {gallery.fullscreen_mode ? 'เต็มจอ' : 'ปกติ'}
+                </span>
+              </div>
+            </div>
+            <CardDescription>
+              เมื่อลูกค้าคลิกดูภาพ จะแสดงภาพแบบเต็มจอ (Lightbox ไม่มีขอบ) หรือแบบปกติ
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
         {/* Face Search Settings */}
         <Card className="mb-6">
           <CardHeader>
