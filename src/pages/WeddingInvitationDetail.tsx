@@ -5,11 +5,29 @@ import { useTheme } from '@/hooks/useTheme';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   ArrowLeft,
   Heart,
@@ -54,9 +72,9 @@ export default function WeddingInvitationDetail() {
   const isDark = theme === 'dark';
 
   const [copied, setCopied] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('classic');
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<TemplateType>('classic');
 
   const [formData, setFormData] = useState({
     groom_name: '',
@@ -114,8 +132,8 @@ export default function WeddingInvitationDetail() {
 
   if (!invitation) {
     return (
-      <div className="py-8 text-center">
-        <p className={isDark ? 'text-white/50' : 'text-gray-500'}>ไม่พบการ์ดเชิญ</p>
+      <div className="py-8 text-center text-muted-foreground">
+        ไม่พบการ์ดเชิญ
       </div>
     );
   }
@@ -129,53 +147,91 @@ export default function WeddingInvitationDetail() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const formatThaiDate = (date: string) => {
-    const d = new Date(date);
-    const year = d.getFullYear() + 543;
-    return `${format(d, 'd MMMM', { locale: th })} ${year}`;
+  const handleGalleryUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingGallery(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) throw new Error('Not authenticated');
+
+      for (let i = 0; i < files.length; i++) {
+        const form = new FormData();
+        form.append('file', files[i]);
+        form.append('folder', `invitation/${invitation.id}/gallery`);
+
+        const res = await supabase.functions.invoke(
+          'r2-storage?action=upload',
+          { body: form }
+        );
+
+        if (res.error) throw res.error;
+
+        await addImage.mutateAsync({
+          invitation_id: invitation.id,
+          user_id: user.id,
+          image_url: res.data.url,
+          sort_order: (galleryImages?.length || 0) + i,
+        });
+      }
+
+      toast.success('อัปโหลดรูปสำเร็จ');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsUploadingGallery(false);
+    }
   };
 
   const attendingCount =
-    rsvps?.filter(r => r.attending).reduce((sum, r) => sum + r.guest_count, 0) || 0;
-  const notAttendingCount = rsvps?.filter(r => !r.attending).length || 0;
+    rsvps?.filter(r => r.attending).reduce(
+      (sum, r) => sum + r.guest_count,
+      0
+    ) || 0;
+
+  const notAttendingCount =
+    rsvps?.filter(r => !r.attending).length || 0;
 
   return (
-    <>
+    <div>
       {/* Back */}
       <div className="mb-6">
         <Link to="/invitations">
-          <button className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
-            <ArrowLeft className="w-4 h-4" />
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
             กลับ
-          </button>
+          </Button>
         </Link>
       </div>
 
-      {/* MAIN + SIDEBAR */}
+      {/* Layout */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* MAIN */}
         <div className="flex-1 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex justify-between items-center">
+            <div className="flex gap-3 items-center">
               <Heart className="w-8 h-8 text-pink-500" />
               <div>
-                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h1 className="text-2xl font-bold">
                   {invitation.groom_name} & {invitation.bride_name}
                 </h1>
-                <p className={isDark ? 'text-white/50' : 'text-gray-500'}>
-                  {formatThaiDate(invitation.event_date)}
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(invitation.event_date), 'd MMMM yyyy', {
+                    locale: th,
+                  })}
                 </p>
               </div>
             </div>
-            <Badge variant={invitation.is_active ? 'default' : 'secondary'}>
+            <Badge>
               {invitation.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
             </Badge>
           </div>
 
-          {/* TABS */}
-          <Tabs defaultValue="template" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="template">
+            <TabsList className="grid grid-cols-4">
               <TabsTrigger value="template">เทมเพลต</TabsTrigger>
               <TabsTrigger value="details">รายละเอียด</TabsTrigger>
               <TabsTrigger value="gallery">แกลเลอรี่</TabsTrigger>
@@ -184,35 +240,16 @@ export default function WeddingInvitationDetail() {
 
             <TabsContent value="template">
               <Card>
-                <CardHeader>
-                  <CardTitle>เลือกเทมเพลต</CardTitle>
-                  <CardDescription>เลือกดีไซน์การ์ดเชิญ</CardDescription>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <TemplateSelector
                     value={selectedTemplate}
                     onChange={async t => {
                       setSelectedTemplate(t);
-                      await updateInvitation.mutateAsync({ id: invitation.id, template: t });
+                      await updateInvitation.mutateAsync({
+                        id: invitation.id,
+                        template: t,
+                      });
                     }}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="details">
-              <Card>
-                <CardHeader>
-                  <CardTitle>ข้อมูลคู่บ่าวสาว</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
-                  <Input
-                    value={formData.groom_name}
-                    onChange={e => setFormData(p => ({ ...p, groom_name: e.target.value }))}
-                  />
-                  <Input
-                    value={formData.bride_name}
-                    onChange={e => setFormData(p => ({ ...p, bride_name: e.target.value }))}
                   />
                 </CardContent>
               </Card>
@@ -222,19 +259,48 @@ export default function WeddingInvitationDetail() {
               <Card>
                 <CardHeader>
                   <CardTitle>แกลเลอรี่</CardTitle>
+                  <CardDescription>
+                    รูปภาพคู่บ่าวสาว
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {galleryImages?.length ? (
+                <CardContent className="space-y-4">
+                  <label className="block">
+                    <div className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer">
+                      {isUploadingGallery ? (
+                        <Loader2 className="mx-auto animate-spin" />
+                      ) : (
+                        <>
+                          <Plus className="mx-auto mb-2" />
+                          <p>คลิกเพื่อเพิ่มรูป</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      hidden
+                      onChange={handleGalleryUpload}
+                    />
+                  </label>
+
+                  {galleryImages && galleryImages.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {galleryImages.map(img => (
                         <div key={img.id} className="relative">
-                          <img src={img.image_url} className="rounded-lg object-cover" />
+                          <img
+                            src={img.image_url}
+                            className="rounded-lg object-cover"
+                          />
                           <Button
                             size="icon"
                             variant="destructive"
                             className="absolute top-2 right-2"
                             onClick={() =>
-                              deleteImage.mutateAsync({ id: img.id, invitationId: invitation.id })
+                              deleteImage.mutate({
+                                id: img.id,
+                                invitationId: invitation.id,
+                              })
                             }
                           >
                             <Trash2 className="w-4 h-4" />
@@ -243,7 +309,9 @@ export default function WeddingInvitationDetail() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-center text-muted-foreground">ยังไม่มีรูป</p>
+                    <p className="text-center text-muted-foreground">
+                      ยังไม่มีรูป
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -253,14 +321,18 @@ export default function WeddingInvitationDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CardContent className="pt-6 text-center">
-                    <p className="text-3xl font-bold text-green-600">{attendingCount}</p>
-                    <p className="text-sm text-muted-foreground">มาร่วมงาน</p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {attendingCount}
+                    </p>
+                    <p className="text-sm">มาร่วมงาน</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-6 text-center">
-                    <p className="text-3xl font-bold text-red-600">{notAttendingCount}</p>
-                    <p className="text-sm text-muted-foreground">ไม่มา</p>
+                    <p className="text-3xl font-bold text-red-600">
+                      {notAttendingCount}
+                    </p>
+                    <p className="text-sm">ไม่มา</p>
                   </CardContent>
                 </Card>
               </div>
@@ -277,11 +349,11 @@ export default function WeddingInvitationDetail() {
             <CardContent className="space-y-3">
               <div className="flex gap-2">
                 <Input value={shareUrl} readOnly />
-                <Button size="icon" variant="outline" onClick={handleCopyLink}>
+                <Button size="icon" onClick={handleCopyLink}>
                   {copied ? <Check /> : <Copy />}
                 </Button>
               </div>
-              <Button asChild variant="outline" className="w-full">
+              <Button asChild variant="outline">
                 <a href={shareUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   เปิดดูการ์ด
@@ -294,16 +366,18 @@ export default function WeddingInvitationDetail() {
             <CardHeader>
               <CardTitle>สถิติ</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="flex gap-2 items-center">
-                  <Eye className="w-4 h-4" /> เข้าชม
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  เข้าชม
                 </span>
                 <span>{invitation.view_count}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="flex gap-2 items-center">
-                  <Users className="w-4 h-4" /> ตอบรับ
+              <div className="flex justify-between">
+                <span className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  ตอบรับ
                 </span>
                 <span>{rsvps?.length || 0}</span>
               </div>
@@ -311,6 +385,6 @@ export default function WeddingInvitationDetail() {
           </Card>
         </div>
       </div>
-    </>
+    </div>
   );
 }
