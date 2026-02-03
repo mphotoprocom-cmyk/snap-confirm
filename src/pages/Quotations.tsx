@@ -1,16 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQuotations, useDeleteQuotation, useConvertToBooking } from '@/hooks/useQuotations';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { QUOTATION_STATUS_LABELS, QuotationStatus } from '@/types/package';
 import { JOB_TYPE_LABELS, JobType } from '@/types/booking';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
-import { Plus, FileText, Loader2, ArrowLeft, ArrowRight, Trash2, Eye } from 'lucide-react';
+import { Plus, FileText, Loader2, ArrowRight, Trash2, Eye } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +21,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
 
 const getStatusColor = (status: QuotationStatus) => {
   switch (status) {
@@ -46,6 +45,8 @@ export default function Quotations() {
   const { data: quotations, isLoading } = useQuotations();
   const deleteQuotation = useDeleteQuotation();
   const convertToBooking = useConvertToBooking();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [convertConfirmQuotation, setConvertConfirmQuotation] = useState<any>(null);
@@ -58,8 +59,8 @@ export default function Quotations() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
       </div>
     );
   }
@@ -88,110 +89,101 @@ export default function Quotations() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="container py-8">
-        <div className="mb-6">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2 -ml-2">
-              <ArrowLeft className="w-4 h-4" />
-              กลับหน้าหลัก
-            </Button>
-          </Link>
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className={`text-2xl font-semibold font-display ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            ใบเสนอราคา
+          </h1>
+          <p className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+            จัดการใบเสนอราคาและแปลงเป็นการจอง
+          </p>
         </div>
 
-        <div className="flex items-center justify-between mb-8">
-          <div className="page-header mb-0">
-            <h1 className="page-title">ใบเสนอราคา</h1>
-            <p className="page-subtitle">จัดการใบเสนอราคาและแปลงเป็นการจอง</p>
-          </div>
-          
-          <Link to="/quotations/new">
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              สร้างใบเสนอราคา
-            </Button>
-          </Link>
-        </div>
+        <Link to="/quotations/new">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20">
+            <Plus className="w-4 h-4" />
+            สร้างใบเสนอราคา
+          </button>
+        </Link>
+      </div>
 
-        {quotations && quotations.length > 0 ? (
-          <div className="space-y-3">
-            {quotations.map((quotation) => (
-              <Card key={quotation.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-medium truncate">{quotation.client_name}</h3>
-                        <Badge className={getStatusColor(quotation.status as QuotationStatus)}>
-                          {QUOTATION_STATUS_LABELS[quotation.status as QuotationStatus]}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>{quotation.quotation_number}</span>
-                        <span>•</span>
-                        <span>{JOB_TYPE_LABELS[quotation.job_type as JobType]}</span>
-                        {quotation.event_date && (
-                          <>
-                            <span>•</span>
-                            <span>{formatThaiDate(quotation.event_date)}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <p className="font-semibold text-lg">฿{quotation.total_price.toLocaleString()}</p>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <Link to={`/quotations/${quotation.id}`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      {quotation.status !== 'accepted' && quotation.status !== 'rejected' && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-green-600 hover:text-green-700"
-                          onClick={() => setConvertConfirmQuotation(quotation)}
-                          title="แปลงเป็นการจอง"
-                        >
-                          <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => setDeleteConfirmId(quotation.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+      {quotations && quotations.length > 0 ? (
+        <div className="space-y-3">
+          {quotations.map((quotation) => (
+            <div key={quotation.id} className={`${isDark ? 'glass-card' : 'light-glass-card'} p-4`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {quotation.client_name}
+                    </h3>
+                    <Badge className={getStatusColor(quotation.status as QuotationStatus)}>
+                      {QUOTATION_STATUS_LABELS[quotation.status as QuotationStatus]}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="p-12 text-center">
-            <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">ยังไม่มีใบเสนอราคา</h3>
-            <p className="text-muted-foreground mb-4">
-              สร้างใบเสนอราคาเพื่อส่งให้ลูกค้าของคุณ
-            </p>
-            <Link to="/quotations/new">
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                สร้างใบเสนอราคาแรก
-              </Button>
-            </Link>
-          </Card>
-        )}
-      </main>
+                  <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                    <span>{quotation.quotation_number}</span>
+                    <span>•</span>
+                    <span>{JOB_TYPE_LABELS[quotation.job_type as JobType]}</span>
+                    {quotation.event_date && (
+                      <>
+                        <span>•</span>
+                        <span>{formatThaiDate(quotation.event_date)}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <p className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    ฿{quotation.total_price.toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <Link to={`/quotations/${quotation.id}`}>
+                    <button className={`p-2 rounded-lg ${isDark ? 'glass-btn' : 'light-glass-btn'}`}>
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </Link>
+                  {quotation.status !== 'accepted' && quotation.status !== 'rejected' && (
+                    <button
+                      className={`p-2 rounded-lg text-emerald-400 ${isDark ? 'glass-btn' : 'light-glass-btn'}`}
+                      onClick={() => setConvertConfirmQuotation(quotation)}
+                      title="แปลงเป็นการจอง"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    className={`p-2 rounded-lg text-red-400 ${isDark ? 'glass-btn' : 'light-glass-btn'}`}
+                    onClick={() => setDeleteConfirmId(quotation.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-12 text-center`}>
+          <FileText className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+          <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+            ยังไม่มีใบเสนอราคา
+          </h3>
+          <p className={`mb-4 ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+            สร้างใบเสนอราคาเพื่อส่งให้ลูกค้าของคุณ
+          </p>
+          <Link to="/quotations/new">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-emerald-500 to-emerald-600 text-white mx-auto">
+              <Plus className="w-4 h-4" />
+              สร้างใบเสนอราคาแรก
+            </button>
+          </Link>
+        </div>
+      )}
 
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
@@ -229,6 +221,6 @@ export default function Quotations() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }
