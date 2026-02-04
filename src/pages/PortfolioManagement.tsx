@@ -135,7 +135,7 @@ export default function PortfolioManagement() {
       </div>
 
       {/* Portfolio Link */}
-      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
+      <div className={`p-6 mb-8 rounded-2xl border ${isDark ? 'glass-card border-emerald-500/20' : 'light-glass-card border-emerald-500/30'}`}>
         <div className="flex items-center gap-2 mb-2">
           <Camera className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>ลิงก์ Portfolio ของคุณ</h2>
@@ -155,7 +155,7 @@ export default function PortfolioManagement() {
       </div>
 
       {/* Upload Section */}
-      <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6 mb-8`}>
+      <div className={`p-6 mb-8 rounded-2xl border ${isDark ? 'glass-card border-white/10' : 'light-glass-card border-gray-200'}`}>
         <div className="flex flex-row items-center justify-between mb-4">
           <div>
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>รูปภาพผลงาน</h2>
