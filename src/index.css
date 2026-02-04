@@ -95,9 +95,9 @@
     --warning: 38 85% 45%;
     --warning-foreground: 30 10% 10%;
 
-    --border: 30 10% 20%;
-    --input: 30 10% 20%;
-    --ring: 25 65% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 25%;
+    --ring: 0 0% 50%;
 
     --sidebar-background: 30 12% 10%;
     --sidebar-foreground: 40 20% 90%;
