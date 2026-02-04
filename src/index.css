@@ -468,6 +468,36 @@
     background: rgba(34, 197, 94, 0.15) !important;
   }
 
+  /* Select item selected state - change from orange to emerald */
+  .dark [data-radix-select-item][data-state="checked"],
+  .dark [data-radix-select-item][aria-selected="true"],
+  .dark [cmdk-item][aria-selected="true"],
+  .dark [cmdk-item][data-selected="true"] {
+    background: rgba(34, 197, 94, 0.25) !important;
+    color: #4ade80 !important;
+  }
+
+  /* Override accent/highlight colors globally */
+  .dark .bg-accent,
+  .dark [data-highlighted="true"],
+  .dark [data-selected="true"] {
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #4ade80 !important;
+  }
+
+  /* Combobox and Command palette items */
+  .dark [role="option"][aria-selected="true"],
+  .dark [role="option"]:hover,
+  .dark [role="listbox"] [aria-selected="true"] {
+    background: rgba(34, 197, 94, 0.2) !important;
+    color: #4ade80 !important;
+  }
+
+  /* Override orange/amber accent color */
+  .dark .text-accent-foreground {
+    color: #4ade80 !important;
+  }
+
   .status-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
