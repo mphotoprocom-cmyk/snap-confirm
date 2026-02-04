@@ -40,7 +40,12 @@ import {
   WatermarkSettings,
   CropState,
   OutputSettings,
+  getRegionCount,
+  getRegionLabels,
 } from '@/types/imageSplit';
+
+// Frame size for output (1080px is good for social media)
+const FRAME_SIZE = 1080;
 
 export default function ImageSplit() {
   const { theme } = useTheme();
@@ -79,8 +84,18 @@ export default function ImageSplit() {
 
   // Processing state
   const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState<string[]>([]);
+  const [results, setResults] = useState<{ label: string; dataUrl: string }[]>([]);
   const [showResults, setShowResults] = useState(false);
+
+  // Calculate frame dimensions based on template aspect ratio
+  const getFrameDimensions = useCallback(() => {
+    const [aspectW, aspectH] = selectedTemplate.frame_aspect;
+    if (aspectW >= aspectH) {
+      return { width: FRAME_SIZE, height: Math.round(FRAME_SIZE * (aspectH / aspectW)) };
+    } else {
+      return { width: Math.round(FRAME_SIZE * (aspectW / aspectH)), height: FRAME_SIZE };
+    }
+  }, [selectedTemplate]);
 
   // Draw canvas preview
   const drawCanvas = useCallback(() => {
@@ -98,66 +113,70 @@ export default function ImageSplit() {
     ctx.fillStyle = isDark ? '#1a1a1a' : '#f0f0f0';
     ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-    // Calculate scale to fit template in canvas
-    const scaleX = canvasSize / selectedTemplate.width;
-    const scaleY = canvasSize / selectedTemplate.height;
-    const displayScale = Math.min(scaleX, scaleY);
+    // Calculate frame dimensions
+    const frameDim = getFrameDimensions();
+    const scaleX = canvasSize / frameDim.width;
+    const scaleY = canvasSize / frameDim.height;
+    const displayScale = Math.min(scaleX, scaleY) * 0.9; // 90% to leave margin
 
-    const offsetX = (canvasSize - selectedTemplate.width * displayScale) / 2;
-    const offsetY = (canvasSize - selectedTemplate.height * displayScale) / 2;
+    const frameW = frameDim.width * displayScale;
+    const frameH = frameDim.height * displayScale;
+    const offsetX = (canvasSize - frameW) / 2;
+    const offsetY = (canvasSize - frameH) / 2;
 
     // Draw image if loaded
     if (sourceImage) {
       ctx.save();
-      ctx.translate(offsetX, offsetY);
-      ctx.scale(displayScale, displayScale);
 
-      // Calculate image draw position
+      // Clip to frame area
+      ctx.beginPath();
+      ctx.rect(offsetX, offsetY, frameW, frameH);
+      ctx.clip();
+
+      // Calculate image draw position (cover the frame)
       const imgScale = Math.max(
-        selectedTemplate.width / sourceImage.width,
-        selectedTemplate.height / sourceImage.height
+        frameDim.width / sourceImage.width,
+        frameDim.height / sourceImage.height
       ) * cropState.scale;
 
-      const imgW = sourceImage.width * imgScale;
-      const imgH = sourceImage.height * imgScale;
-      const imgX = (selectedTemplate.width - imgW) / 2 + cropState.x;
-      const imgY = (selectedTemplate.height - imgH) / 2 + cropState.y;
+      const imgW = sourceImage.width * imgScale * displayScale;
+      const imgH = sourceImage.height * imgScale * displayScale;
+      const imgX = offsetX + (frameW - imgW) / 2 + cropState.x * displayScale;
+      const imgY = offsetY + (frameH - imgH) / 2 + cropState.y * displayScale;
 
       ctx.drawImage(sourceImage, imgX, imgY, imgW, imgH);
       ctx.restore();
     }
 
-    // Draw panel outlines
+    // Draw region outlines and labels
     ctx.strokeStyle = isDark ? 'rgba(74, 222, 128, 0.8)' : 'rgba(16, 185, 129, 0.8)';
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 5]);
 
-    selectedTemplate.panels.forEach((panel, index) => {
-      const px = offsetX + panel.x * displayScale;
-      const py = offsetY + panel.y * displayScale;
-      const pw = panel.w * displayScale;
-      const ph = panel.h * displayScale;
+    const regionLabels = getRegionLabels(selectedTemplate);
+    regionLabels.forEach((label) => {
+      const region = selectedTemplate.regions[label];
+      const rx = offsetX + region.x * frameW;
+      const ry = offsetY + region.y * frameH;
+      const rw = region.w * frameW;
+      const rh = region.h * frameH;
 
-      ctx.strokeRect(px, py, pw, ph);
+      ctx.strokeRect(rx, ry, rw, rh);
 
-      // Draw panel number
+      // Draw region label
       ctx.fillStyle = isDark ? 'rgba(74, 222, 128, 0.9)' : 'rgba(16, 185, 129, 0.9)';
-      ctx.font = 'bold 16px Inter';
+      ctx.font = 'bold 20px Inter';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`${index + 1}`, px + pw / 2, py + ph / 2);
+      ctx.fillText(label, rx + rw / 2, ry + rh / 2);
     });
 
-    // Draw template border
+    // Draw frame border
     ctx.setLineDash([]);
     ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
-    ctx.strokeRect(
-      offsetX,
-      offsetY,
-      selectedTemplate.width * displayScale,
-      selectedTemplate.height * displayScale
-    );
-  }, [sourceImage, selectedTemplate, cropState, isDark]);
+    ctx.lineWidth = 2;
+    ctx.strokeRect(offsetX, offsetY, frameW, frameH);
+  }, [sourceImage, selectedTemplate, cropState, isDark, getFrameDimensions]);
 
   useEffect(() => {
     drawCanvas();
@@ -167,6 +186,19 @@ export default function ImageSplit() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('รองรับเฉพาะ JPG/PNG/WebP');
+      return;
+    }
+
+    // Validate file size (40MB limit like PHP)
+    if (file.size > 40 * 1024 * 1024) {
+      toast.error('ไฟล์ใหญ่เกินไป (จำกัด ~40MB)');
+      return;
+    }
 
     setImageName(file.name.replace(/\.[^/.]+$/, ''));
 
@@ -214,6 +246,57 @@ export default function ImageSplit() {
     setCropState({ x: 0, y: 0, scale: 1 });
   };
 
+  // Apply watermark to canvas
+  const applyWatermark = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (!watermark.enabled || !watermark.text) return;
+
+    ctx.save();
+    ctx.globalAlpha = watermark.opacity / 100;
+    ctx.font = `${watermark.size}px Inter, sans-serif`;
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 2;
+
+    let wx: number, wy: number;
+    const padding = watermark.size;
+
+    switch (watermark.position) {
+      case 'top-left':
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        wx = padding;
+        wy = padding;
+        break;
+      case 'top-right':
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        wx = width - padding;
+        wy = padding;
+        break;
+      case 'bottom-left':
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        wx = padding;
+        wy = height - padding;
+        break;
+      case 'bottom-right':
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        wx = width - padding;
+        wy = height - padding;
+        break;
+      default: // center
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        wx = width / 2;
+        wy = height / 2;
+    }
+
+    ctx.strokeText(watermark.text, wx, wy);
+    ctx.fillText(watermark.text, wx, wy);
+    ctx.restore();
+  };
+
   // Process and split image
   const processImage = async () => {
     if (!sourceImage) {
@@ -225,79 +308,60 @@ export default function ImageSplit() {
     setResults([]);
 
     try {
-      const panelImages: string[] = [];
+      const frameDim = getFrameDimensions();
+      const regionLabels = getRegionLabels(selectedTemplate);
+      const panelImages: { label: string; dataUrl: string }[] = [];
 
-      for (let i = 0; i < selectedTemplate.panels.length; i++) {
-        const panel = selectedTemplate.panels[i];
+      // Calculate image positioning (same as preview)
+      const imgScale = Math.max(
+        frameDim.width / sourceImage.width,
+        frameDim.height / sourceImage.height
+      ) * cropState.scale;
 
-        // Create canvas for this panel
+      const imgW = sourceImage.width * imgScale;
+      const imgH = sourceImage.height * imgScale;
+      const imgX = (frameDim.width - imgW) / 2 + cropState.x;
+      const imgY = (frameDim.height - imgH) / 2 + cropState.y;
+
+      for (const label of regionLabels) {
+        const region = selectedTemplate.regions[label];
+
+        // Calculate region dimensions in pixels
+        const regionX = region.x * frameDim.width;
+        const regionY = region.y * frameDim.height;
+        const regionW = region.w * frameDim.width;
+        const regionH = region.h * frameDim.height;
+
+        // Create canvas for this region
         const canvas = document.createElement('canvas');
-        canvas.width = panel.w;
-        canvas.height = panel.h;
+        canvas.width = Math.round(regionW);
+        canvas.height = Math.round(regionH);
         const ctx = canvas.getContext('2d')!;
 
-        // Calculate image position
-        const imgScale = Math.max(
-          selectedTemplate.width / sourceImage.width,
-          selectedTemplate.height / sourceImage.height
-        ) * cropState.scale;
+        // Fill with white background (for transparency)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const imgW = sourceImage.width * imgScale;
-        const imgH = sourceImage.height * imgScale;
-        const imgX = (selectedTemplate.width - imgW) / 2 + cropState.x - panel.x;
-        const imgY = (selectedTemplate.height - imgH) / 2 + cropState.y - panel.y;
+        // Draw the portion of the image that falls within this region
+        ctx.drawImage(
+          sourceImage,
+          imgX - regionX,
+          imgY - regionY,
+          imgW,
+          imgH
+        );
 
-        // Draw image portion
-        ctx.drawImage(sourceImage, imgX, imgY, imgW, imgH);
+        // Apply watermark
+        applyWatermark(ctx, canvas.width, canvas.height);
 
-        // Add watermark if enabled
-        if (watermark.enabled && watermark.text) {
-          ctx.save();
-          ctx.globalAlpha = watermark.opacity / 100;
-          ctx.font = `${watermark.size}px Inter`;
-          ctx.fillStyle = 'white';
-          ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-          ctx.lineWidth = 2;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-
-          let wx: number, wy: number;
-          switch (watermark.position) {
-            case 'top-left':
-              wx = watermark.size;
-              wy = watermark.size;
-              ctx.textAlign = 'left';
-              break;
-            case 'top-right':
-              wx = panel.w - watermark.size;
-              wy = watermark.size;
-              ctx.textAlign = 'right';
-              break;
-            case 'bottom-left':
-              wx = watermark.size;
-              wy = panel.h - watermark.size;
-              ctx.textAlign = 'left';
-              break;
-            case 'bottom-right':
-              wx = panel.w - watermark.size;
-              wy = panel.h - watermark.size;
-              ctx.textAlign = 'right';
-              break;
-            default:
-              wx = panel.w / 2;
-              wy = panel.h / 2;
-          }
-
-          ctx.strokeText(watermark.text, wx, wy);
-          ctx.fillText(watermark.text, wx, wy);
-          ctx.restore();
-        }
-
-        // Export panel
-        const mimeType = output.format === 'png' ? 'image/png' : 'image/jpeg';
-        const quality = output.format === 'jpeg' ? output.quality / 100 : undefined;
+        // Export
+        const mimeType = output.format === 'png' ? 'image/png' :
+                        output.format === 'webp' ? 'image/webp' : 'image/jpeg';
+        const quality = output.format === 'jpeg' || output.format === 'webp'
+                        ? output.quality / 100 : undefined;
         const dataUrl = canvas.toDataURL(mimeType, quality);
-        panelImages.push(dataUrl);
+
+        panelImages.push({ label, dataUrl });
       }
 
       setResults(panelImages);
@@ -318,12 +382,11 @@ export default function ImageSplit() {
     setIsProcessing(true);
     try {
       const zip = new JSZip();
-      const ext = output.format === 'png' ? 'png' : 'jpg';
+      const ext = output.format === 'png' ? 'png' : output.format === 'webp' ? 'webp' : 'jpg';
 
-      for (let i = 0; i < results.length; i++) {
-        const dataUrl = results[i];
-        const base64 = dataUrl.split(',')[1];
-        const filename = `${output.prefix}_${imageName}_${(i + 1).toString().padStart(2, '0')}.${ext}`;
+      for (const result of results) {
+        const base64 = result.dataUrl.split(',')[1];
+        const filename = `${output.prefix}_${imageName}_${result.label}.${ext}`;
         zip.file(filename, base64, { base64: true });
       }
 
@@ -345,12 +408,11 @@ export default function ImageSplit() {
   };
 
   // Download single image
-  const downloadSingle = (index: number) => {
-    const dataUrl = results[index];
-    const ext = output.format === 'png' ? 'png' : 'jpg';
+  const downloadSingle = (result: { label: string; dataUrl: string }) => {
+    const ext = output.format === 'png' ? 'png' : output.format === 'webp' ? 'webp' : 'jpg';
     const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = `${output.prefix}_${imageName}_${(index + 1).toString().padStart(2, '0')}.${ext}`;
+    a.href = result.dataUrl;
+    a.download = `${output.prefix}_${imageName}_${result.label}.${ext}`;
     a.click();
   };
 
@@ -390,7 +452,7 @@ export default function ImageSplit() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -405,7 +467,7 @@ export default function ImageSplit() {
             >
               <ImageIcon className={`w-10 h-10 ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
               <span className={`text-sm ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
-                คลิกเพื่อเลือกรูปภาพ
+                คลิกเพื่อเลือกรูปภาพ (JPG/PNG/WebP)
               </span>
             </button>
 
@@ -425,12 +487,12 @@ export default function ImageSplit() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
               {SPLIT_TEMPLATES.map((template) => (
                 <button
                   key={template.id}
                   onClick={() => setSelectedTemplate(template)}
-                  className={`p-3 rounded-xl text-left transition-all ${
+                  className={`w-full p-3 rounded-xl text-left transition-all flex items-center justify-between ${
                     selectedTemplate.id === template.id
                       ? 'bg-emerald-500/20 border-emerald-500'
                       : isDark
@@ -438,13 +500,17 @@ export default function ImageSplit() {
                         : 'bg-gray-100 hover:bg-gray-200 border-gray-200'
                   } border`}
                 >
-                  <div className="text-lg mb-1">{template.icon}</div>
-                  <div className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {template.name}
+                  <div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {template.name}
+                    </div>
+                    <div className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
+                      {getRegionCount(template)} ชิ้น ({getRegionLabels(template).join(', ')})
+                    </div>
                   </div>
-                  <div className={`text-xs ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
-                    {template.panels.length} ชิ้น
-                  </div>
+                  {selectedTemplate.id === template.id && (
+                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  )}
                 </button>
               ))}
             </div>
@@ -555,11 +621,12 @@ export default function ImageSplit() {
                   <SelectContent>
                     <SelectItem value="jpeg">JPEG</SelectItem>
                     <SelectItem value="png">PNG</SelectItem>
+                    <SelectItem value="webp">WebP</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {output.format === 'jpeg' && (
+              {(output.format === 'jpeg' || output.format === 'webp') && (
                 <div>
                   <Label className={isDark ? 'text-white/70' : 'text-gray-600'}>
                     คุณภาพ: {output.quality}%
@@ -642,7 +709,7 @@ export default function ImageSplit() {
               ) : (
                 <>
                   <Scissors className="w-4 h-4" />
-                  ตัดรูปภาพ ({selectedTemplate.panels.length} ชิ้น)
+                  ตัดรูปภาพ ({getRegionCount(selectedTemplate)} ชิ้น: {getRegionLabels(selectedTemplate).join(', ')})
                 </>
               )}
             </button>
@@ -658,25 +725,25 @@ export default function ImageSplit() {
           </DialogHeader>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 my-4">
-            {results.map((dataUrl, index) => (
-              <div key={index} className="relative group">
+            {results.map((result) => (
+              <div key={result.label} className="relative group">
                 <img
-                  src={dataUrl}
-                  alt={`Panel ${index + 1}`}
+                  src={result.dataUrl}
+                  alt={`Panel ${result.label}`}
                   className="w-full rounded-lg"
                 />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
                   <button
-                    onClick={() => downloadSingle(index)}
+                    onClick={() => downloadSingle(result)}
                     className="p-2 bg-white/20 rounded-lg hover:bg-white/30"
                   >
                     <Download className="w-5 h-5 text-white" />
                   </button>
                 </div>
-                <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium ${
+                <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold ${
                   isDark ? 'bg-black/50 text-white' : 'bg-white/80 text-gray-900'
                 }`}>
-                  {index + 1}
+                  {result.label}
                 </div>
               </div>
             ))}

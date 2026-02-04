@@ -1,7 +1,7 @@
-// Image Split Template Types
+// Image Split Template Types - Based on PHP original
 
-export interface SplitPanel {
-  x: number;
+export interface Region {
+  x: number; // 0.0 - 1.0 percentage
   y: number;
   w: number;
   h: number;
@@ -10,10 +10,8 @@ export interface SplitPanel {
 export interface SplitTemplate {
   id: string;
   name: string;
-  icon: string;
-  panels: SplitPanel[];
-  width: number;
-  height: number;
+  frame_aspect: [number, number]; // [width ratio, height ratio]
+  regions: Record<string, Region>;
 }
 
 export interface WatermarkSettings {
@@ -33,118 +31,87 @@ export interface CropState {
 export interface OutputSettings {
   quality: number;
   prefix: string;
-  format: 'jpeg' | 'png';
+  format: 'jpeg' | 'png' | 'webp';
 }
 
-// Template definitions based on the PHP code
+// Template definitions - exact match from PHP get_templates()
 export const SPLIT_TEMPLATES: SplitTemplate[] = [
   {
     id: 'fb-5-panel',
     name: 'Facebook 5 Panel',
-    icon: '📱',
-    width: 2048,
-    height: 2048,
-    panels: [
-      { x: 0, y: 0, w: 1365, h: 1024 },
-      { x: 1365, y: 0, w: 683, h: 1024 },
-      { x: 0, y: 1024, w: 683, h: 1024 },
-      { x: 683, y: 1024, w: 683, h: 1024 },
-      { x: 1366, y: 1024, w: 682, h: 1024 },
-    ],
+    frame_aspect: [1, 1],
+    regions: {
+      'A': { x: 0.0, y: 0.0, w: 0.5, h: 0.5 },
+      'B': { x: 0.0, y: 0.5, w: 0.5, h: 0.5 },
+      'C': { x: 0.5, y: 0.0, w: 0.5, h: 1.0 / 3.0 },
+      'D': { x: 0.5, y: 1.0 / 3.0, w: 0.5, h: 1.0 / 3.0 },
+      'E': { x: 0.5, y: 2.0 / 3.0, w: 0.5, h: 1.0 / 3.0 },
+    },
   },
   {
     id: 'layout-abc',
-    name: 'Layout ABC',
-    icon: '🔳',
-    width: 2048,
-    height: 2048,
-    panels: [
-      { x: 0, y: 0, w: 1024, h: 2048 },
-      { x: 1024, y: 0, w: 1024, h: 1024 },
-      { x: 1024, y: 1024, w: 1024, h: 1024 },
-    ],
+    name: 'A top, B-C bottom',
+    frame_aspect: [1, 1],
+    regions: {
+      'A': { x: 0.0, y: 0.0, w: 1.0, h: 0.5 },
+      'B': { x: 0.0, y: 0.5, w: 0.5, h: 0.5 },
+      'C': { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
+    },
   },
   {
-    id: 'grid-2x2',
-    name: 'Grid 2x2',
-    icon: '⊞',
-    width: 2048,
-    height: 2048,
-    panels: [
-      { x: 0, y: 0, w: 1024, h: 1024 },
-      { x: 1024, y: 0, w: 1024, h: 1024 },
-      { x: 0, y: 1024, w: 1024, h: 1024 },
-      { x: 1024, y: 1024, w: 1024, h: 1024 },
-    ],
+    id: 'layout-abcd-vertical',
+    name: 'A left, B-C-D right',
+    frame_aspect: [1, 1],
+    regions: {
+      'A': { x: 0.0, y: 0.0, w: 0.7, h: 1.0 },
+      'B': { x: 0.7, y: 0.0, w: 0.3, h: 1.0 / 3.0 },
+      'C': { x: 0.7, y: 1.0 / 3.0, w: 0.3, h: 1.0 / 3.0 },
+      'D': { x: 0.7, y: 2.0 / 3.0, w: 0.3, h: 1.0 / 3.0 },
+    },
   },
   {
-    id: 'grid-3x3',
-    name: 'Grid 3x3',
-    icon: '⊞',
-    width: 2048,
-    height: 2048,
-    panels: [
-      { x: 0, y: 0, w: 683, h: 683 },
-      { x: 683, y: 0, w: 682, h: 683 },
-      { x: 1365, y: 0, w: 683, h: 683 },
-      { x: 0, y: 683, w: 683, h: 682 },
-      { x: 683, y: 683, w: 682, h: 682 },
-      { x: 1365, y: 683, w: 683, h: 682 },
-      { x: 0, y: 1365, w: 683, h: 683 },
-      { x: 683, y: 1365, w: 682, h: 683 },
-      { x: 1365, y: 1365, w: 683, h: 683 },
-    ],
+    id: 'layout-abcd-bottom',
+    name: 'A top, B-C-D bottom',
+    frame_aspect: [1, 1],
+    regions: {
+      'A': { x: 0.0, y: 0.0, w: 1.0, h: 0.6 },
+      'B': { x: 0.0, y: 0.6, w: 1.0 / 3.0, h: 0.4 },
+      'C': { x: 1.0 / 3.0, y: 0.6, w: 1.0 / 3.0, h: 0.4 },
+      'D': { x: 2.0 / 3.0, y: 0.6, w: 1.0 / 3.0, h: 0.4 },
+    },
   },
   {
-    id: 'vertical-3',
-    name: 'Vertical 3 Panel',
-    icon: '▥',
-    width: 2048,
-    height: 2048,
-    panels: [
-      { x: 0, y: 0, w: 683, h: 2048 },
-      { x: 683, y: 0, w: 682, h: 2048 },
-      { x: 1365, y: 0, w: 683, h: 2048 },
-    ],
+    id: 'layout-abcde-bottom',
+    name: 'A-B top / C-D-E bottom',
+    frame_aspect: [1, 1],
+    regions: {
+      'A': { x: 0.0, y: 0.0, w: 0.5, h: 0.5 },
+      'B': { x: 0.5, y: 0.0, w: 0.5, h: 0.5 },
+      'C': { x: 0.0, y: 0.5, w: 1.0 / 3.0, h: 0.5 },
+      'D': { x: 1.0 / 3.0, y: 0.5, w: 1.0 / 3.0, h: 0.5 },
+      'E': { x: 2.0 / 3.0, y: 0.5, w: 1.0 / 3.0, h: 0.5 },
+    },
   },
   {
-    id: 'horizontal-3',
-    name: 'Horizontal 3 Panel',
-    icon: '▤',
-    width: 2048,
-    height: 2048,
-    panels: [
-      { x: 0, y: 0, w: 2048, h: 683 },
-      { x: 0, y: 683, w: 2048, h: 682 },
-      { x: 0, y: 1365, w: 2048, h: 683 },
-    ],
+    id: 'ig-4-square',
+    name: '2x2 squares',
+    frame_aspect: [1, 1],
+    regions: {
+      'A': { x: 0.0, y: 0.0, w: 0.5, h: 0.5 },
+      'B': { x: 0.5, y: 0.0, w: 0.5, h: 0.5 },
+      'C': { x: 0.0, y: 0.5, w: 0.5, h: 0.5 },
+      'D': { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
+    },
   },
   {
-    id: 'panorama-5',
-    name: 'Panorama 5 Panel',
-    icon: '🖼️',
-    width: 5120,
-    height: 1024,
-    panels: [
-      { x: 0, y: 0, w: 1024, h: 1024 },
-      { x: 1024, y: 0, w: 1024, h: 1024 },
-      { x: 2048, y: 0, w: 1024, h: 1024 },
-      { x: 3072, y: 0, w: 1024, h: 1024 },
-      { x: 4096, y: 0, w: 1024, h: 1024 },
-    ],
-  },
-  {
-    id: 'carousel-10',
-    name: 'Carousel 10 Panel',
-    icon: '🎠',
-    width: 10240,
-    height: 1024,
-    panels: Array.from({ length: 10 }, (_, i) => ({
-      x: i * 1024,
-      y: 0,
-      w: 1024,
-      h: 1024,
-    })),
+    id: 'full-3-vertical',
+    name: '3 strips',
+    frame_aspect: [1, 1],
+    regions: {
+      'A': { x: 0.0, y: 0.0, w: 1.0, h: 1.0 / 3.0 },
+      'B': { x: 0.0, y: 1.0 / 3.0, w: 1.0, h: 1.0 / 3.0 },
+      'C': { x: 0.0, y: 2.0 / 3.0, w: 1.0, h: 1.0 / 3.0 },
+    },
   },
 ];
 
@@ -155,3 +122,13 @@ export const WATERMARK_POSITIONS = [
   { value: 'bottom-left', label: 'ล่างซ้าย' },
   { value: 'bottom-right', label: 'ล่างขวา' },
 ] as const;
+
+// Helper to get region count
+export function getRegionCount(template: SplitTemplate): number {
+  return Object.keys(template.regions).length;
+}
+
+// Helper to get region labels in order
+export function getRegionLabels(template: SplitTemplate): string[] {
+  return Object.keys(template.regions).sort();
+}
