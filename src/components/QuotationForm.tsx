@@ -103,7 +103,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                     <FormLabel>แพ็กเกจบริการ</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
-                        <SelectTrigger className="input-elegant">
+                        <SelectTrigger>
                           <SelectValue placeholder="เลือกแพ็กเกจ (ไม่บังคับ)" />
                         </SelectTrigger>
                       </FormControl>
@@ -134,7 +134,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>ชื่อลูกค้า *</FormLabel>
                     <FormControl>
-                      <Input placeholder="ชื่อ นามสกุล" className="input-elegant" {...field} />
+                      <Input placeholder="ชื่อ นามสกุล" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -147,7 +147,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>เบอร์โทรศัพท์</FormLabel>
                     <FormControl>
-                      <Input placeholder="0XX-XXX-XXXX" className="input-elegant" {...field} />
+                      <Input placeholder="0XX-XXX-XXXX" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -160,7 +160,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>อีเมล</FormLabel>
                     <FormControl>
-                      <Input placeholder="email@example.com" className="input-elegant" {...field} />
+                      <Input placeholder="email@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -173,7 +173,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem className="md:col-span-3">
                     <FormLabel>ข้อมูลเพิ่มเติม</FormLabel>
                     <FormControl>
-                      <Input placeholder="เช่น Line ID, Facebook, หมายเหตุ" className="input-elegant" {...field} />
+                      <Input placeholder="เช่น Line ID, Facebook, หมายเหตุ" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -194,7 +194,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                     <FormLabel>ประเภทงาน *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="input-elegant">
+                        <SelectTrigger>
                           <SelectValue placeholder="เลือกประเภทงาน" />
                         </SelectTrigger>
                       </FormControl>
@@ -217,7 +217,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>วันที่จัดงาน (ถ้ามี)</FormLabel>
                     <FormControl>
-                      <Input type="date" className="input-elegant" {...field} />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -230,7 +230,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>เวลาเริ่ม</FormLabel>
                     <FormControl>
-                      <Input type="time" className="input-elegant" {...field} />
+                      <Input type="time" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -243,7 +243,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>เวลาสิ้นสุด</FormLabel>
                     <FormControl>
-                      <Input type="time" className="input-elegant" {...field} />
+                      <Input type="time" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -256,7 +256,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem className="md:col-span-2">
                     <FormLabel>สถานที่</FormLabel>
                     <FormControl>
-                      <Input placeholder="ที่อยู่สถานที่จัดงาน" className="input-elegant" {...field} />
+                      <Input placeholder="ที่อยู่สถานที่จัดงาน" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -276,7 +276,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>ราคาเสนอ (฿)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="0" step="0.01" className="input-elegant" {...field} />
+                      <Input type="number" min="0" step="0.01" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -289,7 +289,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                   <FormItem>
                     <FormLabel>ใช้ได้ถึงวันที่</FormLabel>
                     <FormControl>
-                      <Input type="date" className="input-elegant" {...field} />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -303,7 +303,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                     <FormLabel>สถานะ</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="input-elegant">
+                        <SelectTrigger>
                           <SelectValue placeholder="เลือกสถานะ" />
                         </SelectTrigger>
                       </FormControl>
@@ -332,7 +332,7 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                 <FormControl>
                   <Textarea
                     placeholder="รายละเอียดเพิ่มเติมสำหรับใบเสนอราคา..."
-                    className="input-elegant min-h-[100px]"
+                    className="min-h-[100px]"
                     {...field}
                   />
                 </FormControl>
