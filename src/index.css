@@ -455,11 +455,14 @@
 
   /* Select dropdown content */
   .dark [data-radix-select-content],
-  .dark [data-radix-popover-content] {
-    background: rgba(20, 25, 30, 0.95) !important;
+  .dark [data-radix-select-viewport],
+  .dark [data-radix-popover-content],
+  .dark [role="listbox"] {
+    background: rgba(30, 35, 40, 0.98) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
   }
 
   /* Select items hover */
