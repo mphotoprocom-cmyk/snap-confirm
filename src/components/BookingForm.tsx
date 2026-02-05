@@ -98,14 +98,14 @@ export function BookingForm({ booking, onSubmit, isSubmitting }: BookingFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>แพ็กเกจบริการ</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
                       <FormControl>
                         <SelectTrigger className="input-elegant">
                           <SelectValue placeholder="เลือกแพ็กเกจ (ไม่บังคับ)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">ไม่เลือกแพ็กเกจ</SelectItem>
+                        <SelectItem value="none">ไม่เลือกแพ็กเกจ</SelectItem>
                         {packages.map((pkg) => (
                           <SelectItem key={pkg.id} value={pkg.id}>
                             {pkg.name} - ฿{pkg.price.toLocaleString()}
