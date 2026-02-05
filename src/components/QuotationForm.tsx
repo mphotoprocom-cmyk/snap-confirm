@@ -62,8 +62,8 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
       client_note: quotation?.client_note || '',
       job_type: quotation?.job_type || 'event',
       event_date: quotation?.event_date || '',
-      time_start: quotation?.time_start || '',
-      time_end: quotation?.time_end || '',
+      time_start: quotation?.time_start || '07:00',
+      time_end: quotation?.time_end || '12:00',
       location: quotation?.location || '',
       total_price: quotation?.total_price || 0,
       notes: quotation?.notes || '',
@@ -101,14 +101,14 @@ export function QuotationForm({ quotation, onSubmit, isSubmitting }: QuotationFo
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>แพ็กเกจบริการ</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="เลือกแพ็กเกจ (ไม่บังคับ)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">ไม่เลือกแพ็กเกจ</SelectItem>
+                        <SelectItem value="none">ไม่เลือกแพ็กเกจ</SelectItem>
                         {packages.map((pkg) => (
                           <SelectItem key={pkg.id} value={pkg.id}>
                             {pkg.name} - ฿{pkg.price.toLocaleString()}
