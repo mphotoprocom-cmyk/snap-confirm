@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import type React from 'react';
 import { cn } from '@/lib/utils';
 
-type SafeImageProps = {
+type SafeImageProps = Omit<
+  React.ImgHTMLAttributes<HTMLImageElement>,
+  'src' | 'alt' | 'loading'
+> & {
   src: string;
   alt: string;
-  className?: string;
   /** Pass through to <img loading>. Defaults to lazy. */
   loading?: 'lazy' | 'eager';
   /** When true, uses /placeholder.svg as a one-time fallback on error. Defaults to true. */
@@ -22,6 +25,8 @@ export function SafeImage({
   className,
   loading = 'lazy',
   fallbackToPlaceholder = true,
+  onError,
+  ...rest
 }: SafeImageProps) {
   const [didFallback, setDidFallback] = useState(false);
 
@@ -32,10 +37,12 @@ export function SafeImage({
       loading={loading}
       referrerPolicy="no-referrer"
       className={cn(className)}
-      onError={() => {
+      onError={(e) => {
+        onError?.(e);
         if (!fallbackToPlaceholder) return;
         setDidFallback(true);
       }}
+      {...rest}
     />
   );
 }

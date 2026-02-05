@@ -40,20 +40,57 @@ import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { JOB_TYPE_LABELS } from '@/types/booking';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-// Helper function to preload images for canvas rendering
-const preloadImagesForCanvas = async (urls: (string | null | undefined)[]): Promise<void> => {
-  const validUrls = urls.filter((url): url is string => !!url);
-  
-  await Promise.all(validUrls.map(url => {
-    return new Promise<void>((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve();
-      img.onerror = () => resolve(); // Continue even if image fails
-      img.src = url;
-    });
-  }));
+const fetchImageAsDataUrl = async (url: string): Promise<string> => {
+  const { data, error } = await supabase.functions.invoke('download-image', {
+    body: { url },
+  });
+
+  if (error) throw error;
+  if (!data?.data) throw new Error('Invalid image response');
+
+  const contentType = data.contentType || 'image/png';
+  return `data:${contentType};base64,${data.data}`;
+};
+
+/**
+ * Replaces logo/signature <img> src with data URLs to avoid CORS in html2canvas.
+ * Restores original src after export.
+ */
+const swapExportImagesToDataUrls = async (
+  root: HTMLElement,
+  mapping: Record<string, string | null | undefined>
+): Promise<() => void> => {
+  const images = Array.from(
+    root.querySelectorAll('img[data-export-role]')
+  ) as HTMLImageElement[];
+
+  const restores: Array<() => void> = [];
+
+  await Promise.all(
+    images.map(async (img) => {
+      const role = img.dataset.exportRole;
+      if (!role) return;
+      const url = mapping[role];
+      if (!url) return;
+
+      const originalSrc = img.src;
+      restores.push(() => {
+        img.src = originalSrc;
+      });
+
+      const dataUrl = await fetchImageAsDataUrl(url);
+
+      await new Promise<void>((resolve) => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        img.src = dataUrl;
+      });
+    })
+  );
+
+  return () => restores.forEach((fn) => fn());
 };
 
 // Helper function to convert to Buddhist Era
@@ -123,16 +160,19 @@ export default function BookingDetail() {
 
   const handleGenerateImage = async () => {
     if (!confirmationRef.current) return;
-    
+
+    let restoreImages: () => void = () => {};
     try {
-      // Pre-load images with CORS for canvas
-      await preloadImagesForCanvas([profile?.logo_url, profile?.signature_url]);
-      
+      restoreImages = await swapExportImagesToDataUrls(confirmationRef.current, {
+        logo: profile?.logo_url,
+        signature: profile?.signature_url,
+      });
+
       const canvas = await html2canvas(confirmationRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         logging: false,
       });
       
@@ -145,21 +185,26 @@ export default function BookingDetail() {
     } catch (error) {
       console.error('Image generation error:', error);
       toast.error('ไม่สามารถสร้างรูปภาพได้');
+    } finally {
+      restoreImages();
     }
   };
 
   const handleGeneratePDF = async () => {
     if (!confirmationRef.current) return;
-    
+
+    let restoreImages: () => void = () => {};
     try {
-      // Pre-load images with CORS for canvas
-      await preloadImagesForCanvas([profile?.logo_url, profile?.signature_url]);
-      
+      restoreImages = await swapExportImagesToDataUrls(confirmationRef.current, {
+        logo: profile?.logo_url,
+        signature: profile?.signature_url,
+      });
+
       const canvas = await html2canvas(confirmationRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         logging: false,
       });
       
@@ -195,6 +240,8 @@ export default function BookingDetail() {
     } catch (error) {
       console.error('PDF generation error:', error);
       toast.error('ไม่สามารถสร้าง PDF ได้');
+    } finally {
+      restoreImages();
     }
   };
 

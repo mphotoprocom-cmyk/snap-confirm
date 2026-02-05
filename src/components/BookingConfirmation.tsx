@@ -4,6 +4,7 @@ import { Profile } from '@/types/booking';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Camera } from 'lucide-react';
+import { SafeImage } from '@/components/SafeImage';
 
 interface BookingConfirmationProps {
   booking: Booking;
@@ -42,11 +43,12 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
         <div className="text-center border-b pb-6 mb-6">
           <div className="flex items-center justify-center gap-3 mb-2">
             {profile?.logo_url ? (
-              <img 
+              <SafeImage 
                 src={profile.logo_url} 
                 alt="โลโก้สตูดิโอ" 
                 className="h-12 w-auto object-contain"
-                referrerPolicy="no-referrer"
+                loading="eager"
+                data-export-role="logo"
               />
             ) : (
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center">
@@ -151,11 +153,12 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
         {/* Signature */}
         {profile?.show_signature && profile?.signature_url && (
           <div className="mb-6 flex flex-col items-end">
-            <img 
+            <SafeImage 
               src={profile.signature_url} 
               alt="ลายเซ็น" 
               className="h-16 object-contain mb-1"
-              referrerPolicy="no-referrer"
+              loading="eager"
+              data-export-role="signature"
             />
             {profile?.full_name && (
               <p className="text-sm text-gray-700">{profile.full_name}</p>
