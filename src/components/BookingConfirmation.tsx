@@ -46,6 +46,7 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
                 src={profile.logo_url} 
                 alt="โลโก้สตูดิโอ" 
                 className="h-12 w-auto object-contain"
+                crossOrigin="anonymous"
               />
             ) : (
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center">
@@ -154,6 +155,7 @@ export const BookingConfirmation = forwardRef<HTMLDivElement, BookingConfirmatio
               src={profile.signature_url} 
               alt="ลายเซ็น" 
               className="h-16 object-contain mb-1"
+              crossOrigin="anonymous"
             />
             {profile?.full_name && (
               <p className="text-sm text-gray-700">{profile.full_name}</p>
