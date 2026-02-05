@@ -102,9 +102,15 @@ export function useUpdateBooking() {
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<Booking> & { id: string }) => {
+      // Clean up package_id: convert empty string to null for database
+      const cleanData = { ...data };
+      if ('package_id' in cleanData && cleanData.package_id === '') {
+        cleanData.package_id = null;
+      }
+      
       const { data: booking, error } = await supabase
         .from('bookings')
-        .update(data)
+        .update(cleanData)
         .eq('id', id)
         .select()
         .single();
