@@ -912,7 +912,7 @@ export default function CollageBuilder() {
     : filteredLayouts;
 
   return (
-    <div className={`min-h-screen ${isDark ? 'dashboard-bg' : 'light-dashboard-bg'} p-4 lg:p-6`}>
+    <>
       {/* Page Header */}
       <div className="mb-6">
         <Link to="/">
@@ -1765,7 +1765,7 @@ export default function CollageBuilder() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
