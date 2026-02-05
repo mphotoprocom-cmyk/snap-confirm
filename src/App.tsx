@@ -49,6 +49,10 @@ const App = () => (
               <Route path="/delivery/:token" element={<PublicDeliveryGallery />} />
               <Route path="/invitation/:token" element={<PublicWeddingInvitation />} />
 
+              {/* Public tool routes - no login required */}
+              <Route path="/tools/image-split" element={<ImageSplit />} />
+              <Route path="/tools/collage" element={<CollageBuilder />} />
+
               {/* Authenticated routes - with AppLayout */}
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Index />} />
@@ -67,8 +71,6 @@ const App = () => (
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/migration" element={<AdminMigration />} />
-                <Route path="/tools/image-split" element={<ImageSplit />} />
-                <Route path="/tools/collage" element={<CollageBuilder />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
