@@ -48,6 +48,36 @@ export interface CollageImageObj {
   mode: 'fill' | 'fit';
 }
 
+export interface OverlayItem {
+  id: string;
+  img: HTMLImageElement;
+  name: string;
+  opacity: number;
+  blend: GlobalCompositeOperation;
+  scale: number;
+  x: number;
+  y: number;
+  rotation: number;
+}
+
+export type BlendMode = {
+  value: GlobalCompositeOperation;
+  label: string;
+};
+
+export const BLEND_MODES: BlendMode[] = [
+  { value: 'source-over', label: 'Normal' },
+  { value: 'multiply', label: 'Multiply' },
+  { value: 'screen', label: 'Screen' },
+  { value: 'overlay', label: 'Overlay' },
+  { value: 'darken', label: 'Darken' },
+  { value: 'lighten', label: 'Lighten' },
+  { value: 'color-burn', label: 'Color Burn' },
+  { value: 'color-dodge', label: 'Color Dodge' },
+  { value: 'soft-light', label: 'Soft Light' },
+  { value: 'difference', label: 'Difference' },
+];
+
 export interface CollageWatermark {
   enabled: boolean;
   text: string;

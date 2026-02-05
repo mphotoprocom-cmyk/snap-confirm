@@ -29,6 +29,10 @@ import {
   Minimize2,
   Monitor,
   Smartphone,
+  ChevronUp,
+  ChevronDown,
+  Copy,
+  Crosshair,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -36,10 +40,12 @@ import {
   WATERMARK_POSITIONS,
   WATERMARK_FONTS,
   DEFAULT_WATERMARK,
+  BLEND_MODES,
   CollageLayout,
   CollageLayoutsData,
   CollageImageObj,
   CollageWatermark,
+  OverlayItem,
 } from '@/data/collagePresets';
 import layoutsData from '@/data/collageLayouts.json';
 
@@ -158,6 +164,45 @@ function drawWatermark(
   ctx.restore();
 }
 
+// --- Overlay drawing ---
+function drawOverlays(
+  ctx: CanvasRenderingContext2D,
+  overlays: OverlayItem[],
+  W: number,
+  H: number,
+  selectedOverlayIdx: number,
+  editMode: boolean
+) {
+  overlays.forEach((ov, i) => {
+    if (!ov.img || !ov.img.complete) return;
+    ctx.save();
+    ctx.globalAlpha = ov.opacity ?? 1;
+    ctx.globalCompositeOperation = ov.blend || 'source-over';
+
+    const cx = W / 2 + (ov.x || 0);
+    const cy = H / 2 + (ov.y || 0);
+    const s = ov.scale || 1;
+
+    ctx.translate(cx, cy);
+    ctx.rotate((ov.rotation || 0) * Math.PI / 180);
+    const dw = ov.img.width * s;
+    const dh = ov.img.height * s;
+    ctx.drawImage(ov.img, -dw / 2, -dh / 2, dw, dh);
+
+    // Draw selection border in edit mode
+    if (editMode && i === selectedOverlayIdx) {
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 4]);
+      ctx.strokeRect(-dw / 2 - 4, -dh / 2 - 4, dw + 8, dh + 8);
+    }
+
+    ctx.restore();
+  });
+}
+
 // --- Layout thumbnail renderer ---
 function drawLayoutThumbnail(
   canvas: HTMLCanvasElement,
@@ -206,6 +251,13 @@ export default function CollageBuilder() {
   const [bgColor, setBgColor] = useState('#ffffff');
   const [watermark, setWatermark] = useState<CollageWatermark>({ ...DEFAULT_WATERMARK });
 
+  // Overlay state
+  const [overlayEnabled, setOverlayEnabled] = useState(false);
+  const [overlays, setOverlays] = useState<OverlayItem[]>([]);
+  const [selectedOverlay, setSelectedOverlay] = useState(-1);
+  const [overlayEditMode, setOverlayEditMode] = useState(true);
+  const overlayFileInputRef = useRef<HTMLInputElement>(null);
+
   // Layout search/filter
   const [layoutSearch, setLayoutSearch] = useState('');
 
@@ -216,8 +268,17 @@ export default function CollageBuilder() {
   const lastYRef = useRef(0);
   const draggingSwapRef = useRef(false);
   const dragStartSlotRef = useRef(-1);
+  const isPanningOverlayRef = useRef(false);
   const imagesRef = useRef(images);
   imagesRef.current = images;
+  const overlaysRef = useRef(overlays);
+  overlaysRef.current = overlays;
+  const selectedOverlayRef = useRef(selectedOverlay);
+  selectedOverlayRef.current = selectedOverlay;
+  const overlayEditModeRef = useRef(overlayEditMode);
+  overlayEditModeRef.current = overlayEditMode;
+  const overlayEnabledRef = useRef(overlayEnabled);
+  overlayEnabledRef.current = overlayEnabled;
   const selectedSlotRef = useRef(selectedSlot);
   selectedSlotRef.current = selectedSlot;
 
@@ -319,10 +380,22 @@ export default function CollageBuilder() {
         }
       });
 
+      // Overlays (drawn on both preview and export when enabled)
+      if (overlayEnabledRef.current && overlaysRef.current.length > 0) {
+        drawOverlays(
+          ctx,
+          overlaysRef.current,
+          W,
+          H,
+          withOverlays ? selectedOverlayRef.current : -1,
+          withOverlays && overlayEditModeRef.current
+        );
+      }
+
       // Watermark
       drawWatermark(ctx, watermark, W, H);
 
-      // Selection highlight
+      // Selection highlight (slot)
       if (withOverlays && selectedSlotRef.current >= 0 && rects[selectedSlotRef.current]) {
         const r = rects[selectedSlotRef.current];
         const stroke = draggingSwapRef.current
@@ -352,7 +425,7 @@ export default function CollageBuilder() {
 
   useEffect(() => {
     render();
-  }, [render, images, selectedSlot, gutter, radius, bgColor, watermark, currentLayout, orient, resPreset]);
+  }, [render, images, selectedSlot, gutter, radius, bgColor, watermark, currentLayout, orient, resPreset, overlays, overlayEnabled, selectedOverlay, overlayEditMode]);
 
   // --- Set preset layout ---
   const handleSetLayout = useCallback(
@@ -448,6 +521,16 @@ export default function CollageBuilder() {
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const { x, y } = getCanvasCoords(e);
+
+      // If overlay edit mode is active, handle overlay interaction
+      if (overlayEnabledRef.current && overlayEditModeRef.current && overlaysRef.current.length > 0 && selectedOverlayRef.current >= 0) {
+        isPanningOverlayRef.current = true;
+        lastXRef.current = x;
+        lastYRef.current = y;
+        render();
+        return;
+      }
+
       const idx = slotAtPoint(x, y);
       setSelectedSlot(idx);
       selectedSlotRef.current = idx;
@@ -485,6 +568,22 @@ export default function CollageBuilder() {
 
   const handleCanvasMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
+      // Overlay panning
+      if (isPanningOverlayRef.current && selectedOverlayRef.current >= 0) {
+        const { x, y } = getCanvasCoords(e);
+        const ov = overlaysRef.current[selectedOverlayRef.current];
+        if (ov) {
+          const dx = x - lastXRef.current;
+          const dy = y - lastYRef.current;
+          ov.x = (ov.x || 0) + dx;
+          ov.y = (ov.y || 0) + dy;
+          lastXRef.current = x;
+          lastYRef.current = y;
+          setOverlays([...overlaysRef.current]);
+        }
+        return;
+      }
+
       if (!isPanningRef.current || panSlotRef.current < 0) return;
       const { x, y } = getCanvasCoords(e);
       const imgObj = imagesRef.current.find((it) => it.slotIndex === panSlotRef.current);
@@ -533,6 +632,7 @@ export default function CollageBuilder() {
       dragStartSlotRef.current = -1;
       isPanningRef.current = false;
       panSlotRef.current = -1;
+      isPanningOverlayRef.current = false;
       render();
     },
     [getCanvasCoords, slotAtPoint, render]
@@ -543,18 +643,30 @@ export default function CollageBuilder() {
     dragStartSlotRef.current = -1;
     isPanningRef.current = false;
     panSlotRef.current = -1;
+    isPanningOverlayRef.current = false;
   }, []);
 
   const handleCanvasWheel = useCallback(
     (e: React.WheelEvent<HTMLCanvasElement>) => {
       e.preventDefault();
+      const direction = e.deltaY > 0 ? -1 : 1;
+      const step = 0.1;
+
+      // Overlay zoom in edit mode
+      if (overlayEnabledRef.current && overlayEditModeRef.current && selectedOverlayRef.current >= 0) {
+        const ov = overlaysRef.current[selectedOverlayRef.current];
+        if (ov) {
+          ov.scale = Math.min(4, Math.max(0.1, (ov.scale || 1) * (1 + direction * step)));
+          setOverlays([...overlaysRef.current]);
+        }
+        return;
+      }
+
       const { x, y } = getCanvasCoords(e as any);
       const idx = slotAtPoint(x, y);
       if (idx < 0) return;
       const imgObj = imagesRef.current.find((it) => it.slotIndex === idx);
       if (!imgObj) return;
-      const direction = e.deltaY > 0 ? -1 : 1;
-      const step = 0.1;
       imgObj.scale = Math.min(4, Math.max(0.2, (imgObj.scale || 1) * (1 + direction * step)));
       setImages((prev) => [...prev]);
     },
@@ -641,6 +753,95 @@ export default function CollageBuilder() {
     setImages([]);
     setSelectedSlot(-1);
   }, []);
+
+  // --- Overlay helpers ---
+  const handleOverlayFiles = useCallback((files: FileList | File[]) => {
+    const newItems: OverlayItem[] = [];
+    Array.from(files).forEach((f) => {
+      const url = URL.createObjectURL(f);
+      const img = new window.Image();
+      img.onload = () => setOverlays((prev) => [...prev]);
+      img.src = url;
+      newItems.push({
+        id: `ov-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        img,
+        name: f.name,
+        opacity: 1,
+        blend: 'source-over',
+        scale: 0.5,
+        x: 0,
+        y: 0,
+        rotation: 0,
+      });
+    });
+    setOverlays((prev) => [...prev, ...newItems]);
+    if (newItems.length > 0) {
+      setSelectedOverlay((prev) => prev < 0 ? 0 : prev);
+    }
+  }, []);
+
+  const handleOverlayFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+      handleOverlayFiles(files);
+      e.target.value = '';
+    },
+    [handleOverlayFiles]
+  );
+
+  const moveOverlay = useCallback((dir: 'up' | 'down') => {
+    setOverlays((prev) => {
+      const idx = selectedOverlayRef.current;
+      if (idx < 0 || idx >= prev.length) return prev;
+      const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      const arr = [...prev];
+      [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+      setSelectedOverlay(newIdx);
+      return arr;
+    });
+  }, []);
+
+  const deleteOverlay = useCallback(() => {
+    setOverlays((prev) => {
+      const idx = selectedOverlayRef.current;
+      if (idx < 0 || idx >= prev.length) return prev;
+      const arr = prev.filter((_, i) => i !== idx);
+      setSelectedOverlay(Math.min(idx, arr.length - 1));
+      return arr;
+    });
+  }, []);
+
+  const centerOverlay = useCallback(() => {
+    setOverlays((prev) => {
+      const idx = selectedOverlayRef.current;
+      if (idx < 0 || idx >= prev.length) return prev;
+      const arr = [...prev];
+      arr[idx] = { ...arr[idx], x: 0, y: 0 };
+      return arr;
+    });
+  }, []);
+
+  const clearAllOverlays = useCallback(() => {
+    setOverlays([]);
+    setSelectedOverlay(-1);
+  }, []);
+
+  const updateOverlayProp = useCallback(
+    (key: keyof OverlayItem, value: any) => {
+      setOverlays((prev) => {
+        const idx = selectedOverlayRef.current;
+        if (idx < 0 || idx >= prev.length) return prev;
+        const arr = [...prev];
+        arr[idx] = { ...arr[idx], [key]: value };
+        return arr;
+      });
+    },
+    []
+  );
+
+  const selectedOv = selectedOverlay >= 0 ? overlays[selectedOverlay] : null;
 
   // --- Export ---
   const exportImage = useCallback(
@@ -1194,6 +1395,224 @@ export default function CollageBuilder() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Overlay */}
+          <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-4 rounded-2xl`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Copy
+                  className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}
+                />
+                <h3
+                  className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  ภาพซ้อน (Overlay)
+                </h3>
+              </div>
+              <Switch
+                checked={overlayEnabled}
+                onCheckedChange={setOverlayEnabled}
+              />
+            </div>
+
+            {overlayEnabled && (
+              <div className="space-y-3">
+                {/* File upload */}
+                <input
+                  ref={overlayFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleOverlayFileChange}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => overlayFileInputRef.current?.click()}
+                  className={`w-full py-2 border border-dashed rounded-lg flex items-center justify-center gap-1.5 text-xs transition-colors ${
+                    isDark
+                      ? 'border-white/20 hover:border-amber-400/50 text-white/50'
+                      : 'border-gray-300 hover:border-amber-500/50 text-gray-500'
+                  }`}
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  เลือกภาพซ้อน (หลายรูปได้)
+                </button>
+
+                {/* List + reorder/delete */}
+                {overlays.length > 0 && (
+                  <div className="flex gap-2">
+                    <select
+                      size={Math.min(4, overlays.length)}
+                      value={selectedOverlay}
+                      onChange={(e) => setSelectedOverlay(parseInt(e.target.value))}
+                      className={`flex-1 text-xs rounded-lg border p-1.5 ${
+                        isDark
+                          ? 'bg-white/5 border-white/10 text-white'
+                          : 'bg-gray-50 border-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {overlays.map((ov, i) => (
+                        <option key={ov.id} value={i}>
+                          {ov.name.length > 20 ? ov.name.slice(0, 20) + '...' : ov.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => moveOverlay('up')}
+                        className={`p-1 rounded text-xs ${
+                          isDark
+                            ? 'bg-white/10 hover:bg-white/20 text-white/60'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => moveOverlay('down')}
+                        className={`p-1 rounded text-xs ${
+                          isDark
+                            ? 'bg-white/10 hover:bg-white/20 text-white/60'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={deleteOverlay}
+                        className={`p-1 rounded text-xs ${
+                          isDark
+                            ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400'
+                            : 'bg-red-50 hover:bg-red-100 text-red-400'
+                        }`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Edit mode toggle */}
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                    โหมดแก้ไข (ลาก/ซูม บนแคนวาส)
+                  </span>
+                  <Switch
+                    checked={overlayEditMode}
+                    onCheckedChange={setOverlayEditMode}
+                  />
+                </div>
+
+                {/* Selected overlay controls */}
+                {selectedOv && (
+                  <div className="space-y-3">
+                    <div>
+                      <Label className={`text-xs ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                        ความทึบ: {(selectedOv.opacity * 100).toFixed(0)}%
+                      </Label>
+                      <Slider
+                        value={[selectedOv.opacity]}
+                        onValueChange={([v]) => updateOverlayProp('opacity', v)}
+                        min={0}
+                        max={1}
+                        step={0.01}
+                      />
+                    </div>
+                    <div>
+                      <Label className={`text-xs ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                        โหมดผสมสี
+                      </Label>
+                      <Select
+                        value={selectedOv.blend}
+                        onValueChange={(v) => updateOverlayProp('blend', v)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BLEND_MODES.map((bm) => (
+                            <SelectItem key={bm.value} value={bm.value}>
+                              {bm.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className={`text-xs ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                        ซูม: {(selectedOv.scale * 100).toFixed(0)}%
+                      </Label>
+                      <Slider
+                        value={[selectedOv.scale]}
+                        onValueChange={([v]) => updateOverlayProp('scale', v)}
+                        min={0.1}
+                        max={4}
+                        step={0.01}
+                      />
+                    </div>
+                    <div>
+                      <Label className={`text-xs ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                        ตำแหน่ง X: {selectedOv.x.toFixed(0)}
+                      </Label>
+                      <Slider
+                        value={[selectedOv.x]}
+                        onValueChange={([v]) => updateOverlayProp('x', v)}
+                        min={-3000}
+                        max={3000}
+                        step={1}
+                      />
+                    </div>
+                    <div>
+                      <Label className={`text-xs ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                        ตำแหน่ง Y: {selectedOv.y.toFixed(0)}
+                      </Label>
+                      <Slider
+                        value={[selectedOv.y]}
+                        onValueChange={([v]) => updateOverlayProp('y', v)}
+                        min={-3000}
+                        max={3000}
+                        step={1}
+                      />
+                    </div>
+                    <div>
+                      <Label className={`text-xs ${isDark ? 'text-white/50' : 'text-gray-500'}`}>
+                        หมุน: {selectedOv.rotation.toFixed(0)}°
+                      </Label>
+                      <Slider
+                        value={[selectedOv.rotation]}
+                        onValueChange={([v]) => updateOverlayProp('rotation', v)}
+                        min={-180}
+                        max={180}
+                        step={1}
+                      />
+                    </div>
+                    <button
+                      onClick={centerOverlay}
+                      className={`w-full py-2 rounded-lg text-xs font-medium transition-all ${
+                        isDark
+                          ? 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                          : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Crosshair className="w-3.5 h-3.5 inline mr-1.5" />
+                      จัดกึ่งกลาง (ตัวที่เลือก)
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  onClick={clearAllOverlays}
+                  className={`w-full py-2 rounded-lg text-xs font-medium transition-all ${
+                    isDark
+                      ? 'text-red-400/60 hover:text-red-400 hover:bg-red-500/10 border border-red-500/20'
+                      : 'text-red-400 hover:text-red-500 hover:bg-red-50 border border-red-200'
+                  }`}
+                >
+                  ล้างภาพซ้อนทั้งหมด
+                </button>
               </div>
             )}
           </div>
