@@ -417,7 +417,7 @@ export default function ImageSplit() {
   };
 
   return (
-    <>
+    <div className={`min-h-screen ${isDark ? 'dashboard-bg' : 'light-dashboard-bg'} p-4 lg:p-6`}>
       {/* Page Header */}
       <div className="mb-6">
         <Link to="/">
@@ -768,6 +768,6 @@ export default function ImageSplit() {
           </button>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
