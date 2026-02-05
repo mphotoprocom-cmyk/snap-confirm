@@ -28,6 +28,7 @@ import WeddingInvitationDetail from "./pages/WeddingInvitationDetail";
 import PublicWeddingInvitation from "./pages/PublicWeddingInvitation";
 import AdminMigration from "./pages/AdminMigration";
 import ImageSplit from "./pages/ImageSplit";
+import CollageBuilder from "./pages/CollageBuilder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/migration" element={<AdminMigration />} />
                 <Route path="/tools/image-split" element={<ImageSplit />} />
+                <Route path="/tools/collage" element={<CollageBuilder />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
