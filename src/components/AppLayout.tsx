@@ -5,7 +5,7 @@ import { useIsAdmin } from '@/hooks/useUserManagement';
 import { useTheme } from '@/hooks/useTheme';
 import {
   Camera, LogOut, Settings, Users, Package, FileText, Image,
-  FolderOpen, Heart, Bell, BarChart3, Sun, Moon, Search
+  FolderOpen, Heart, Bell, BarChart3, Sun, Moon, Search, Scissors
 } from 'lucide-react';
 
 const sidebarNav = [
@@ -15,6 +15,7 @@ const sidebarNav = [
   { to: '/portfolio', label: 'Portfolio', icon: Image },
   { to: '/deliveries', label: 'ส่งงาน', icon: FolderOpen },
   { to: '/invitations', label: 'การ์ดเชิญ', icon: Heart },
+  { to: '/tools/image-split', label: 'ตัดรูปภาพ', icon: Scissors },
 ];
 
 export function AppLayout() {
