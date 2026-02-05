@@ -41,6 +41,21 @@ import { th } from 'date-fns/locale';
 import { JOB_TYPE_LABELS } from '@/types/booking';
 import { toast } from 'sonner';
 
+// Helper function to preload images for canvas rendering
+const preloadImagesForCanvas = async (urls: (string | null | undefined)[]): Promise<void> => {
+  const validUrls = urls.filter((url): url is string => !!url);
+  
+  await Promise.all(validUrls.map(url => {
+    return new Promise<void>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // Continue even if image fails
+      img.src = url;
+    });
+  }));
+};
+
 // Helper function to convert to Buddhist Era
 const toBuddhistYear = (date: Date) => {
   return date.getFullYear() + 543;
@@ -110,11 +125,14 @@ export default function BookingDetail() {
     if (!confirmationRef.current) return;
     
     try {
+      // Pre-load images with CORS for canvas
+      await preloadImagesForCanvas([profile?.logo_url, profile?.signature_url]);
+      
       const canvas = await html2canvas(confirmationRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         logging: false,
       });
       
@@ -134,11 +152,14 @@ export default function BookingDetail() {
     if (!confirmationRef.current) return;
     
     try {
+      // Pre-load images with CORS for canvas
+      await preloadImagesForCanvas([profile?.logo_url, profile?.signature_url]);
+      
       const canvas = await html2canvas(confirmationRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         logging: false,
       });
       
