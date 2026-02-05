@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useIsAdmin } from '@/hooks/useUserManagement';
@@ -26,7 +26,7 @@ export function AppLayout() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
-  if (!user) return <Outlet />;
+  if (!user) return <Navigate to="/auth" replace />;
 
   const isDark = theme === 'dark';
 
