@@ -70,25 +70,12 @@ export default function Auth() {
     
     if (!validateForm()) return;
     
-    // Require captcha for signup
-    if (!isLogin && !captchaToken) {
-      toast.error('กรุณายืนยันว่าคุณไม่ใช่หุ่นยนต์');
-      return;
-    }
+    // reCAPTCHA temporarily disabled for testing
+    // TODO: Re-enable reCAPTCHA after configuring VITE_RECAPTCHA_SITE_KEY
     
     setLoading(true);
     
     try {
-      // Verify captcha for signup
-      if (!isLogin && captchaToken) {
-        const isValid = await verifyCaptcha(captchaToken);
-        if (!isValid) {
-          toast.error('การยืนยัน reCAPTCHA ล้มเหลว กรุณาลองใหม่');
-          recaptchaRef.current?.reset();
-          setCaptchaToken(null);
-          return;
-        }
-      }
 
       if (isLogin) {
         const { error } = await signIn(email, password);
@@ -228,19 +215,10 @@ export default function Auth() {
             )}
           </div>
 
-          {/* reCAPTCHA for signup only */}
-          {!isLogin && (
-            <div className="flex justify-center">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={RECAPTCHA_SITE_KEY}
-                onChange={handleCaptchaChange}
-                hl="th"
-              />
-            </div>
-          )}
+          {/* reCAPTCHA temporarily disabled for testing */}
+          {/* TODO: Re-enable after configuring VITE_RECAPTCHA_SITE_KEY */}
 
-          <Button type="submit" className="w-full" disabled={loading || (!isLogin && !captchaToken)}>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
