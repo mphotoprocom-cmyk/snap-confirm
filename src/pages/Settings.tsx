@@ -21,8 +21,18 @@ import {
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload, X, Camera, Signature } from 'lucide-react';
+import { Loader2, Upload, X, Camera, Signature, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+
+const passwordSchema = z.object({
+  newPassword: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: 'รหัสผ่านไม่ตรงกัน',
+  path: ['confirmPassword'],
+});
+
+type PasswordFormData = z.infer<typeof passwordSchema>;
 
 const DEFAULT_SERVICE_DETAILS = `• ถ่ายภาพไม่จำกัดจำนวน
 • ปรับโทน/แสง/สี ทุกภาพ
@@ -59,6 +69,9 @@ export default function Settings() {
 
   const [logoUploading, setLogoUploading] = useState(false);
   const [signatureUploading, setSignatureUploading] = useState(false);
+  const [passwordChanging, setPasswordChanging] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const signatureInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,6 +86,14 @@ export default function Settings() {
       show_signature: false,
       service_details: DEFAULT_SERVICE_DETAILS,
       booking_terms: DEFAULT_BOOKING_TERMS,
+    },
+  });
+
+  const passwordForm = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      newPassword: '',
+      confirmPassword: '',
     },
   });
 
@@ -111,6 +132,26 @@ export default function Settings() {
 
   const handleSubmit = async (data: ProfileFormData) => {
     await updateProfile.mutateAsync(data);
+  };
+
+  const handlePasswordChange = async (data: PasswordFormData) => {
+    setPasswordChanging(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: data.newPassword,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('เปลี่ยนรหัสผ่านสำเร็จ');
+      passwordForm.reset();
+    } catch (error: any) {
+      toast.error(`ไม่สามารถเปลี่ยนรหัสผ่านได้: ${error.message}`);
+    } finally {
+      setPasswordChanging(false);
+    }
   };
 
   const handleFileUpload = async (
@@ -490,6 +531,99 @@ export default function Settings() {
                       'บันทึกการตั้งค่า'
                     )}
                   </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+
+        {/* Password Change Section */}
+        <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-6`}>
+          <h3 className={`font-display text-lg font-medium mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <Lock className="w-5 h-5" />
+            เปลี่ยนรหัสผ่าน
+          </h3>
+          
+          <Form {...passwordForm}>
+            <form onSubmit={passwordForm.handleSubmit(handlePasswordChange)} className="space-y-4">
+              <FormField
+                control={passwordForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>รหัสผ่านใหม่</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showNewPassword ? 'text' : 'password'}
+                          placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)"
+                          className="input-elegant pr-10"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ยืนยันรหัสผ่านใหม่</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          placeholder="ยืนยันรหัสผ่านใหม่"
+                          className="input-elegant pr-10"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end pt-2">
+                <Button type="submit" disabled={passwordChanging} className="min-w-[120px]">
+                  {passwordChanging ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      กำลังเปลี่ยน...
+                    </>
+                  ) : (
+                    'เปลี่ยนรหัสผ่าน'
+                  )}
+                </Button>
               </div>
             </form>
           </Form>
