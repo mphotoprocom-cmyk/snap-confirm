@@ -1,4 +1,4 @@
-export type TemplateType = 'classic' | 'modern' | 'floral' | 'minimal' | 'luxury';
+export type TemplateType = 'classic' | 'modern' | 'floral' | 'minimal' | 'luxury' | 'watercolor' | 'artdeco' | 'tropical' | 'rustic' | 'bohemian' | 'vintage' | 'celestial' | 'botanical' | 'marble' | 'neon';
 
 export interface TemplateConfig {
   id: TemplateType;
@@ -102,6 +102,176 @@ export const TEMPLATE_CONFIGS: TemplateConfig[] = [
       accent: '#c9a227',
       background: '#0d0d1a',
       text: '#f5f5f5',
+    },
+  },
+  {
+    id: 'watercolor',
+    name: 'Watercolor Dream',
+    description: 'นุ่มนวล โรแมนติก ด้วยลายสีน้ำพาสเทล',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Cormorant Garamond, serif',
+      body: 'Quicksand, sans-serif',
+    },
+    colors: {
+      primary: '#7c9885',
+      secondary: '#e8b4b8',
+      accent: '#a8d5e2',
+      background: '#fef9f3',
+      text: '#4a5568',
+    },
+  },
+  {
+    id: 'artdeco',
+    name: 'Art Deco Glamour',
+    description: 'หรูหราสไตล์ยุค 1920s ด้วยลายเรขาคณิต',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Poiret One, cursive',
+      body: 'Josefin Sans, sans-serif',
+    },
+    colors: {
+      primary: '#1a1a1a',
+      secondary: '#d4af37',
+      accent: '#8b7355',
+      background: '#f5f0e8',
+      text: '#2d2d2d',
+    },
+  },
+  {
+    id: 'tropical',
+    name: 'Tropical Paradise',
+    description: 'สดใส ร่าเริง ด้วยใบไม้เขตร้อน',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Pacifico, cursive',
+      body: 'Poppins, sans-serif',
+    },
+    colors: {
+      primary: '#2d5a27',
+      secondary: '#ff6b6b',
+      accent: '#ffd93d',
+      background: '#f0fff4',
+      text: '#1a472a',
+    },
+  },
+  {
+    id: 'rustic',
+    name: 'Rustic Charm',
+    description: 'เรียบง่าย อบอุ่น สไตล์ชนบท',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Amatic SC, cursive',
+      body: 'Cabin, sans-serif',
+    },
+    colors: {
+      primary: '#8b4513',
+      secondary: '#d2691e',
+      accent: '#daa520',
+      background: '#faf0e6',
+      text: '#5d4037',
+    },
+  },
+  {
+    id: 'bohemian',
+    name: 'Boho Chic',
+    description: 'อิสระ ศิลปะ ด้วยลวดลายโบฮีเมียน',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Sacramento, cursive',
+      body: 'Nunito, sans-serif',
+    },
+    colors: {
+      primary: '#9c6644',
+      secondary: '#e07b53',
+      accent: '#dda15e',
+      background: '#fefae0',
+      text: '#6b4423',
+    },
+  },
+  {
+    id: 'vintage',
+    name: 'Vintage Romance',
+    description: 'คลาสสิก ย้อนยุค สไตล์วินเทจ',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Libre Baskerville, serif',
+      body: 'Source Serif Pro, serif',
+    },
+    colors: {
+      primary: '#704214',
+      secondary: '#a67c52',
+      accent: '#c9a66b',
+      background: '#f5ebe0',
+      text: '#4a3728',
+    },
+  },
+  {
+    id: 'celestial',
+    name: 'Celestial Magic',
+    description: 'ลึกลับ มหัศจรรย์ ด้วยธีมดวงดาว',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Cinzel Decorative, cursive',
+      body: 'Raleway, sans-serif',
+    },
+    colors: {
+      primary: '#1e3a5f',
+      secondary: '#ffd700',
+      accent: '#c0c0c0',
+      background: '#0a1628',
+      text: '#e8e8e8',
+    },
+  },
+  {
+    id: 'botanical',
+    name: 'Botanical Garden',
+    description: 'ธรรมชาติ สดชื่น ด้วยใบไม้สีเขียว',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Playfair Display, serif',
+      body: 'Open Sans, sans-serif',
+    },
+    colors: {
+      primary: '#2d5016',
+      secondary: '#7cb342',
+      accent: '#aed581',
+      background: '#f1f8e9',
+      text: '#33691e',
+    },
+  },
+  {
+    id: 'marble',
+    name: 'Marble Elegance',
+    description: 'หรูหรา เรียบง่าย ด้วยลายหินอ่อน',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Didot, serif',
+      body: 'Lato, sans-serif',
+    },
+    colors: {
+      primary: '#2c3e50',
+      secondary: '#95a5a6',
+      accent: '#bdc3c7',
+      background: '#ecf0f1',
+      text: '#34495e',
+    },
+  },
+  {
+    id: 'neon',
+    name: 'Neon Nights',
+    description: 'ทันสมัย กล้าหาญ ด้วยสีนีออนสะดุดตา',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Bebas Neue, cursive',
+      body: 'Roboto, sans-serif',
+    },
+    colors: {
+      primary: '#ff00ff',
+      secondary: '#00ffff',
+      accent: '#ffff00',
+      background: '#0a0a0a',
+      text: '#ffffff',
     },
   },
 ];
