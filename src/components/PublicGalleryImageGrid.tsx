@@ -174,15 +174,15 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
                 <SafeImage
                   src={image.image_url}
                   alt={image.filename}
-                  className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
             ) : (
-              <AspectRatio ratio={1}>
+              <AspectRatio ratio={3/2}>
                 <SafeImage
                   src={image.image_url}
                   alt={image.filename}
-                  className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-contain rounded-lg bg-black/5 transition-transform duration-300 group-hover:scale-105"
                 />
               </AspectRatio>
             )}

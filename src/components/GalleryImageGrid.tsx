@@ -159,15 +159,15 @@ export function GalleryImageGrid({ images, layout, onDeleteImage, formatFileSize
               <img
                 src={image.image_url}
                 alt={image.filename}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-contain rounded-lg"
               />
             </div>
           ) : (
-            <AspectRatio ratio={1}>
+            <AspectRatio ratio={3/2}>
               <img
                 src={image.image_url}
                 alt={image.filename}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-contain rounded-lg bg-black/5"
               />
             </AspectRatio>
           )}
