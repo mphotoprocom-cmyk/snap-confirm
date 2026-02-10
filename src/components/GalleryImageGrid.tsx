@@ -121,13 +121,13 @@ export function GalleryImageGrid({ images, layout, onDeleteImage, formatFileSize
 
   if (isPinterest) {
     return (
-      <div className="columns-2 md:columns-3 gap-4 space-y-4">
+      <div className="columns-2 md:columns-3 gap-0.5">
         {images.map((image) => (
-          <div key={image.id} className="group relative break-inside-avoid mb-4">
+          <div key={image.id} className="group relative break-inside-avoid mb-0.5">
             <img
               src={image.image_url}
               alt={image.filename}
-              className="w-full h-auto object-cover rounded-lg"
+              className="w-full h-auto object-cover"
             />
             <ImageOverlay 
               image={image} 
@@ -148,7 +148,7 @@ export function GalleryImageGrid({ images, layout, onDeleteImage, formatFileSize
   ].includes(layout);
 
   return (
-    <div className={cn('grid gap-4', isSpecialLayout ? getGridContainerClass() : getGridClass())}>
+    <div className={cn('grid gap-0.5', isSpecialLayout ? getGridContainerClass() : getGridClass())}>
       {images.map((image, index) => (
         <div 
           key={image.id} 
@@ -159,7 +159,7 @@ export function GalleryImageGrid({ images, layout, onDeleteImage, formatFileSize
               <img
                 src={image.image_url}
                 alt={image.filename}
-                className="w-full h-full object-contain rounded-lg"
+                className="w-full h-full object-cover"
               />
             </div>
           ) : (
@@ -167,7 +167,7 @@ export function GalleryImageGrid({ images, layout, onDeleteImage, formatFileSize
               <img
                 src={image.image_url}
                 alt={image.filename}
-                className="w-full h-full object-contain rounded-lg bg-black/5"
+                className="w-full h-full object-cover"
               />
             </AspectRatio>
           )}
