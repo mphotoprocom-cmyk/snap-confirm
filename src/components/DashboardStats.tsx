@@ -9,6 +9,7 @@ import { useTheme } from '@/hooks/useTheme';
 
 interface DashboardStatsProps {
   bookings: Booking[];
+  onNavigateToBookings?: (filter?: string) => void;
 }
 
 const JOB_TYPE_COLORS: Record<JobType, string> = {
@@ -19,7 +20,7 @@ const JOB_TYPE_COLORS: Record<JobType, string> = {
   other: '#6b7280',
 };
 
-export function DashboardStats({ bookings }: DashboardStatsProps) {
+export function DashboardStats({ bookings, onNavigateToBookings }: DashboardStatsProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -106,6 +107,7 @@ export function DashboardStats({ bookings }: DashboardStatsProps) {
       value: stats.totalBookings.toString(),
       icon: Calendar,
       sub: `${stats.thisMonthCount} งานเดือนนี้`,
+      onClick: () => onNavigateToBookings?.('all'),
     },
     {
       label: 'ยืนยันแล้ว',
@@ -113,6 +115,7 @@ export function DashboardStats({ bookings }: DashboardStatsProps) {
       icon: CheckCircle,
       sub: formatCurrency(stats.thisMonthRevenue + stats.lastMonthRevenue) + ' (2 เดือน)',
       valueColor: 'text-emerald-400',
+      onClick: () => onNavigateToBookings?.('booked'),
     },
     {
       label: 'รอมัดจำ',
@@ -130,11 +133,13 @@ export function DashboardStats({ bookings }: DashboardStatsProps) {
         {summaryCards.map((card, i) => (
           <div
             key={i}
-            className={
+            onClick={card.onClick}
+            className={cn(
               card.accent
                 ? isDark ? 'glass-card-accent p-4' : 'light-glass-card-accent p-4'
-                : isDark ? 'glass-card p-4' : 'light-glass-card p-4'
-            }
+                : isDark ? 'glass-card p-4' : 'light-glass-card p-4',
+              card.onClick && 'cursor-pointer hover:scale-[1.02] transition-transform'
+            )}
           >
             <div className="flex items-center justify-between mb-2">
               <p className={`text-xs font-medium ${isDark ? 'text-white/50' : 'text-gray-500'}`}>

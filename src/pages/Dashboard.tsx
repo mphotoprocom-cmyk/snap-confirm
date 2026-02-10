@@ -94,7 +94,17 @@ export default function Dashboard() {
 
       {/* Content */}
       {viewMode === 'stats' ? (
-        <DashboardStats bookings={bookings || []} />
+        <DashboardStats
+          bookings={bookings || []}
+          onNavigateToBookings={(filter) => {
+            if (filter === 'booked') {
+              setStatusFilter('booked');
+            } else {
+              setStatusFilter('all');
+            }
+            setViewMode('grid');
+          }}
+        />
       ) : viewMode === 'calendar' ? (
         <div className={`${isDark ? 'glass-card' : 'light-glass-card'} p-4`}>
           <BookingCalendar bookings={bookings || []} />
