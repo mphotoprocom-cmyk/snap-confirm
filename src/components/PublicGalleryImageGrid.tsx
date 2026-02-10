@@ -121,17 +121,17 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
 
   if (isPinterest) {
     return (
-      <div className="columns-2 md:columns-3 gap-3 space-y-3">
+      <div className="columns-2 md:columns-3 gap-0.5">
         {images.map((image) => (
-          <div key={image.id} className="group relative break-inside-avoid mb-3">
+          <div key={image.id} className="group relative break-inside-avoid mb-0.5">
             <button
               onClick={() => onImageClick(image)}
-              className="w-full focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden"
+              className="w-full focus:outline-none focus:ring-2 focus:ring-primary overflow-hidden"
             >
               <SafeImage
                 src={image.image_url}
                 alt={image.filename}
-                className="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
               />
             </button>
             <Button
@@ -159,7 +159,7 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
   ].includes(layout);
 
   return (
-    <div className={cn('grid gap-3', isSpecialLayout ? getGridContainerClass() : getGridClass())}>
+    <div className={cn('grid gap-0.5', isSpecialLayout ? getGridContainerClass() : getGridClass())}>
       {images.map((image, index) => (
         <div 
           key={image.id} 
@@ -167,14 +167,14 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
         >
           <button
             onClick={() => onImageClick(image)}
-            className="w-full h-full focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden"
+            className="w-full h-full focus:outline-none focus:ring-2 focus:ring-primary overflow-hidden"
           >
             {isSpecialLayout ? (
               <div className="w-full h-full">
                 <SafeImage
                   src={image.image_url}
                   alt={image.filename}
-                  className="w-full h-full object-contain rounded-lg transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
             ) : (
@@ -182,7 +182,7 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
                 <SafeImage
                   src={image.image_url}
                   alt={image.filename}
-                  className="w-full h-full object-contain rounded-lg bg-black/5 transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               </AspectRatio>
             )}
