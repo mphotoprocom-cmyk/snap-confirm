@@ -123,7 +123,7 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
             className="w-full focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden"
           >
             <LazyImage
-              src={image.image_url}
+              src={image.thumbnail_url || image.image_url}
               alt={image.filename}
               className="w-full rounded-lg transition-transform duration-300 group-hover:scale-105"
               aspectClass="aspect-auto"
@@ -145,7 +145,7 @@ export function PublicGalleryImageGrid({ images, layout, onImageClick, onDownloa
             className="w-full h-full focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden"
           >
             <LazyImage
-              src={image.image_url}
+              src={image.thumbnail_url || image.image_url}
               alt={image.filename}
               fill={isSpecialLayout}
               aspectClass={isSpecialLayout ? undefined : 'aspect-square'}
