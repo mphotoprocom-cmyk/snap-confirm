@@ -293,17 +293,60 @@ export function useAddDeliveryImage() {
   });
 }
 
+/** Extract R2 key from a full R2 public URL */
+function extractR2Key(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    // Remove leading slash
+    return parsed.pathname.replace(/^\//, '') || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Delete a file from R2 storage (fire-and-forget safe) */
+async function deleteFromR2(key: string) {
+  try {
+    await supabase.functions.invoke('r2-storage?action=delete', {
+      method: 'DELETE' as any,
+      body: { key },
+    });
+  } catch (err) {
+    console.warn('R2 delete failed for key:', key, err);
+  }
+}
+
 export function useDeleteDeliveryImage() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, galleryId }: { id: string; galleryId: string }) => {
+      // Fetch image record first to get URLs for R2 cleanup
+      const { data: image } = await supabase
+        .from('delivery_images')
+        .select('image_url, thumbnail_url')
+        .eq('id', id)
+        .single();
+
+      // Delete from database
       const { error } = await supabase
         .from('delivery_images')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+
+      // Clean up R2 files (fire-and-forget)
+      if (image) {
+        const originalKey = extractR2Key(image.image_url);
+        if (originalKey) deleteFromR2(originalKey);
+
+        if (image.thumbnail_url) {
+          const thumbKey = extractR2Key(image.thumbnail_url);
+          if (thumbKey) deleteFromR2(thumbKey);
+        }
+      }
+
       return galleryId;
     },
     onSuccess: (galleryId) => {
