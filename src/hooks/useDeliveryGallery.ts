@@ -32,6 +32,7 @@ export interface DeliveryImage {
   user_id: string;
   filename: string;
   image_url: string;
+  thumbnail_url: string | null;
   file_size: number | null;
   sort_order: number;
   created_at: string;
@@ -265,6 +266,22 @@ export function useAddDeliveryImage() {
         .single();
 
       if (error) throw error;
+
+      // Fire-and-forget thumbnail generation
+      supabase.functions.invoke('generate-thumbnail', {
+        body: { image_url: imageData.image_url, image_id: data.id },
+      }).then((res) => {
+        if (res.error) {
+          console.warn('Thumbnail generation failed:', res.error);
+        } else {
+          console.log('Thumbnail generated for:', data.id);
+          // Refresh gallery data to pick up thumbnail_url
+          queryClient.invalidateQueries({ queryKey: ['delivery-gallery', imageData.gallery_id] });
+        }
+      }).catch((err) => {
+        console.warn('Thumbnail generation error:', err);
+      });
+
       return data;
     },
     onSuccess: (_, variables) => {
