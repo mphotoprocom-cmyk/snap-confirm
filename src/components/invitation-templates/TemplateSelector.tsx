@@ -397,6 +397,37 @@ export function TemplateSelector({ value, onChange }: TemplateSelectorProps) {
               </div>
             )}
 
+            {template.id === 'autumn' && (
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+                <div
+                  className="absolute top-0 right-0 w-20 h-20 opacity-20"
+                  style={{ 
+                    background: `radial-gradient(circle, ${template.colors.primary} 0%, transparent 70%)`,
+                  }}
+                />
+                <div
+                  className="absolute bottom-0 left-0 w-16 h-16 opacity-15"
+                  style={{ 
+                    background: `radial-gradient(circle, ${template.colors.secondary} 0%, transparent 70%)`,
+                  }}
+                />
+                <div className="text-center z-10">
+                  <p
+                    className="text-2xl mb-1"
+                    style={{ color: template.colors.primary, fontFamily: template.fonts.heading }}
+                  >
+                    we ♥ do
+                  </p>
+                  <p
+                    className="text-lg"
+                    style={{ color: template.colors.text, fontFamily: template.fonts.heading }}
+                  >
+                    A & B
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Selected indicator */}
             {value === template.id && (
               <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">

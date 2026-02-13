@@ -569,11 +569,17 @@ export type Database = {
       wedding_invitations: {
         Row: {
           access_token: string
+          accommodation_info: string | null
+          accommodation_links: Json | null
           booking_id: string | null
           bride_name: string
           ceremony_time: string | null
+          contact_email: string | null
+          contact_phone: string | null
           cover_image_url: string | null
           created_at: string
+          dress_code: string | null
+          dress_code_colors: Json | null
           event_date: string
           event_time: string | null
           google_maps_embed_url: string | null
@@ -583,10 +589,13 @@ export type Database = {
           is_active: boolean
           message: string | null
           reception_time: string | null
+          registry_info: string | null
+          registry_url: string | null
           rsvp_deadline: string | null
           rsvp_enabled: boolean
           template: string
           theme_color: string | null
+          timeline_events: Json | null
           updated_at: string
           user_id: string
           venue_address: string | null
@@ -595,11 +604,17 @@ export type Database = {
         }
         Insert: {
           access_token?: string
+          accommodation_info?: string | null
+          accommodation_links?: Json | null
           booking_id?: string | null
           bride_name: string
           ceremony_time?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           cover_image_url?: string | null
           created_at?: string
+          dress_code?: string | null
+          dress_code_colors?: Json | null
           event_date: string
           event_time?: string | null
           google_maps_embed_url?: string | null
@@ -609,10 +624,13 @@ export type Database = {
           is_active?: boolean
           message?: string | null
           reception_time?: string | null
+          registry_info?: string | null
+          registry_url?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean
           template?: string
           theme_color?: string | null
+          timeline_events?: Json | null
           updated_at?: string
           user_id: string
           venue_address?: string | null
@@ -621,11 +639,17 @@ export type Database = {
         }
         Update: {
           access_token?: string
+          accommodation_info?: string | null
+          accommodation_links?: Json | null
           booking_id?: string | null
           bride_name?: string
           ceremony_time?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           cover_image_url?: string | null
           created_at?: string
+          dress_code?: string | null
+          dress_code_colors?: Json | null
           event_date?: string
           event_time?: string | null
           google_maps_embed_url?: string | null
@@ -635,10 +659,13 @@ export type Database = {
           is_active?: boolean
           message?: string | null
           reception_time?: string | null
+          registry_info?: string | null
+          registry_url?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean
           template?: string
           theme_color?: string | null
+          timeline_events?: Json | null
           updated_at?: string
           user_id?: string
           venue_address?: string | null
