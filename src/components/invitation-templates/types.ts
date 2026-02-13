@@ -1,4 +1,4 @@
-export type TemplateType = 'classic' | 'modern' | 'floral' | 'minimal' | 'luxury' | 'watercolor' | 'artdeco' | 'tropical' | 'rustic' | 'bohemian' | 'vintage' | 'celestial' | 'botanical' | 'marble' | 'neon';
+export type TemplateType = 'classic' | 'modern' | 'floral' | 'minimal' | 'luxury' | 'watercolor' | 'artdeco' | 'tropical' | 'rustic' | 'bohemian' | 'vintage' | 'celestial' | 'botanical' | 'marble' | 'neon' | 'autumn';
 
 export interface TemplateConfig {
   id: TemplateType;
@@ -272,6 +272,23 @@ export const TEMPLATE_CONFIGS: TemplateConfig[] = [
       accent: '#ffff00',
       background: '#0a0a0a',
       text: '#ffffff',
+    },
+  },
+  {
+    id: 'autumn',
+    name: 'Autumn Romance',
+    description: 'อบอุ่น โรแมนติก ด้วยโทนสีฤดูใบไม้ร่วง',
+    preview: '/placeholder.svg',
+    fonts: {
+      heading: 'Great Vibes, cursive',
+      body: 'Lato, sans-serif',
+    },
+    colors: {
+      primary: '#c4662b',
+      secondary: '#d4956a',
+      accent: '#e8c4a0',
+      background: '#faf5ef',
+      text: '#4a3728',
     },
   },
 ];

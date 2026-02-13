@@ -49,6 +49,8 @@ import {
   useInvitationImages,
   useAddInvitationImage,
   useDeleteInvitationImage,
+  TimelineEvent,
+  AccommodationLink,
 } from '@/hooks/useWeddingInvitations';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -231,9 +233,10 @@ export default function WeddingInvitationDetail() {
           </div>
 
           <Tabs defaultValue="template">
-            <TabsList className="grid grid-cols-4">
+            <TabsList className="grid grid-cols-5">
               <TabsTrigger value="template">เทมเพลต</TabsTrigger>
               <TabsTrigger value="details">รายละเอียด</TabsTrigger>
+              <TabsTrigger value="extra">เพิ่มเติม</TabsTrigger>
               <TabsTrigger value="gallery">แกลเลอรี่</TabsTrigger>
               <TabsTrigger value="rsvp">RSVP</TabsTrigger>
             </TabsList>
@@ -253,6 +256,245 @@ export default function WeddingInvitationDetail() {
                   />
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="extra">
+              <div className="space-y-6">
+                {/* Timeline Events */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">กำหนดการ (Timeline)</CardTitle>
+                    <CardDescription>เพิ่มรายการกำหนดการวันงาน เช่น พิธี, ค็อกเทล, อาหาร</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(invitation.timeline_events as TimelineEvent[] || []).map((event: TimelineEvent, i: number) => (
+                      <div key={i} className="flex gap-2 items-end">
+                        <div className="w-24 space-y-1">
+                          <Label className="text-xs">เวลา</Label>
+                          <Input
+                            value={event.time}
+                            onChange={e => {
+                              const events = [...(invitation.timeline_events as TimelineEvent[] || [])];
+                              events[i] = { ...events[i], time: e.target.value };
+                              updateInvitation.mutate({ id: invitation.id, timeline_events: events } as any);
+                            }}
+                            placeholder="17:00"
+                          />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <Label className="text-xs">รายการ</Label>
+                          <Input
+                            value={event.title}
+                            onChange={e => {
+                              const events = [...(invitation.timeline_events as TimelineEvent[] || [])];
+                              events[i] = { ...events[i], title: e.target.value };
+                              updateInvitation.mutate({ id: invitation.id, timeline_events: events } as any);
+                            }}
+                            placeholder="พิธีมงคลสมรส"
+                          />
+                        </div>
+                        <div className="w-28 space-y-1">
+                          <Label className="text-xs">ไอคอน</Label>
+                          <select
+                            className="w-full h-9 rounded-md border border-input bg-background px-2 text-sm"
+                            value={event.icon || 'default'}
+                            onChange={e => {
+                              const events = [...(invitation.timeline_events as TimelineEvent[] || [])];
+                              events[i] = { ...events[i], icon: e.target.value };
+                              updateInvitation.mutate({ id: invitation.id, timeline_events: events } as any);
+                            }}
+                          >
+                            <option value="ceremony">💒 พิธี</option>
+                            <option value="cocktail">🍷 ค็อกเทล</option>
+                            <option value="photo">📸 ถ่ายรูป</option>
+                            <option value="dinner">🍽️ อาหาร</option>
+                            <option value="party">💃 ปาร์ตี้</option>
+                            <option value="default">⏰ ทั่วไป</option>
+                          </select>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            const events = (invitation.timeline_events as TimelineEvent[] || []).filter((_: any, idx: number) => idx !== i);
+                            updateInvitation.mutate({ id: invitation.id, timeline_events: events } as any);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const events = [...(invitation.timeline_events as TimelineEvent[] || []), { time: '', title: '', icon: 'default' }];
+                        updateInvitation.mutate({ id: invitation.id, timeline_events: events } as any);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-1" /> เพิ่มรายการ
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Dress Code */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Dress Code</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>คำอธิบาย</Label>
+                      <Textarea
+                        value={invitation.dress_code || ''}
+                        onChange={e => updateInvitation.mutate({ id: invitation.id, dress_code: e.target.value || null } as any)}
+                        placeholder="เช่น Semi-Formal, กรุณาแต่งกายตามโทนสีที่กำหนด"
+                        rows={2}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>โทนสี (คลิกเพื่อเพิ่ม/ลบ)</Label>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {(invitation.dress_code_colors as string[] || []).map((color: string, i: number) => (
+                          <button
+                            key={i}
+                            className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-pointer hover:opacity-70"
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                              const colors = (invitation.dress_code_colors as string[] || []).filter((_: string, idx: number) => idx !== i);
+                              updateInvitation.mutate({ id: invitation.id, dress_code_colors: colors } as any);
+                            }}
+                            title="คลิกเพื่อลบ"
+                          />
+                        ))}
+                        <Input
+                          type="color"
+                          className="w-8 h-8 p-0 cursor-pointer border-dashed"
+                          onChange={e => {
+                            const colors = [...(invitation.dress_code_colors as string[] || []), e.target.value];
+                            updateInvitation.mutate({ id: invitation.id, dress_code_colors: colors } as any);
+                          }}
+                          title="เพิ่มสี"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Accommodation */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">ที่พัก (Accommodation)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea
+                      value={invitation.accommodation_info || ''}
+                      onChange={e => updateInvitation.mutate({ id: invitation.id, accommodation_info: e.target.value || null } as any)}
+                      placeholder="ข้อมูลที่พักใกล้สถานที่จัดงาน"
+                      rows={3}
+                    />
+                    <div className="space-y-2">
+                      <Label>ลิงก์จองที่พัก</Label>
+                      {(invitation.accommodation_links as AccommodationLink[] || []).map((link: AccommodationLink, i: number) => (
+                        <div key={i} className="flex gap-2">
+                          <Input
+                            value={link.name}
+                            placeholder="ชื่อโรงแรม"
+                            onChange={e => {
+                              const links = [...(invitation.accommodation_links as AccommodationLink[] || [])];
+                              links[i] = { ...links[i], name: e.target.value };
+                              updateInvitation.mutate({ id: invitation.id, accommodation_links: links } as any);
+                            }}
+                          />
+                          <Input
+                            value={link.url}
+                            placeholder="https://..."
+                            onChange={e => {
+                              const links = [...(invitation.accommodation_links as AccommodationLink[] || [])];
+                              links[i] = { ...links[i], url: e.target.value };
+                              updateInvitation.mutate({ id: invitation.id, accommodation_links: links } as any);
+                            }}
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              const links = (invitation.accommodation_links as AccommodationLink[] || []).filter((_: any, idx: number) => idx !== i);
+                              updateInvitation.mutate({ id: invitation.id, accommodation_links: links } as any);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const links = [...(invitation.accommodation_links as AccommodationLink[] || []), { name: '', url: '' }];
+                          updateInvitation.mutate({ id: invitation.id, accommodation_links: links } as any);
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-1" /> เพิ่มที่พัก
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Registry */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Wedding Registry</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>คำอธิบาย</Label>
+                      <Textarea
+                        value={invitation.registry_info || ''}
+                        onChange={e => updateInvitation.mutate({ id: invitation.id, registry_info: e.target.value || null } as any)}
+                        placeholder="ข้อมูลเกี่ยวกับของขวัญ/registry"
+                        rows={2}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>ลิงก์ Registry</Label>
+                      <Input
+                        value={invitation.registry_url || ''}
+                        onChange={e => updateInvitation.mutate({ id: invitation.id, registry_url: e.target.value || null } as any)}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Contact */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">ข้อมูลติดต่อ</CardTitle>
+                    <CardDescription>แสดงในการ์ดเชิญให้แขกติดต่อ</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>อีเมล</Label>
+                        <Input
+                          value={invitation.contact_email || ''}
+                          onChange={e => updateInvitation.mutate({ id: invitation.id, contact_email: e.target.value || null } as any)}
+                          placeholder="email@example.com"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>เบอร์โทร</Label>
+                        <Input
+                          value={invitation.contact_phone || ''}
+                          onChange={e => updateInvitation.mutate({ id: invitation.id, contact_phone: e.target.value || null } as any)}
+                          placeholder="08x-xxx-xxxx"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="gallery">

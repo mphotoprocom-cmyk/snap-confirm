@@ -9,6 +9,7 @@ import { ModernTemplate } from '@/components/invitation-templates/ModernTemplate
 import { FloralTemplate } from '@/components/invitation-templates/FloralTemplate';
 import { MinimalTemplate } from '@/components/invitation-templates/MinimalTemplate';
 import { LuxuryTemplate } from '@/components/invitation-templates/LuxuryTemplate';
+import { AutumnRomanceTemplate } from '@/components/invitation-templates/AutumnRomanceTemplate';
 
 export default function PublicWeddingInvitation() {
   const { token } = useParams<{ token: string }>();
@@ -120,6 +121,8 @@ export default function PublicWeddingInvitation() {
       return <MinimalTemplate {...templateProps} />;
     case 'luxury':
       return <LuxuryTemplate {...templateProps} />;
+    case 'autumn':
+      return <AutumnRomanceTemplate {...templateProps} />;
     case 'classic':
     default:
       return <ClassicTemplate {...templateProps} />;

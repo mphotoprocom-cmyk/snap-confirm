@@ -5,6 +5,17 @@ import { toast } from 'sonner';
 
 import { TemplateType } from '@/components/invitation-templates/types';
 
+export interface TimelineEvent {
+  time: string;
+  title: string;
+  icon?: string;
+}
+
+export interface AccommodationLink {
+  name: string;
+  url: string;
+}
+
 export interface WeddingInvitation {
   id: string;
   user_id: string;
@@ -28,6 +39,15 @@ export interface WeddingInvitation {
   rsvp_deadline: string | null;
   view_count: number;
   template: TemplateType;
+  timeline_events: TimelineEvent[];
+  dress_code: string | null;
+  dress_code_colors: string[];
+  accommodation_info: string | null;
+  accommodation_links: AccommodationLink[];
+  registry_info: string | null;
+  registry_url: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -67,7 +87,7 @@ export function useWeddingInvitations() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as WeddingInvitation[];
+      return data as unknown as WeddingInvitation[];
     },
     enabled: !!user,
   });
@@ -87,7 +107,7 @@ export function useWeddingInvitation(id: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as WeddingInvitation;
+      return data as unknown as WeddingInvitation;
     },
     enabled: !!user && !!id,
   });
@@ -144,7 +164,7 @@ export function useCreateInvitation() {
         .single();
 
       if (error) throw error;
-      return data as WeddingInvitation;
+      return data as unknown as WeddingInvitation;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wedding-invitations'] });
@@ -163,13 +183,13 @@ export function useUpdateInvitation() {
     mutationFn: async ({ id, ...updates }: Partial<WeddingInvitation> & { id: string }) => {
       const { data, error } = await supabase
         .from('wedding_invitations')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return data as WeddingInvitation;
+      return data as unknown as WeddingInvitation;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['wedding-invitations'] });
