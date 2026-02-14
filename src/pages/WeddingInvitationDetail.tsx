@@ -465,6 +465,30 @@ export default function WeddingInvitationDetail() {
                         </Button>
                       </div>
                     ))}
+                    {(invitation.timeline_events as TimelineEvent[] || []).length === 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const defaults: TimelineEvent[] = [
+                            { time: '09:00', title: 'ต้อนรับแขก / ลงทะเบียน', icon: 'default' },
+                            { time: '09:30', title: 'พิธีหมั้น', icon: 'ceremony' },
+                            { time: '10:30', title: 'พิธีรดน้ำสังข์', icon: 'ceremony' },
+                            { time: '11:30', title: 'ถ่ายภาพหมู่ครอบครัว', icon: 'photo' },
+                            { time: '12:00', title: 'ร่วมรับประทานอาหารกลางวัน', icon: 'dinner' },
+                            { time: '17:00', title: 'ค็อกเทล ต้อนรับแขกงานเลี้ยง', icon: 'cocktail' },
+                            { time: '18:00', title: 'พิธีแต่งงาน', icon: 'ceremony' },
+                            { time: '18:30', title: 'เปิดตัวคู่บ่าวสาว & First Dance', icon: 'party' },
+                            { time: '19:00', title: 'ร่วมรับประทานอาหารเย็น', icon: 'dinner' },
+                            { time: '20:00', title: 'ตัดเค้ก & เปิดแชมเปญ', icon: 'party' },
+                            { time: '21:00', title: 'After Party', icon: 'party' },
+                          ];
+                          updateInvitation.mutate({ id: invitation.id, timeline_events: defaults } as any);
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-1" /> เพิ่มกำหนดการเริ่มต้น
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
