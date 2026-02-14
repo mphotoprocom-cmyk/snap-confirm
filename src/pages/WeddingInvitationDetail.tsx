@@ -258,6 +258,147 @@ export default function WeddingInvitationDetail() {
               </Card>
             </TabsContent>
 
+            <TabsContent value="details">
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  await updateInvitation.mutateAsync({
+                    id: invitation.id,
+                    ...formData,
+                    event_time: formData.event_time || null,
+                    ceremony_time: formData.ceremony_time || null,
+                    reception_time: formData.reception_time || null,
+                    venue_name: formData.venue_name || null,
+                    venue_address: formData.venue_address || null,
+                    google_maps_url: formData.google_maps_url || null,
+                    google_maps_embed_url: formData.google_maps_embed_url || null,
+                    message: formData.message || null,
+                    rsvp_deadline: formData.rsvp_deadline || null,
+                  } as any);
+                  toast.success('บันทึกสำเร็จ');
+                }}
+                className="space-y-6"
+              >
+                {/* Couple Info */}
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">ข้อมูลคู่บ่าวสาว</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="groom_name">ชื่อเจ้าบ่าว *</Label>
+                        <Input id="groom_name" value={formData.groom_name} onChange={e => setFormData(prev => ({ ...prev, groom_name: e.target.value }))} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="bride_name">ชื่อเจ้าสาว *</Label>
+                        <Input id="bride_name" value={formData.bride_name} onChange={e => setFormData(prev => ({ ...prev, bride_name: e.target.value }))} required />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Event Details */}
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">รายละเอียดงาน</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="event_date">วันที่จัดงาน *</Label>
+                        <Input id="event_date" type="date" value={formData.event_date} onChange={e => setFormData(prev => ({ ...prev, event_date: e.target.value }))} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="event_time">เวลางาน</Label>
+                        <Input id="event_time" type="time" value={formData.event_time} onChange={e => setFormData(prev => ({ ...prev, event_time: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="ceremony_time">เวลาพิธีการ</Label>
+                        <Input id="ceremony_time" type="time" value={formData.ceremony_time} onChange={e => setFormData(prev => ({ ...prev, ceremony_time: e.target.value }))} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="reception_time">เวลาเลี้ยงรับรอง</Label>
+                        <Input id="reception_time" type="time" value={formData.reception_time} onChange={e => setFormData(prev => ({ ...prev, reception_time: e.target.value }))} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Venue */}
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">สถานที่จัดงาน</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="venue_name">ชื่อสถานที่</Label>
+                      <Input id="venue_name" value={formData.venue_name} onChange={e => setFormData(prev => ({ ...prev, venue_name: e.target.value }))} placeholder="เช่น โรงแรม ABC" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="venue_address">ที่อยู่</Label>
+                      <Textarea id="venue_address" value={formData.venue_address} onChange={e => setFormData(prev => ({ ...prev, venue_address: e.target.value }))} placeholder="ที่อยู่เต็มของสถานที่จัดงาน" rows={2} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="google_maps_url">ลิงก์ Google Maps</Label>
+                      <Input id="google_maps_url" value={formData.google_maps_url} onChange={e => setFormData(prev => ({ ...prev, google_maps_url: e.target.value }))} placeholder="https://maps.google.com/..." />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="google_maps_embed_url">Google Maps Embed URL</Label>
+                      <Input id="google_maps_embed_url" value={formData.google_maps_embed_url} onChange={e => setFormData(prev => ({ ...prev, google_maps_embed_url: e.target.value }))} placeholder="https://www.google.com/maps/embed?..." />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Message */}
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">ข้อความเชิญ</CardTitle></CardHeader>
+                  <CardContent>
+                    <Textarea value={formData.message} onChange={e => setFormData(prev => ({ ...prev, message: e.target.value }))} placeholder="ด้วยความยินดียิ่ง ขอเชิญท่านร่วมเป็นเกียรติ..." rows={4} />
+                  </CardContent>
+                </Card>
+
+                {/* RSVP */}
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">การตอบรับ (RSVP)</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>เปิดให้แขกตอบรับ</Label>
+                        <p className="text-sm text-muted-foreground">แขกสามารถกดปุ่มตอบรับว่าจะมาหรือไม่มา</p>
+                      </div>
+                      <Switch checked={formData.rsvp_enabled} onCheckedChange={checked => setFormData(prev => ({ ...prev, rsvp_enabled: checked }))} />
+                    </div>
+                    {formData.rsvp_enabled && (
+                      <div className="space-y-2">
+                        <Label htmlFor="rsvp_deadline">กำหนดตอบรับภายใน</Label>
+                        <Input id="rsvp_deadline" type="date" value={formData.rsvp_deadline} onChange={e => setFormData(prev => ({ ...prev, rsvp_deadline: e.target.value }))} />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Theme & Status */}
+                <Card>
+                  <CardHeader><CardTitle className="text-lg">ตั้งค่า</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <Input type="color" value={formData.theme_color} onChange={e => setFormData(prev => ({ ...prev, theme_color: e.target.value }))} className="w-16 h-10 p-1 cursor-pointer" />
+                      <span className="text-sm text-muted-foreground">สีหลักที่จะใช้ในการ์ดเชิญ</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>เปิดใช้งานการ์ด</Label>
+                        <p className="text-sm text-muted-foreground">ปิดเพื่อซ่อนการ์ดจากผู้เข้าชม</p>
+                      </div>
+                      <Switch checked={formData.is_active} onCheckedChange={checked => setFormData(prev => ({ ...prev, is_active: checked }))} />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Button type="submit" className="w-full" disabled={updateInvitation.isPending}>
+                  {updateInvitation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  บันทึกข้อมูล
+                </Button>
+              </form>
+            </TabsContent>
+
             <TabsContent value="extra">
               <div className="space-y-6">
                 {/* Timeline Events */}
