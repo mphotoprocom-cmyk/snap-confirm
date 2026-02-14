@@ -20,6 +20,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import {
   Table,
   TableBody,
@@ -629,6 +630,101 @@ export default function WeddingInvitationDetail() {
                         placeholder="https://..."
                       />
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Section Backgrounds */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">รูปพื้นหลังแต่ละส่วน</CardTitle>
+                    <CardDescription>อัปโหลดรูปพื้นหลังและปรับความโปร่งใสสำหรับแต่ละส่วนของการ์ดเชิญ</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[
+                      { key: 'hero', label: 'ส่วนหัว (Hero)' },
+                      { key: 'countdown', label: 'นับถอยหลัง (Countdown)' },
+                      { key: 'venue', label: 'สถานที่ (Venue)' },
+                      { key: 'timeline', label: 'กำหนดการ (Timeline)' },
+                      { key: 'details', label: 'รายละเอียด (Details)' },
+                      { key: 'message', label: 'ข้อความ (Message)' },
+                      { key: 'registry', label: 'ของขวัญ (Registry)' },
+                      { key: 'rsvp', label: 'ตอบรับ (RSVP)' },
+                      { key: 'footer', label: 'ท้ายการ์ด (Footer)' },
+                    ].map(section => {
+                      const backgrounds = (invitation.section_backgrounds || {}) as Record<string, { image_url: string; opacity: number }>;
+                      const bg = backgrounds[section.key];
+                      return (
+                        <div key={section.key} className="border rounded-lg p-3 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Label className="font-medium text-sm">{section.label}</Label>
+                            {bg?.image_url && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-red-500 h-7"
+                                onClick={() => {
+                                  const updated = { ...backgrounds };
+                                  delete updated[section.key];
+                                  updateInvitation.mutate({ id: invitation.id, section_backgrounds: updated } as any);
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" /> ลบ
+                              </Button>
+                            )}
+                          </div>
+                          {bg?.image_url ? (
+                            <div className="space-y-2">
+                              <div className="relative h-20 rounded overflow-hidden">
+                                <img src={bg.image_url} alt="" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-white" style={{ opacity: 1 - (bg.opacity ?? 0.3) }} />
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Label className="text-xs whitespace-nowrap">ความโปร่งใส: {Math.round((bg.opacity ?? 0.3) * 100)}%</Label>
+                                <Slider
+                                  value={[Math.round((bg.opacity ?? 0.3) * 100)]}
+                                  min={5}
+                                  max={100}
+                                  step={5}
+                                  onValueCommit={(val) => {
+                                    const updated = { ...backgrounds, [section.key]: { ...bg, opacity: val[0] / 100 } };
+                                    updateInvitation.mutate({ id: invitation.id, section_backgrounds: updated } as any);
+                                  }}
+                                  className="flex-1"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <label className="block">
+                              <div className="border border-dashed rounded p-3 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+                                <ImageIcon className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground">คลิกเพื่ออัปโหลดรูปพื้นหลัง</p>
+                              </div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                hidden
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    const form = new FormData();
+                                    form.append('file', file);
+                                    form.append('folder', `invitation/${invitation.id}/backgrounds`);
+                                    const res = await supabase.functions.invoke('r2-storage?action=upload', { body: form });
+                                    if (res.error) throw res.error;
+                                    const updated = { ...backgrounds, [section.key]: { image_url: res.data.url, opacity: 0.3 } };
+                                    updateInvitation.mutate({ id: invitation.id, section_backgrounds: updated } as any);
+                                    toast.success('อัปโหลดสำเร็จ');
+                                  } catch (err: any) {
+                                    toast.error('อัปโหลดไม่สำเร็จ: ' + err.message);
+                                  }
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      );
+                    })}
                   </CardContent>
                 </Card>
 
