@@ -593,6 +593,7 @@ export type Database = {
           registry_url: string | null
           rsvp_deadline: string | null
           rsvp_enabled: boolean
+          section_backgrounds: Json | null
           template: string
           theme_color: string | null
           timeline_events: Json | null
@@ -628,6 +629,7 @@ export type Database = {
           registry_url?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean
+          section_backgrounds?: Json | null
           template?: string
           theme_color?: string | null
           timeline_events?: Json | null
@@ -663,6 +665,7 @@ export type Database = {
           registry_url?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean
+          section_backgrounds?: Json | null
           template?: string
           theme_color?: string | null
           timeline_events?: Json | null

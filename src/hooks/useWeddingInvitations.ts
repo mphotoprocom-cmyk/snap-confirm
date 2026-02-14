@@ -48,6 +48,7 @@ export interface WeddingInvitation {
   registry_url: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  section_backgrounds: Record<string, { image_url: string; opacity: number }>;
   created_at: string;
   updated_at: string;
 }

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ImageGallery } from './ImageGallery';
+import { SectionWithBackground } from './SectionWithBackground';
 
 interface InvitationImage {
   id: string;
@@ -58,6 +59,7 @@ export function AutumnRomanceTemplate({
   const timelineEvents = (invitation.timeline_events || []) as TimelineEvent[];
   const dressCodeColors = (invitation.dress_code_colors || []) as string[];
   const accommodationLinks = (invitation.accommodation_links || []) as AccommodationLink[];
+  const backgrounds = (invitation.section_backgrounds || {}) as Record<string, { image_url: string; opacity: number }>;
 
   const formatDate = (date: string) => {
     const d = new Date(date);
@@ -112,7 +114,7 @@ export function AutumnRomanceTemplate({
   return (
     <div className="min-h-screen" style={{ background: '#faf5ef', fontFamily: 'Lato, sans-serif' }}>
       {/* ===== HERO SECTION ===== */}
-      <section className="relative overflow-hidden">
+      <SectionWithBackground sectionKey="hero" backgrounds={backgrounds} className="overflow-hidden">
         {/* Cover image as background */}
         {invitation.cover_image_url && (
           <div className="w-full aspect-[3/4] md:aspect-[16/10] relative">
@@ -193,10 +195,10 @@ export function AutumnRomanceTemplate({
             <ChevronDown className="w-6 h-6 mx-auto animate-bounce" style={{ color: themeColor }} />
           </div>
         </div>
-      </section>
+      </SectionWithBackground>
 
       {/* ===== COUNTDOWN SECTION ===== */}
-      <section className="py-16 px-4" style={{ background: '#f5ebe0' }}>
+      <SectionWithBackground sectionKey="countdown" backgrounds={backgrounds} className="py-16 px-4" style={{ background: '#f5ebe0' }}>
         <div className="max-w-lg mx-auto">
           <SectionTitle title="Countdown" subtitle="นับถอยหลังสู่วันสำคัญ" />
 
@@ -228,7 +230,7 @@ export function AutumnRomanceTemplate({
             ))}
           </div>
         </div>
-      </section>
+      </SectionWithBackground>
 
       {/* ===== GALLERY (between countdown and venue) ===== */}
       {images.length > 0 && (
@@ -239,7 +241,7 @@ export function AutumnRomanceTemplate({
 
       {/* ===== VENUE SECTION ===== */}
       {(invitation.venue_name || invitation.venue_address) && (
-        <section className="py-16 px-4" style={{ background: '#faf5ef' }}>
+        <SectionWithBackground sectionKey="venue" backgrounds={backgrounds} className="py-16 px-4" style={{ background: '#faf5ef' }}>
           <div className="max-w-lg mx-auto">
             <SectionTitle title="Venue" subtitle={invitation.venue_name || 'สถานที่จัดงาน'} />
 
@@ -277,12 +279,12 @@ export function AutumnRomanceTemplate({
               </div>
             )}
           </div>
-        </section>
+        </SectionWithBackground>
       )}
 
       {/* ===== THE DAY - TIMELINE ===== */}
       {timelineEvents.length > 0 && (
-        <section className="py-16 px-4" style={{ background: '#f5ebe0' }}>
+        <SectionWithBackground sectionKey="timeline" backgrounds={backgrounds} className="py-16 px-4" style={{ background: '#f5ebe0' }}>
           <div className="max-w-md mx-auto">
             <SectionTitle title="The Day" subtitle="กำหนดการ" />
 
@@ -309,12 +311,12 @@ export function AutumnRomanceTemplate({
               ))}
             </div>
           </div>
-        </section>
+        </SectionWithBackground>
       )}
 
       {/* ===== SCHEDULE (ceremony/reception if no timeline) ===== */}
       {timelineEvents.length === 0 && (invitation.ceremony_time || invitation.reception_time) && (
-        <section className="py-16 px-4" style={{ background: '#f5ebe0' }}>
+        <SectionWithBackground sectionKey="timeline" backgrounds={backgrounds} className="py-16 px-4" style={{ background: '#f5ebe0' }}>
           <div className="max-w-md mx-auto">
             <SectionTitle title="The Day" subtitle="กำหนดการ" />
             <div className="space-y-4">
@@ -352,12 +354,12 @@ export function AutumnRomanceTemplate({
               )}
             </div>
           </div>
-        </section>
+        </SectionWithBackground>
       )}
 
       {/* ===== THE DETAILS ===== */}
       {(invitation.dress_code || invitation.accommodation_info) && (
-        <section className="py-16 px-4" style={{ background: '#faf5ef' }}>
+        <SectionWithBackground sectionKey="details" backgrounds={backgrounds} className="py-16 px-4" style={{ background: '#faf5ef' }}>
           <div className="max-w-md mx-auto">
             <SectionTitle title="Details" subtitle="รายละเอียด" />
 
@@ -414,12 +416,12 @@ export function AutumnRomanceTemplate({
               </div>
             )}
           </div>
-        </section>
+        </SectionWithBackground>
       )}
 
       {/* ===== MESSAGE ===== */}
       {invitation.message && (
-        <section className="py-16 px-4" style={{ background: '#f5ebe0' }}>
+        <SectionWithBackground sectionKey="message" backgrounds={backgrounds} className="py-16 px-4" style={{ background: '#f5ebe0' }}>
           <div className="max-w-md mx-auto text-center">
             <p
               className="text-lg leading-relaxed whitespace-pre-wrap italic"
@@ -428,12 +430,12 @@ export function AutumnRomanceTemplate({
               "{invitation.message}"
             </p>
           </div>
-        </section>
+        </SectionWithBackground>
       )}
 
       {/* ===== WEDDING REGISTRY ===== */}
       {(invitation.registry_info || invitation.registry_url) && (
-        <section className="py-16 px-4" style={{ background: '#faf5ef' }}>
+        <SectionWithBackground sectionKey="registry" backgrounds={backgrounds} className="py-16 px-4" style={{ background: '#faf5ef' }}>
           <div className="max-w-md mx-auto text-center">
             <SectionTitle title="Wedding Registry" />
 
@@ -462,12 +464,12 @@ export function AutumnRomanceTemplate({
               thank you
             </p>
           </div>
-        </section>
+        </SectionWithBackground>
       )}
 
       {/* ===== RSVP SECTION ===== */}
       {rsvpEnabled && (
-        <section className="py-16 px-4" style={{ background: 'linear-gradient(180deg, #f5ebe0 0%, #faf5ef 100%)' }}>
+        <SectionWithBackground sectionKey="rsvp" backgrounds={backgrounds} className="py-16 px-4" style={{ background: 'linear-gradient(180deg, #f5ebe0 0%, #faf5ef 100%)' }}>
           <div className="max-w-md mx-auto">
             {/* Big RSVP Typography */}
             <div className="text-center mb-6">
@@ -627,11 +629,11 @@ export function AutumnRomanceTemplate({
               </div>
             )}
           </div>
-        </section>
+        </SectionWithBackground>
       )}
 
       {/* ===== FOOTER ===== */}
-      <section className="py-12 px-4 text-center" style={{ background: '#faf5ef' }}>
+      <SectionWithBackground sectionKey="footer" backgrounds={backgrounds} className="py-12 px-4 text-center" style={{ background: '#faf5ef' }}>
         <p
           className="text-sm tracking-wider mb-2"
           style={{ fontFamily: 'Lato, sans-serif', color: '#8a7060' }}
@@ -649,7 +651,7 @@ export function AutumnRomanceTemplate({
             Invitation by {profile.studio_name}
           </p>
         )}
-      </section>
+      </SectionWithBackground>
     </div>
   );
 }
