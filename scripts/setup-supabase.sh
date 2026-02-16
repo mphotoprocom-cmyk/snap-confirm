@@ -75,22 +75,13 @@ echo ""
 
 # 6. ตั้ง secrets
 echo "[Step 5] Setting Edge Function secrets..."
-echo "  Please enter your Cloudflare R2 credentials:"
-echo ""
-
-read -p "  R2_BUCKET_NAME: " R2_BUCKET_NAME
-read -p "  R2_PUBLIC_URL: " R2_PUBLIC_URL
-read -p "  R2_ACCOUNT_ID: " R2_ACCOUNT_ID
-read -p "  R2_ACCESS_KEY_ID: " R2_ACCESS_KEY_ID
-read -s -p "  R2_SECRET_ACCESS_KEY: " R2_SECRET_ACCESS_KEY
-echo ""
 
 supabase secrets set \
-    R2_BUCKET_NAME="$R2_BUCKET_NAME" \
-    R2_PUBLIC_URL="$R2_PUBLIC_URL" \
-    R2_ACCOUNT_ID="$R2_ACCOUNT_ID" \
-    R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
-    R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+    R2_ACCOUNT_ID="28916349161dc28ee5b7ea0a567d7400" \
+    R2_ACCESS_KEY_ID="17f998d7b4e4e0faf2e9c99617a05ea8" \
+    R2_SECRET_ACCESS_KEY="9d62f99039fd1084b677d43c0299ccd281f2eeccc054b3317d823a0966c01fed" \
+    R2_BUCKET_NAME="bookingmphoto" \
+    R2_PUBLIC_URL="https://pub-966655422ff642f1a97b057758c57e87.r2.dev"
 
 echo "[OK] Secrets configured"
 echo ""
